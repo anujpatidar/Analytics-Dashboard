@@ -1,0 +1,319 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Shopify Analytics Dashboard - Lambda Functions Stack'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Deployment environment
+  
+  ShopifyAccessToken:
+    Type: String
+    NoEcho: true
+    Description: Shopify Admin API Access Token
+  
+  ShopifyStoreUrl:
+    Type: String
+    Description: Shopify Store URL (e.g. mystore.myshopify.com)
+  
+  DeploymentBucket:
+    Type: String
+    Description: S3 bucket where Lambda code packages are stored
+  
+  CorsOrigin:
+    Type: String
+    Default: '*'
+    Description: CORS allowed origins
+  
+  LowStockThreshold:
+    Type: Number
+    Default: 5
+    Description: Threshold for low stock alerts
+  
+  SyncInterval:
+    Type: Number
+    Default: 15
+    Description: Interval in minutes between data synchronizations
+
+Resources:
+  # DynamoDB Tables
+  ShopifyOrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ShopifyOrders-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: DateIndex
+          KeySchema:
+            - AttributeName: date
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  ShopifyProductsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ShopifyProducts-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  ShopifyCustomersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ShopifyCustomers-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+
+  ShopifySyncMetadataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub ShopifySyncMetadata-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: syncId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: syncId
+          KeyType: HASH
+
+  # IAM Role for Lambda functions
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:BatchWriteItem
+                Resource:
+                  - !GetAtt ShopifyOrdersTable.Arn
+                  - !GetAtt ShopifyProductsTable.Arn
+                  - !GetAtt ShopifyCustomersTable.Arn
+                  - !GetAtt ShopifySyncMetadataTable.Arn
+                  - !Sub "${ShopifyOrdersTable.Arn}/index/*"
+
+  # Lambda Functions
+  ApiLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ShopifyAnalyticsDashboardApi-${Environment}
+      Description: Shopify Analytics Dashboard API
+      Code:
+        S3Bucket: !Ref DeploymentBucket
+        S3Key: !Sub ${Environment}/api-lambda.zip
+      Handler: apiLambda.handler
+      Runtime: nodejs18.x
+      Timeout: 30
+      MemorySize: 512
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          NODE_ENV: !Ref Environment
+          SHOPIFY_ACCESS_TOKEN: !Ref ShopifyAccessToken
+          SHOPIFY_STORE_URL: !Ref ShopifyStoreUrl
+          ORDERS_TABLE: !Ref ShopifyOrdersTable
+          PRODUCTS_TABLE: !Ref ShopifyProductsTable
+          CUSTOMERS_TABLE: !Ref ShopifyCustomersTable
+          SYNC_METADATA_TABLE: !Ref ShopifySyncMetadataTable
+          CORS_ORIGIN: !Ref CorsOrigin
+          LOW_STOCK_THRESHOLD: !Ref LowStockThreshold
+          AWS_REGION: !Ref "AWS::Region"
+
+  SyncLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ShopifyAnalyticsDashboardSync-${Environment}
+      Description: Shopify Data Synchronization
+      Code:
+        S3Bucket: !Ref DeploymentBucket
+        S3Key: !Sub ${Environment}/sync-lambda.zip
+      Handler: shopifySync.handler
+      Runtime: nodejs18.x
+      Timeout: 900 # 15 minutes maximum for long-running sync
+      MemorySize: 1024
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          NODE_ENV: !Ref Environment
+          SHOPIFY_ACCESS_TOKEN: !Ref ShopifyAccessToken
+          SHOPIFY_STORE_URL: !Ref ShopifyStoreUrl
+          ORDERS_TABLE: !Ref ShopifyOrdersTable
+          PRODUCTS_TABLE: !Ref ShopifyProductsTable
+          CUSTOMERS_TABLE: !Ref ShopifyCustomersTable
+          SYNC_METADATA_TABLE: !Ref ShopifySyncMetadataTable
+          AWS_REGION: !Ref "AWS::Region"
+
+  # EventBridge rule to trigger sync more frequently for near real-time data
+  SyncSchedule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub ShopifySyncSchedule-${Environment}
+      Description: Schedule for Shopify data synchronization
+      ScheduleExpression: !Sub 'rate(${SyncInterval} minutes)'
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt SyncLambdaFunction.Arn
+          Id: ShopifySyncTarget
+
+  # Permission for EventBridge to invoke Lambda
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SyncLambdaFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt SyncSchedule.Arn
+
+  # API Gateway
+  ApiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub ShopifyAnalyticsDashboardApi-${Environment}
+      Description: API Gateway for Shopify Analytics Dashboard
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+
+  ApiGatewayRootMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !GetAtt ApiGateway.RootResourceId
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations
+
+  ApiGatewayProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: '{proxy+}'
+
+  ApiGatewayProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref ApiGatewayProxyResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${ApiLambdaFunction.Arn}/invocations
+
+  # Manual Sync API endpoint
+  SyncResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ParentId: !GetAtt ApiGateway.RootResourceId
+      PathPart: 'sync'
+  
+  SyncMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGateway
+      ResourceId: !Ref SyncResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SyncLambdaFunction.Arn}/invocations
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - ApiGatewayRootMethod
+      - ApiGatewayProxyMethod
+      - SyncMethod
+    Properties:
+      RestApiId: !Ref ApiGateway
+      StageName: !Ref Environment
+
+  # Lambda permission for API Gateway
+  LambdaApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref ApiLambdaFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/*
+  
+  # Lambda permission for Sync API Gateway
+  SyncLambdaApiPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SyncLambdaFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGateway}/*/*/*
+
+Outputs:
+  ApiEndpoint:
+    Description: URL of the API Gateway endpoint
+    Value: !Sub https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/
+    Export:
+      Name: !Sub ${AWS::StackName}-ApiEndpoint
+  
+  ShopifyOrdersTable:
+    Description: DynamoDB Table for Shopify Orders
+    Value: !Ref ShopifyOrdersTable
+    Export:
+      Name: !Sub ${AWS::StackName}-ShopifyOrdersTable
+  
+  ShopifyProductsTable:
+    Description: DynamoDB Table for Shopify Products
+    Value: !Ref ShopifyProductsTable
+    Export:
+      Name: !Sub ${AWS::StackName}-ShopifyProductsTable
+  
+  ShopifyCustomersTable:
+    Description: DynamoDB Table for Shopify Customers
+    Value: !Ref ShopifyCustomersTable
+    Export:
+      Name: !Sub ${AWS::StackName}-ShopifyCustomersTable 
