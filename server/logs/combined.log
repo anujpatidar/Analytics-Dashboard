@@ -1,0 +1,30 @@
+{"level":"info","message":"Server running in undefined mode on port 3000","timestamp":"2025-04-24T11:49:19.408Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:49:36.088Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:51:16.380Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [24/Apr/2025:11:53:20 +0000] \"POST /api/products HTTP/1.1\" 404 152 \"-\" \"Thunder Client (https://www.thunderclient.com)\"","timestamp":"2025-04-24T11:53:20.547Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:54:34.248Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:54:35.529Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:54:39.389Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:54:40.957Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:54:44.940Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:54:46.243Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:55:10.873Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:55:10.974Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:56:22.957Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [24/Apr/2025:11:56:28 +0000] \"POST /api/products HTTP/1.1\" 404 152 \"-\" \"Thunder Client (https://www.thunderclient.com)\"","timestamp":"2025-04-24T11:56:28.701Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [24/Apr/2025:11:56:49 +0000] \"POST /api/products HTTP/1.1\" 404 152 \"-\" \"Thunder Client (https://www.thunderclient.com)\"","timestamp":"2025-04-24T11:56:49.104Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:57:23.542Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:57:36.285Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:58:04.536Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:58:15.475Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:58:15.613Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T11:59:02.211Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T12:16:13.930Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T12:16:27.715Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T12:17:03.761Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [24/Apr/2025:12:17:15 +0000] \"POST /api/products HTTP/1.1\" 200 - \"-\" \"Thunder Client (https://www.thunderclient.com)\"","timestamp":"2025-04-24T12:17:15.028Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T12:19:37.546Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [24/Apr/2025:12:19:48 +0000] \"POST /api/v1/get-products HTTP/1.1\" 200 - \"-\" \"Thunder Client (https://www.thunderclient.com)\"","timestamp":"2025-04-24T12:19:48.730Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T12:28:34.536Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [24/Apr/2025:12:28:42 +0000] \"POST /api/v1/get-products HTTP/1.1\" 200 - \"-\" \"Thunder Client (https://www.thunderclient.com)\"","timestamp":"2025-04-24T12:28:42.200Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-04-24T12:29:31.513Z"}
