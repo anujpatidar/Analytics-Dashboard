@@ -14,6 +14,7 @@ const Content = styled.main`
   flex-direction: column;
   overflow-x: hidden;
   background-color: var(--background-accent);
+  margin-left: 260px; /* Same as sidebar width */
 `;
 
 const MainContent = styled.div`
