@@ -3,6 +3,8 @@ const logger = require('../utils/logger');
 
 const { DynamoDBClient, ListTablesCommand } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
+const valkeyClient = require('../config/valkey');
+const chalk=require('chalk');
 // Configure AWS SDK
 // Initialize DynamoDB client with detailed logging
 const client = new DynamoDBClient({
@@ -22,13 +24,34 @@ const productsController = {
 
   getAllProductsList: async (req, res, next) => {
     try {
-      console.log(`Attempting to scan table: ${req.params.tableName}`);
+      const cacheKey = 'get_all_products';
+      
+      // Try to get data from cache first
+      const cachedData = await valkeyClient.get(cacheKey);
+      
+      if (cachedData) {
+       console.log(chalk.bgGreen('Cache hit for all products')); 
+        return res.status(200).json({ 
+          success: true, 
+          data: JSON.parse(cachedData),
+          fromCache: true 
+        });
+      }
+      
+      // If not in cache, fetch from DynamoDB
+      console.log(chalk.bgYellow('Cache miss for all products, fetching from DynamoDB'));
       const command = new ScanCommand({
         TableName: "ShopifyProducts-dev",
       });
+      
       const response = await docClient.send(command);
+      
+      // Store in cache permanently (no expiration)
+      await valkeyClient.set(cacheKey, JSON.stringify(response.Items));
+      
       res.status(200).json({ success: true, data: response.Items });
     } catch (error) {
+      logger.error('Error fetching all products:', error);
       next(error);
     }
   },
@@ -36,13 +59,36 @@ const productsController = {
   getProductById: async (req, res, next) => {
     try {
       const { productId } = req.params;
+      const cacheKey = `get_product_by_id:${productId}`;      
+      // Try to get data from cache first
+      const cachedData = await valkeyClient.get(cacheKey);
+      
+      if (cachedData) {
+        console.log(chalk.bgGreen(`Cache hit for product ${productId}`));
+        return res.status(200).json({ 
+          success: true, 
+          data: JSON.parse(cachedData),
+          fromCache: true 
+        });
+      }
+      
+      // If not in cache, fetch from DynamoDB
+      console.log(chalk.bgYellow(`Cache miss for product ${productId}, fetching from DynamoDB`));
       const command = new GetCommand({
         TableName: "ShopifyProducts-dev",
         Key: { id: productId }
       });
+      
       const response = await docClient.send(command);
+      
+      if (response.Item) {
+        // Store in cache permanently (no expiration)
+        await valkeyClient.set(cacheKey, JSON.stringify(response.Item));
+      }
+      
       res.status(200).json({ success: true, data: response.Item });
     } catch (error) {
+      console.log(chalk.bgRed(`Error fetching product ${req.params.productId}:`), error);
       next(error);
     }
   }

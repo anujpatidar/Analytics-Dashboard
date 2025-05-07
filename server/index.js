@@ -6,10 +6,31 @@ const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const logger = require('./utils/logger');
+const Redis=require('ioredis');
 const errorHandler = require('./middleware/errorHandler');
 const productRoutes = require('./routes/productRoutes');
 
 const app = express();
+
+const valkeyClient = new Redis({
+  host: process.env.VALKEY_HOST || 'localhost',
+  port: process.env.VALKEY_PORT || 6379,
+  password: process.env.VALKEY_PASSWORD || '',
+  // Optional configurations
+  connectTimeout: 10000,
+  retryStrategy: (times) => {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  }
+});
+
+valkeyClient.on('connect', () => {
+  logger.info('Connected to Valkey server');
+});
+
+valkeyClient.on('error', (err) => {
+  logger.error('Valkey connection error:', err);
+});
 
 // Security middleware
 app.use(helmet());
@@ -39,3 +60,6 @@ const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 }); 
+
+
+
