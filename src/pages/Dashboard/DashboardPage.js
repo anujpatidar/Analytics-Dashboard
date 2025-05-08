@@ -136,16 +136,7 @@ const DashboardPage = () => {
     console.log('Has AWS Access Key:', !!process.env.REACT_APP_AWS_ACCESS_KEY_ID);
     console.log('Orders Table:', process.env.REACT_APP_DYNAMODB_ORDERS_TABLE);
   }, []);
-  
-  // Add a handler for the test button
-  const handleTestAWSConnection = () => {
-    runAWSTest();
-  };
 
-  // Add a handler for the list tables button
-  const handleListTables = () => {
-    showAllTables();
-  };
 
   // Handler for timeframe change
   const handleTimeframeChange = (newTimeframe) => {
@@ -329,14 +320,7 @@ const DashboardPage = () => {
               Loading...
             </span>
           )}
-          <ButtonRow>
-            <TestButton onClick={handleTestAWSConnection}>
-              Test AWS Connection
-            </TestButton>
-            <TestButton onClick={handleListTables}>
-              List DynamoDB Tables
-            </TestButton>
-          </ButtonRow>
+
         </h1>
         <p>Welcome back! Here's an overview of your Shopify store performance.</p>
       </PageTitle>
