@@ -172,6 +172,12 @@ const Sidebar = () => {
                 Customers
               </NavLink>
             </NavItem>
+            <NavItem>
+              <NavLink to="/marketplace-prices" active={isActive('/marketplace-prices')}>
+                <FiUsers />
+                Marketplace Prices
+              </NavLink>
+            </NavItem>
           </NavList>
         </NavSection>
         

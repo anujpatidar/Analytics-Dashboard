@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import ProductsPage from './pages/Products/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage/ProductDetailsPage';
+import MarketPlacePrices from './pages/MarketPlacePrices/MarketPlacePrices';
 // Routes to be implemented later
 const SalesPage = () => <div>Sales Page - Coming Soon</div>;
 const CustomersPage = () => <div>Customers Page - Coming Soon</div>;
@@ -24,6 +25,7 @@ function App() {
           <Route path="/sales" element={<SalesPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:productId" element={<ProductDetailsPage />} />
+          <Route path="/marketplace-prices" element={<MarketPlacePrices />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/performance" element={<PerformancePage />} />
           <Route path="/trends" element={<TrendsPage />} />

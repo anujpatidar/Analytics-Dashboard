@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import { 
   Chart as ChartJS, 
@@ -45,68 +44,6 @@ ChartJS.register(
   Filler
 );
 
-const DashboardContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-`;
-
-const PageTitle = styled.div`
-  margin-bottom: var(--spacing-lg);
-  
-  h1 {
-    margin-bottom: var(--spacing-xs);
-  }
-  
-  p {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    margin-bottom: 0;
-  }
-`;
-
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: var(--spacing-lg);
-`;
-
-const ChartsRow = styled.div`
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-lg);
-  
-  @media (max-width: 1200px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const OrdersSection = styled.div`
-  margin-top: var(--spacing-lg);
-`;
-
-// Add a styled button for testing
-const TestButton = styled.button`
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 14px;
-  cursor: pointer;
-  margin-left: 16px;
-  
-  &:hover {
-    background-color: #e0e0e0;
-  }
-`;
-
-// Button row for multiple actions
-const ButtonRow = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-left: 16px;
-`;
-
 const DashboardPage = () => {
   const [timeframe, setTimeframe] = useState('week');
   
@@ -136,7 +73,6 @@ const DashboardPage = () => {
     console.log('Has AWS Access Key:', !!process.env.REACT_APP_AWS_ACCESS_KEY_ID);
     console.log('Orders Table:', process.env.REACT_APP_DYNAMODB_ORDERS_TABLE);
   }, []);
-
 
   // Handler for timeframe change
   const handleTimeframeChange = (newTimeframe) => {
@@ -311,21 +247,13 @@ const DashboardPage = () => {
   ];
   
   return (
-    <DashboardContainer>
-      <PageTitle>
-        <h1>
-          Dashboard
-          {(summaryLoading || salesLoading || ordersLoading) && (
-            <span style={{ marginLeft: '10px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-              Loading...
-            </span>
-          )}
+    <div className="flex flex-col gap-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
+        <p className="text-gray-600">Welcome to your analytics dashboard</p>
+      </div>
 
-        </h1>
-        <p>Welcome back! Here's an overview of your Shopify store performance.</p>
-      </PageTitle>
-      
-      <StatsGrid>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {summaryLoading ? (
           <div>Loading stats...</div>
         ) : (
@@ -360,9 +288,9 @@ const DashboardPage = () => {
             />
           </>
         )}
-      </StatsGrid>
-      
-      <ChartsRow>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ChartCard 
           title="Revenue Overview" 
           subtitle={`Total: ${formatCurrency(salesData?.totalRevenue || 0)}`}
@@ -398,24 +326,24 @@ const DashboardPage = () => {
             <Pie data={customerAcquisitionData} options={customerAcquisitionOptions} />
           </div>
         </ChartCard>
-      </ChartsRow>
-      
-      <ChartCard 
-        title="Orders Trend" 
-        subtitle={`Total Orders: ${formatNumber(salesData?.totalOrders || 0)}`}
-        legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
-        timeframes={['Day', 'Week', 'Month', 'Year']}
-        activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-        onTimeframeChange={handleTimeframeChange}
-      >
-        {!salesLoading && salesData && (
-          <div style={{ width: '100%', height: '300px' }}>
-            <Bar data={ordersChartData} options={ordersChartOptions} />
-          </div>
-        )}
-      </ChartCard>
-      
-      <OrdersSection>
+        
+        <ChartCard 
+          title="Orders Trend" 
+          subtitle={`Total Orders: ${formatNumber(salesData?.totalOrders || 0)}`}
+          legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
+          timeframes={['Day', 'Week', 'Month', 'Year']}
+          activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
+          onTimeframeChange={handleTimeframeChange}
+        >
+          {!salesLoading && salesData && (
+            <div style={{ width: '100%', height: '300px' }}>
+              <Bar data={ordersChartData} options={ordersChartOptions} />
+            </div>
+          )}
+        </ChartCard>
+      </div>
+
+      <div className="mt-6">
         <DataTable 
           title="Recent Orders"
           columns={ordersColumns}
@@ -423,19 +351,26 @@ const DashboardPage = () => {
           pagination={true}
           loading={ordersLoading}
         />
-      </OrdersSection>
-    </DashboardContainer>
+      </div>
+    </div>
   );
 };
 
-const StatusBadge = styled.span`
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: var(--border-radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
-  background-color: ${props => `var(--${props.color}-color)`};
-  color: white;
-`;
+const StatusBadge = ({ color, children }) => {
+  const colorClasses = {
+    success: 'bg-green-500',
+    primary: 'bg-blue-500',
+    secondary: 'bg-blue-400',
+    danger: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    grey: 'bg-gray-500'
+  };
+
+  return (
+    <span className={`inline-block px-2 py-1 rounded text-sm font-medium text-white ${colorClasses[color] || colorClasses.grey}`}>
+      {children}
+    </span>
+  );
+};
 
 export default DashboardPage; 

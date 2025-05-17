@@ -1,10 +1,12 @@
 
 const logger = require('../utils/logger');
-
+const path=require('path');
 const { DynamoDBClient, ListTablesCommand } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const valkeyClient = require('../config/valkey');
 const chalk=require('chalk');
+const fetchProductsWithVariants=require('../utils/fetchmarketplaceprice');
+
 // Configure AWS SDK
 // Initialize DynamoDB client with detailed logging
 const client = new DynamoDBClient({
@@ -91,10 +93,44 @@ const productsController = {
       console.log(chalk.bgRed(`Error fetching product ${req.params.productId}:`), error);
       next(error);
     }
+  },
+
+  getMarketplacePrices: async (req, res, next) => {
+    try {
+      
+      const cacheKey = `get_marketplace_prices`;
+
+      // Try to get data from cache first
+      const cachedData = await valkeyClient.get(cacheKey);
+      
+      if (cachedData) {
+        console.log(chalk.bgGreen(`Cache hit for marketplace prices.`));
+        return res.status(200).json({ 
+          success: true, 
+          data: JSON.parse(cachedData),
+          fromCache: true 
+        });
+      }
+      
+      // If not in cache, fetch from DynamoDB
+      console.log(chalk.bgYellow(`Cache miss for marketplace prices .}, fetching from DynamoDB`));
+      const products = await fetchProductsWithVariants();
+
+      //store in cache
+      await valkeyClient.set(cacheKey, JSON.stringify(products));
+
+      console.log(chalk.bgGreen(`Fetched ${products.length} products with variants`));
+      res.status(200).json({ success: true, data: products });
+    } catch (error) {
+      logger.error('Error fetching marketplace prices:', error);
+      next(error);
+    }
   }
 
   
 
 };
+
+
 
 module.exports = productsController; 
