@@ -1,4 +1,27 @@
-import React, { useState, useEffect } from 'react';
+// 1. Average Shopify Price (Low to High) – shopify-asc
+// Sorts products in ascending order based on the average Shopify price across all their variants.
+
+// 2. Average Shopify Price (High to Low) – shopify-desc
+// Sorts products in descending order based on the average Shopify price.
+
+// 3. Amazon - Shopify Price Difference (Descending) – amazon-shopify-diff
+// Calculates the average price on Amazon minus average Shopify price.
+
+// Sorts in descending order: products where Amazon is much higher than Shopify appear first.
+
+// 4. Shopify - Amazon Price Difference (Descending) – shopify-amazon-diff
+// Calculates the average Shopify price minus average Amazon price.
+
+// Sorts in descending order: products where Shopify is overpriced vs Amazon show up first.
+
+// 5. Max Variant Price Difference (Descending) – max-diff
+// Calculates the largest price gap between any two platforms (Amazon, Shopify, Flipkart) across all variants in a product.
+
+// Highlights products with inconsistent or volatile pricing across marketplaces.
+
+// 6. Product Name A–Z (Default) – name
+// Alphabetical sort by product title.
+import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 
@@ -7,6 +30,8 @@ const MarketPlacePrices = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedProducts, setExpandedProducts] = useState({});
+  const [sortOption, setSortOption] = useState('name');
+  const [filterOption, setFilterOption] = useState('all');
   
   useEffect(() => {
     fetchProducts();
@@ -28,6 +53,113 @@ const MarketPlacePrices = () => {
       setLoading(false);
     }
   };
+
+  // Compute product metrics
+  const productMetrics = useMemo(() => {
+    return products.map(product => {
+      const metrics = {
+        product_id: product.product_id,
+        title: product.title,
+        variants: product.variants,
+        avgShopifyPrice: 0,
+        avgAmazonPrice: 0,
+        avgFlipkartPrice: 0,
+        maxPriceDifference: 0,
+        amazonShopifyDiff: 0,
+        shopifyAmazonDiff: 0,
+        hasAmazonHigher: false,
+        hasShopifyHigher: false
+      };
+
+      let shopifyCount = 0, amazonCount = 0, flipkartCount = 0;
+      let shopifySum = 0, amazonSum = 0, flipkartSum = 0;
+
+      product.variants.forEach(variant => {
+        const { prices } = variant;
+        
+        // Calculate averages
+        if (prices.shopify !== null) {
+          shopifySum += prices.shopify;
+          shopifyCount++;
+        }
+        if (prices.amazon !== null) {
+          amazonSum += prices.amazon;
+          amazonCount++;
+        }
+        if (prices.flipkart !== null) {
+          flipkartSum += prices.flipkart;
+          flipkartCount++;
+        }
+
+        // Check price differences
+        if (prices.amazon !== null && prices.shopify !== null) {
+          const diff = prices.amazon - prices.shopify;
+          if (diff > 0) metrics.hasAmazonHigher = true;
+          if (diff < 0) metrics.hasShopifyHigher = true;
+        }
+
+        // Calculate max price difference for this variant
+        const validPrices = [prices.amazon, prices.shopify, prices.flipkart].filter(p => p !== null);
+        if (validPrices.length > 1) {
+          const maxDiff = Math.max(...validPrices) - Math.min(...validPrices);
+          metrics.maxPriceDifference = Math.max(metrics.maxPriceDifference, maxDiff);
+        }
+      });
+
+      // Calculate averages
+      metrics.avgShopifyPrice = shopifyCount ? shopifySum / shopifyCount : 0;
+      metrics.avgAmazonPrice = amazonCount ? amazonSum / amazonCount : 0;
+      metrics.avgFlipkartPrice = flipkartCount ? flipkartSum / flipkartCount : 0;
+
+      // Calculate price differences
+      metrics.amazonShopifyDiff = metrics.avgAmazonPrice - metrics.avgShopifyPrice;
+      metrics.shopifyAmazonDiff = metrics.avgShopifyPrice - metrics.avgAmazonPrice;
+
+      return metrics;
+    });
+  }, [products]);
+
+  // Sort and filter products
+  const processedProducts = useMemo(() => {
+    let result = [...productMetrics];
+
+    // Apply filters
+    switch (filterOption) {
+      case 'amazon-higher':
+        result = result.filter(p => p.hasAmazonHigher);
+        break;
+      case 'shopify-higher':
+        result = result.filter(p => p.hasShopifyHigher);
+        break;
+      default:
+        break;
+    }
+
+    // Apply sorting
+    switch (sortOption) {
+      case 'shopify-asc':
+        result.sort((a, b) => a.avgShopifyPrice - b.avgShopifyPrice);
+        break;
+      case 'shopify-desc':
+        result.sort((a, b) => b.avgShopifyPrice - a.avgShopifyPrice);
+        break;
+      case 'amazon-shopify-diff':
+        result.sort((a, b) => b.amazonShopifyDiff - a.amazonShopifyDiff);
+        break;
+      case 'shopify-amazon-diff':
+        result.sort((a, b) => b.shopifyAmazonDiff - a.shopifyAmazonDiff);
+        break;
+      case 'max-diff':
+        result.sort((a, b) => b.maxPriceDifference - a.maxPriceDifference);
+        break;
+      case 'name':
+      default:
+        result.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+    }
+
+    return result;
+  }, [productMetrics, sortOption, filterOption]);
   
   // Function to toggle product expansion
   const toggleProductExpansion = (productId) => {
@@ -95,22 +227,23 @@ const MarketPlacePrices = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Product Catalog</h1>
-        <p className="text-gray-600">Compare prices across different marketplaces</p>
-      </div>
+
       
       {/* Filter and sort controls */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex items-center space-x-3">
             <Filter className="h-5 w-5 text-gray-500" />
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-700">Filter:</span>
-              <select className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>All Products</option>
-                <option>Knee Support</option>
-                <option>Socks</option>
+              <select 
+                className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={filterOption}
+                onChange={(e) => setFilterOption(e.target.value)}
+              >
+                <option value="all">All Products</option>
+                <option value="amazon-higher">Amazon Price &gt; Shopify</option>
+                <option value="shopify-higher">Shopify Price &gt; Amazon</option>
               </select>
             </div>
           </div>
@@ -118,10 +251,17 @@ const MarketPlacePrices = () => {
             <SortAsc className="h-5 w-5 text-gray-500" />
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-700">Sort by:</span>
-              <select className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                <option>Name</option>
-                <option>Lowest Price</option>
-                <option>Highest Price</option>
+              <select 
+                className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={sortOption}
+                onChange={(e) => setSortOption(e.target.value)}
+              >
+                <option value="name">Name</option>
+                <option value="shopify-asc">Shopify Price (Low to High)</option>
+                <option value="shopify-desc">Shopify Price (High to Low)</option>
+                <option value="amazon-shopify-diff">Amazon - Shopify Difference</option>
+                <option value="shopify-amazon-diff">Shopify - Amazon Difference</option>
+                <option value="max-diff">Max Price Difference</option>
               </select>
             </div>
           </div>
@@ -130,7 +270,7 @@ const MarketPlacePrices = () => {
       
       {/* Product list */}
       <div className="space-y-4">
-        {products.map(product => (
+        {processedProducts.map(product => (
           <div 
             key={product.product_id} 
             className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
