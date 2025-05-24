@@ -1,11 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import GlobalStyles from './styles/GlobalStyles';
 import { Layout } from './components/Layout';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import ProductsPage from './pages/Products/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage/ProductDetailsPage';
 import MarketPlacePrices from './pages/MarketPlacePrices/MarketPlacePrices';
+import PasswordProtection from './components/PasswordProtection';
 // Routes to be implemented later
 const SalesPage = () => <div>Sales Page - Coming Soon</div>;
 const CustomersPage = () => <div>Customers Page - Coming Soon</div>;
@@ -17,24 +18,26 @@ const SettingsPage = () => <div>Settings Page - Coming Soon</div>;
 
 function App() {
   return (
-    <Router>
-      <GlobalStyles />
-      <Layout>
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/sales" element={<SalesPage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/products/:productId" element={<ProductDetailsPage />} />
-          <Route path="/marketplace-prices" element={<MarketPlacePrices />} />
-          <Route path="/customers" element={<CustomersPage />} />
-          <Route path="/performance" element={<PerformancePage />} />
-          <Route path="/trends" element={<TrendsPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Routes>
-      </Layout>
-    </Router>
+    <PasswordProtection>
+      <Router>
+        <GlobalStyles />
+        <Layout>
+          <Routes>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/sales" element={<SalesPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/products/:productId" element={<ProductDetailsPage />} />
+            <Route path="/marketplace-prices" element={<MarketPlacePrices />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/performance" element={<PerformancePage />} />
+            <Route path="/trends" element={<TrendsPage />} />
+            <Route path="/inventory" element={<InventoryPage />} />
+            <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </PasswordProtection>
   );
 }
 
