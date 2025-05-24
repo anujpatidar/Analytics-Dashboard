@@ -22,7 +22,7 @@
 // 6. Product Name A–Z (Default) – name
 // Alphabetical sort by product title.
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle, ChevronsUp, ChevronsDown } from 'lucide-react';
 import axios from 'axios';
 
 const MarketPlacePrices = () => {
@@ -41,7 +41,7 @@ const MarketPlacePrices = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get('http://localhost:8080/api/v1/get-marketplace-prices');
+      const response = await axios.get('https://rapi.myfrido.com/api/v1/get-marketplace-prices');
       if (response.data.success) {
         setProducts(response.data.data);
       } else {
@@ -179,6 +179,12 @@ const MarketPlacePrices = () => {
     
     if (platforms.length === 0) return null;
     
+    // Check if all prices are equal
+    const uniquePrices = new Set(Object.values(prices).filter(price => price !== null));
+    if (uniquePrices.size === 1) {
+      return { platform: 'Equal', price: Array.from(uniquePrices)[0] };
+    }
+    
     let lowestPlatform = platforms[0];
     
     platforms.forEach(platform => {
@@ -194,6 +200,35 @@ const MarketPlacePrices = () => {
   const formatPrice = (price) => {
     if (price === null) return 'N/A';
     return `₹${price}`;
+  };
+
+  // Function to handle expand/collapse all
+  const handleToggleAll = () => {
+    // Check if all items are currently expanded
+    const allExpanded = products.every(product => expandedProducts[product.product_id]);
+    
+    // Create new state with all items either expanded or collapsed
+    const newExpandedState = {};
+    products.forEach(product => {
+      newExpandedState[product.product_id] = !allExpanded;
+    });
+    setExpandedProducts(newExpandedState);
+  };
+
+  // Function to count variants with higher Shopify prices
+  const countHigherShopifyVariants = (variants) => {
+    return variants.filter(variant => {
+      const { prices } = variant;
+      return prices.shopify !== null && prices.amazon !== null && prices.shopify > prices.amazon;
+    }).length;
+  };
+
+  // Function to count variants with significant price difference (> ₹1)
+  const countSignificantPriceDifference = (variants) => {
+    return variants.filter(variant => {
+      const { prices } = variant;
+      return prices.shopify !== null && prices.amazon !== null && (prices.shopify - prices.amazon) > 1;
+    }).length;
   };
 
   if (loading) {
@@ -285,6 +320,16 @@ const MarketPlacePrices = () => {
                 <span className="ml-3 px-2.5 py-0.5 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
                   {product.variants.length} variant{product.variants.length !== 1 ? 's' : ''}
                 </span>
+                {countHigherShopifyVariants(product.variants) > 0 && (
+                  <span className="ml-2 px-2.5 py-0.5 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                    {countHigherShopifyVariants(product.variants)} higher on Shopify
+                  </span>
+                )}
+                {countSignificantPriceDifference(product.variants) > 0 && (
+                  <span className="ml-2 px-2.5 py-0.5 bg-orange-100 text-orange-800 text-sm font-medium rounded-full">
+                    {countSignificantPriceDifference(product.variants)} variants ₹1+ higher on Shopify
+                  </span>
+                )}
               </div>
               {expandedProducts[product.product_id] ? 
                 <ChevronUp className="h-6 w-6 text-gray-500" /> : 
@@ -327,24 +372,64 @@ const MarketPlacePrices = () => {
                           
                           <div className="grid grid-cols-2 gap-3">
                             {Object.entries(variant.prices).map(([platform, price]) => {
-                              const isLowest = getLowestPrice(variant.prices)?.platform === platform;
+                              const isShopifyHigher = platform === 'shopify' && 
+                                variant.prices.shopify !== null && 
+                                variant.prices.amazon !== null && 
+                                variant.prices.shopify > variant.prices.amazon;
+                              
                               return (
                                 <div 
                                   key={platform} 
                                   className={`p-3 rounded-lg text-center transition-all duration-200 ${
-                                    isLowest 
-                                      ? 'bg-green-50 border-2 border-green-200 transform scale-105' 
+                                    isShopifyHigher
+                                      ? 'bg-red-50 border-2 border-red-200 transform scale-105' 
                                       : 'bg-white border border-gray-200'
                                   }`}
                                 >
                                   <div className="text-sm font-medium mb-1 capitalize text-gray-700">{platform}</div>
-                                  <div className={`text-lg font-bold ${isLowest ? 'text-green-600' : 'text-gray-800'}`}>
+                                  <div className={`text-lg font-bold ${isShopifyHigher ? 'text-red-600' : 'text-gray-800'}`}>
                                     {formatPrice(price)}
                                   </div>
                                 </div>
                               );
                             })}
                           </div>
+
+                          {/* Price Difference Indicator */}
+                          {variant.prices.shopify !== null && variant.prices.amazon !== null && (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                              <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                                <div className="flex items-center">
+                                  <ArrowUpDown className="h-4 w-4 mr-2 text-gray-500" />
+                                  <span className="text-sm font-medium text-gray-700">Price Difference</span>
+                                </div>
+                                <div className={`text-sm font-semibold ${
+                                  variant.prices.shopify > variant.prices.amazon 
+                                    ? 'text-red-600' 
+                                    : variant.prices.shopify < variant.prices.amazon 
+                                      ? 'text-green-600' 
+                                      : 'text-gray-600'
+                                }`}>
+                                  {variant.prices.shopify > variant.prices.amazon ? (
+                                    <span className="flex items-center">
+                                      <span className="mr-1">↑</span>
+                                      ₹{Math.abs(variant.prices.shopify - variant.prices.amazon).toFixed(2)} higher on Shopify
+                                    </span>
+                                  ) : variant.prices.shopify < variant.prices.amazon ? (
+                                    <span className="flex items-center">
+                                      <span className="mr-1">↓</span>
+                                      ₹{Math.abs(variant.prices.shopify - variant.prices.amazon).toFixed(2)} lower on Shopify
+                                    </span>
+                                  ) : (
+                                    <span className="flex items-center">
+                                      <span className="mr-1">=</span>
+                                      Same price
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -354,6 +439,31 @@ const MarketPlacePrices = () => {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Sticky Toggle Button */}
+      <div className="fixed bottom-6 right-6">
+        <button
+          onClick={handleToggleAll}
+          className={`p-3 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2 ${
+            products.every(product => expandedProducts[product.product_id])
+              ? 'bg-gray-500 hover:bg-gray-600'
+              : 'bg-blue-500 hover:bg-blue-600'
+          } text-white`}
+          title={products.every(product => expandedProducts[product.product_id]) ? "Collapse All" : "Expand All"}
+        >
+          {products.every(product => expandedProducts[product.product_id]) ? (
+            <>
+              <ChevronsUp className="h-5 w-5" />
+              <span className="hidden sm:inline">Collapse All</span>
+            </>
+          ) : (
+            <>
+              <ChevronsDown className="h-5 w-5" />
+              <span className="hidden sm:inline">Expand All</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );
