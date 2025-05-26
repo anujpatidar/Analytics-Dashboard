@@ -454,3 +454,150 @@
 {"level":"info","message":"::1 - - [23/May/2025:06:38:29 +0000] \"GET /api/v1/get-marketplace-prices HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-23T06:38:29.463Z"}
 {"level":"info","message":"::1 - - [23/May/2025:06:38:29 +0000] \"GET /api/v1/get-marketplace-prices HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-23T06:38:29.467Z"}
 {"level":"info","message":"::1 - - [23/May/2025:06:45:32 +0000] \"GET /api/v1/get-marketplace-prices HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-23T06:45:32.806Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:26:20.221Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:26:20.225Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:26:20.225Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:27:04.792Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:27:04.796Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:27:04.796Z"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [26/May/2025:10:27:44 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 200 - \"-\" \"Thunder Client (https://www.thunderclient.com)\"","timestamp":"2025-05-26T10:27:44.307Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:28:24 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:28:24.045Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:29:39.839Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:29:39.842Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:29:39.842Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:29:53.644Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:29:53.648Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:29:53.648Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:30:25 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:30:25.433Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:30:25 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:30:25.439Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:30:25 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:30:25.474Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:30:25 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:30:25.475Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:07 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:07.843Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:07 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:07.853Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:07 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:07.856Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:07 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:07.857Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:29 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:29.102Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:32 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:32.002Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:32 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:32.010Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:46 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:46.442Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:31:46 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:31:46.451Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:09 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:09.003Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:09 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:09.011Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:11 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:11.531Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:11 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:11.538Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:11 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:11.556Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:11 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:11.557Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:12 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:12.976Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:12 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:12.985Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:12 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:12.988Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:12 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:12.998Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:19 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:19.324Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:19 +0000] \"GET /api/v1/get-product-analytics HTTP/1.1\" 404 167 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:19.333Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:44 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:44.770Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:32:44 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:32:44.782Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:33:31.873Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:33:31.877Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:33:31.877Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:33:51.021Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:33:51.025Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:33:51.025Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:34:10.781Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:34:10.784Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:34:10.785Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:34:35.876Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:34:35.880Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:34:35.880Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:34:48.814Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:34:48.817Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:34:48.817Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:51 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:51.765Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:51 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:51.770Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:53 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:53.284Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:54 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:54.647Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:56 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:56.073Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:56 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:56.084Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:57 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:57.290Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:34:58 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:34:58.621Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:35:25 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:35:25.431Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:35:26 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:35:26.762Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:42:32.140Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:42:32.143Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:42:32.144Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:43:07.578Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:43:07.581Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:43:07.582Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:43:12 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:43:12.432Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:43:12 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:43:12.439Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:43:13 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:43:13.743Z"}
+{"level":"info","message":"::1 - - [26/May/2025:10:43:15 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T10:43:15.015Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:54:26.638Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:54:26.642Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:54:26.642Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:54:34.406Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:54:34.409Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:54:34.410Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:54:51.493Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:54:51.497Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:54:51.498Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:55:08.176Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:55:08.180Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:55:08.180Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:55:21.028Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:55:21.032Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:55:21.032Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:55:57.654Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:55:57.657Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:55:57.658Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:56:09.865Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:56:09.868Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:56:09.868Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:56:49.925Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:56:49.929Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:56:49.929Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:57:11.980Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:57:11.983Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:57:11.984Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:57:26.481Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:57:26.485Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:57:26.485Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:57:43.833Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:57:43.836Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:57:43.837Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T10:58:02.905Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:58:02.908Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T10:58:02.909Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T11:03:10.203Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:03:10.209Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:03:10.210Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T11:03:46.524Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:03:46.527Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:03:46.528Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:03:51 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:03:51.830Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:03:51 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:03:51.866Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:03:53 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:03:53.189Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:03:54 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:03:54.312Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:05:28 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:05:28.512Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:05:28 +0000] \"GET /api/v1/get-all-products HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:05:28.525Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:05:29 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:05:29.922Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:05:31 +0000] \"GET /api/v1/get-overall-product-metrics HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:05:31.228Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T11:06:32.693Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:06:32.697Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:06:32.697Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T11:07:54.206Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:07:54.210Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:07:54.210Z"}
+{"level":"info","message":"Server running in undefined mode on port 8080","timestamp":"2025-05-26T11:08:15.173Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:08:15.176Z"}
+{"level":"info","message":"Connected to Valkey server","timestamp":"2025-05-26T11:08:15.177Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:09:03 +0000] \"GET /api/v1/get-product-details/6843693170722 HTTP/1.1\" 404 179 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:09:03.459Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:09:03 +0000] \"GET /api/v1/get-product-details/6843693170722 HTTP/1.1\" 404 179 \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:09:03.461Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:15 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 200 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:15.455Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:18 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:18.318Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:18 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:18.319Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:20 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:20.819Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:20 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:20.821Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:41 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:41.361Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:43 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:43.362Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:43 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:43.364Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:47 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:47.813Z"}
+{"level":"info","message":"::1 - - [26/May/2025:11:13:47 +0000] \"GET /api/v1/get-product-metrics-by-id/6843693170722 HTTP/1.1\" 304 - \"http://localhost:3000/\" \"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\"","timestamp":"2025-05-26T11:13:47.814Z"}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
   LineChart,
@@ -21,71 +21,71 @@ import { useParams } from 'react-router-dom';
 import { FiTrendingUp, FiTrendingDown} from 'react-icons/fi';
 
 // Mock data - Replace with actual API calls
-const mockProductData = {
-  product: {
-    id: 1,
-    name: 'Premium Wireless Headphones',
-    image: 'https://cdn.shopify.com/s/files/1/0553/0419/2034/files/products_4july-03_803b519a-125c-458b-bfab-15f0d0009fb1.jpg?v=1720861559&width=648',
-    description: 'High-quality wireless headphones with noise cancellation',
-    sku: 'PH-001',
-    price: 12999,
-    costPrice: 8000,
-  },
-  overview: {
-    totalOrders: 1250,
-    totalSales: 15623750,
-    aov: 12500,
-    quantitySold: 1250,
-    grossProfit: 6249500,
-    profitMargin: 40,
-    refundRate: 5.2,
-  },
-  salesAndProfit: {
-    totalRevenue: 15623750,
-    marketingCost: 1250000,
-    profitAfterMarketing: 4999500,
-    profitPerUnit: 4000,
-    costPricePerUnit: 8000,
-    returnUnits: 65,
-    returnRate: 5.2,
-  },
-  customerInsights: {
-    repeatCustomerRate: 35,
-    customerBreakdown: [
-      { name: 'First-time', value: 65 },
-      { name: 'Returning', value: 35 },
-    ],
-  },
-  variants: [
-    { name: 'Black', soldCount: 500, profit: 2000000 },
-    { name: 'White', soldCount: 450, profit: 1800000 },
-    { name: 'Blue', soldCount: 300, profit: 1200000 },
-  ],
-  salesTrend: [
-    { date: 'Jan', sales: 1200000 },
-    { date: 'Feb', sales: 1500000 },
-    { date: 'Mar', sales: 1800000 },
-    { date: 'Apr', sales: 1600000 },
-    { date: 'May', sales: 2000000 },
-    { date: 'Jun', sales: 2200000 },
-  ],
-  refundsOverTime: [
-    { date: 'Jan', refunds: 5 },
-    { date: 'Feb', refunds: 8 },
-    { date: 'Mar', refunds: 6 },
-    { date: 'Apr', refunds: 7 },
-    { date: 'May', refunds: 4 },
-    { date: 'Jun', refunds: 3 },
-  ],
-  profitVsMarketing: [
-    { date: 'Jan', profit: 1200000, marketing: 200000 },
-    { date: 'Feb', profit: 1500000, marketing: 250000 },
-    { date: 'Mar', profit: 1800000, marketing: 300000 },
-    { date: 'Apr', profit: 1600000, marketing: 200000 },
-    { date: 'May', profit: 2000000, marketing: 250000 },
-    { date: 'Jun', profit: 2200000, marketing: 300000 },
-  ],
-};
+// const mockProductData = {
+//   product: {
+//     id: 1,
+//     name: 'Premium Wireless Headphones',
+//     image: 'https://cdn.shopify.com/s/files/1/0553/0419/2034/files/products_4july-03_803b519a-125c-458b-bfab-15f0d0009fb1.jpg?v=1720861559&width=648',
+//     description: 'High-quality wireless headphones with noise cancellation',
+//     sku: 'PH-001',
+//     price: 12999,
+//     costPrice: 8000,
+//   },
+//   overview: {
+//     totalOrders: 1250,
+//     totalSales: 15623750,
+//     aov: 12500,
+//     quantitySold: 1250,
+//     grossProfit: 6249500,
+//     profitMargin: 40,
+//     refundRate: 5.2,
+//   },
+//   salesAndProfit: {
+//     totalRevenue: 15623750,
+//     marketingCost: 1250000,
+//     profitAfterMarketing: 4999500,
+//     profitPerUnit: 4000,
+//     costPricePerUnit: 8000,
+//     returnUnits: 65,
+//     returnRate: 5.2,
+//   },
+//   customerInsights: {
+//     repeatCustomerRate: 35,
+//     customerBreakdown: [
+//       { name: 'First-time', value: 65 },
+//       { name: 'Returning', value: 35 },
+//     ],
+//   },
+//   variants: [
+//     { name: 'Black', soldCount: 500, profit: 2000000 },
+//     { name: 'White', soldCount: 450, profit: 1800000 },
+//     { name: 'Blue', soldCount: 300, profit: 1200000 },
+//   ],
+//   salesTrend: [
+//     { date: 'Jan', sales: 1200000 },
+//     { date: 'Feb', sales: 1500000 },
+//     { date: 'Mar', sales: 1800000 },
+//     { date: 'Apr', sales: 1600000 },
+//     { date: 'May', sales: 2000000 },
+//     { date: 'Jun', sales: 2200000 },
+//   ],
+//   refundsOverTime: [
+//     { date: 'Jan', refunds: 5 },
+//     { date: 'Feb', refunds: 8 },
+//     { date: 'Mar', refunds: 6 },
+//     { date: 'Apr', refunds: 7 },
+//     { date: 'May', refunds: 4 },
+//     { date: 'Jun', refunds: 3 },
+//   ],
+//   profitVsMarketing: [
+//     { date: 'Jan', profit: 1200000, marketing: 200000 },
+//     { date: 'Feb', profit: 1500000, marketing: 250000 },
+//     { date: 'Mar', profit: 1800000, marketing: 300000 },
+//     { date: 'Apr', profit: 1600000, marketing: 200000 },
+//     { date: 'May', profit: 2000000, marketing: 250000 },
+//     { date: 'Jun', profit: 2200000, marketing: 300000 },
+//   ],
+// };
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -207,8 +207,58 @@ const formatPercentage = (value) => {
 };
 
 const ProductDetailsPage = () => {
-const { productId } = useParams();
-  const [data] = useState(mockProductData);
+  const { productId } = useParams();
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response = await fetch(`http://localhost:8080/api/v1/get-product-metrics-by-id/${productId}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        setData(result.data);
+      } catch (error) {
+        console.error('Error fetching product data:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProductData();
+  }, [productId]);
+
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div>Loading product details...</div>
+      </PageContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageContainer>
+        <div>Error loading product details: {error}</div>
+      </PageContainer>
+    );
+  }
+
+  if (!data) {
+    return (
+      <PageContainer>
+        <div>No product data found</div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -229,49 +279,50 @@ const { productId } = useParams();
             <h3>Total Orders</h3>
             <div className="value">{data.overview.totalOrders}</div>
             <div className="trend positive">
-              <FiTrendingUp /> +12.5%
+              <FiTrendingUp /> {formatPercentage(data.overview.orderTrend || 0)}
             </div>
           </StatCard>
           <StatCard>
             <h3>Total Sales</h3>
             <div className="value">{formatCurrency(data.overview.totalSales)}</div>
             <div className="trend positive">
-              <FiTrendingUp /> +15.2%
+              <FiTrendingUp /> {formatPercentage(data.overview.salesTrend || 0)}
             </div>
           </StatCard>
           <StatCard>
             <h3>AOV</h3>
             <div className="value">{formatCurrency(data.overview.aov)}</div>
             <div className="trend positive">
-              <FiTrendingUp /> +2.3%
+              <FiTrendingUp /> {formatPercentage(data.overview.aovTrend || 0)}
             </div>
           </StatCard>
           <StatCard>
             <h3>Quantity Sold</h3>
             <div className="value">{data.overview.quantitySold}</div>
             <div className="trend positive">
-              <FiTrendingUp /> +10.5%
+              <FiTrendingUp /> {formatPercentage(data.overview.quantityTrend || 0)}
             </div>
           </StatCard>
           <StatCard>
             <h3>Gross Profit</h3>
             <div className="value">{formatCurrency(data.overview.grossProfit)}</div>
             <div className="trend positive">
-              <FiTrendingUp /> +18.7%
+              <FiTrendingUp /> {formatPercentage(data.overview.profitTrend || 0)}
             </div>
           </StatCard>
           <StatCard>
             <h3>Profit Margin</h3>
             <div className="value">{formatPercentage(data.overview.profitMargin)}</div>
             <div className="trend positive">
-              <FiTrendingUp /> +3.2%
+              <FiTrendingUp /> {formatPercentage(data.overview.marginTrend || 0)}
             </div>
           </StatCard>
           <StatCard>
             <h3>Refund Rate</h3>
             <div className="value">{formatPercentage(data.overview.refundRate)}</div>
-            <div className="trend negative">
-              <FiTrendingDown /> +0.5%
+            <div className={`trend ${data.overview.refundTrend > 0 ? 'negative' : 'positive'}`}>
+              {data.overview.refundTrend > 0 ? <FiTrendingDown /> : <FiTrendingUp />} 
+              {formatPercentage(Math.abs(data.overview.refundTrend || 0))}
             </div>
           </StatCard>
         </StatsGrid>

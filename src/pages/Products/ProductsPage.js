@@ -18,6 +18,9 @@ import './ProductsPage.css';
 // Mock data - Replace with actual API calls
 const mockData = {
   totalProducts: 78,
+  averageProductPrice: 160,
+  totalCategories: 16,
+  averageReturnRate: 5.6,
   topSellingProducts: [
     { name: 'Product A', sales: 1200, revenue: 24000 },
     { name: 'Product B', sales: 950, revenue: 19000 },
@@ -154,7 +157,19 @@ const StatCard = ({ title, value, subtitle }) => (
 );
 
 const ProductsPage = () => {
-  const [data, setData] = useState(mockData);
+  const [data, setData] = useState({
+    totalProducts: 0,
+    averageProductPrice: 0,
+    totalCategories: 0,
+    averageReturnRate: 0,
+    topSellingProducts: [],
+    topSellingProducts24h: [],
+    topCategories: [],
+    topCategories24h: [],
+    leastSellingProducts: [],
+    leastSellingProducts24h: [],
+    mostReturnedProducts: []
+  });
   const [productList, setProductList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -183,33 +198,58 @@ const ProductsPage = () => {
     setCurrentPage(newPage);
   };
 
-  // Replace with actual API call
+  // Fetch both products list and analytics data
   useEffect(() => {
-    const fetchProductsData = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('http://localhost:8080/api/v1/get-all-products');
-        const data = await response.json();
-        setProductList(data.data.map(product => ({
+        
+        // Fetch products list
+        const productsResponse = await fetch('http://localhost:8080/api/v1/get-all-products');
+        const productsData = await productsResponse.json();
+        setProductList(productsData.data.map(product => ({
           id: product.id,
           name: product.title,
-          sku: "FFFF",
-          totalSold: 500,
+          sku: product.variants?.[0]?.sku || "N/A",
+          totalSold: product.totalSold || 0,
           image: product?.images?.[0]?.src
         })));
+
+        // Fetch analytics data
+        const analyticsResponse = await fetch('http://localhost:8080/api/v1/get-overall-product-metrics');
+        const analyticsJSON = await analyticsResponse.json();
+        const analyticsData = analyticsJSON.data;
+        // Update the data state with the API response
+        console.log('analyticsData', analyticsData);
+        setData({
+          totalProducts: analyticsData.totalProducts || 0,
+          averageProductPrice: analyticsData.averageProductPrice || 0,
+          totalCategories: analyticsData.totalCategories || 0,
+          averageReturnRate: analyticsData.averageReturnRate || 0,
+          topSellingProducts: analyticsData.topSellingProducts || [],
+          topSellingProducts24h: analyticsData.topSellingProducts24h || [],
+          topCategories: analyticsData.topCategories || [],
+          topCategories24h: analyticsData.topCategories24h || [],
+          leastSellingProducts: analyticsData.leastSellingProducts || [],
+          leastSellingProducts24h: analyticsData.leastSellingProducts24h || [],
+          mostReturnedProducts: analyticsData.mostReturnedProducts || []
+        });
+
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
+        // Optionally set error state or show error message to user
       } finally {
         setIsLoading(false);
       }
     };
-    fetchProductsData();
+
+    fetchData();
   }, []);
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
     }).format(value);
   };
 
@@ -239,17 +279,17 @@ const ProductsPage = () => {
         />
         <StatCard
           title="Average Product Price"
-          value={formatCurrency(150)}
+          value={formatCurrency(data.averageProductPrice)}
           subtitle="Based on all products"
         />
         <StatCard
           title="Total Categories"
-          value="12"
+          value={data.totalCategories}
           subtitle="Product categories"
         />
         <StatCard
           title="Average Return Rate"
-          value="5.2%"
+          value={data.averageReturnRate}
           subtitle="Last 30 days"
         />
       </div>

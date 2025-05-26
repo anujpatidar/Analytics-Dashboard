@@ -41,7 +41,7 @@ const MarketPlacePrices = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get('https://rapi.myfrido.com/api/v1/get-marketplace-prices');
+      const response = await axios.get(process.env.REACT_APP_ENVIRONMENT==='development' ? 'http://localhost:8080/api/v1/get-marketplace-prices' : 'https://rapi.myfrido.com/api/v1/get-marketplace-prices');
       if (response.data.success) {
         setProducts(response.data.data);
       } else {
