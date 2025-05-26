@@ -22,7 +22,7 @@
 // 6. Product Name A–Z (Default) – name
 // Alphabetical sort by product title.
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle, ChevronsUp, ChevronsDown } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle, ChevronsUp, ChevronsDown, Download } from 'lucide-react';
 import axios from 'axios';
 
 const MarketPlacePrices = () => {
@@ -231,6 +231,40 @@ const MarketPlacePrices = () => {
     }).length;
   };
 
+  // Function to download CSV
+  const downloadCSV = () => {
+    // Create CSV header
+    const headers = ['Title', 'Variant ID', 'SKU Code', 'Amazon Price', 'Shopify Price'];
+    
+    // Create CSV rows
+    const rows = products.flatMap(product => 
+      product.variants.map(variant => [
+        product.title,
+        variant.variant_id,
+        variant.sku,
+        variant.prices.amazon || 'N/A',
+        variant.prices.shopify || 'N/A'
+      ])
+    );
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'marketplace_prices.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen flex items-center justify-center">
@@ -282,23 +316,32 @@ const MarketPlacePrices = () => {
               </select>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <SortAsc className="h-5 w-5 text-gray-500" />
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700">Sort by:</span>
-              <select 
-                className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={sortOption}
-                onChange={(e) => setSortOption(e.target.value)}
-              >
-                <option value="name">Name</option>
-                <option value="shopify-asc">Shopify Price (Low to High)</option>
-                <option value="shopify-desc">Shopify Price (High to Low)</option>
-                <option value="amazon-shopify-diff">Amazon - Shopify Difference</option>
-                <option value="shopify-amazon-diff">Shopify - Amazon Difference</option>
-                <option value="max-diff">Max Price Difference</option>
-              </select>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <SortAsc className="h-5 w-5 text-gray-500" />
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-gray-700">Sort by:</span>
+                <select 
+                  className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                >
+                  <option value="name">Name</option>
+                  <option value="shopify-asc">Shopify Price (Low to High)</option>
+                  <option value="shopify-desc">Shopify Price (High to Low)</option>
+                  <option value="amazon-shopify-diff">Amazon - Shopify Difference</option>
+                  <option value="shopify-amazon-diff">Shopify - Amazon Difference</option>
+                  <option value="max-diff">Max Price Difference</option>
+                </select>
+              </div>
             </div>
+            <button
+              onClick={downloadCSV}
+              className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+            >
+              <Download className="h-4 w-4" />
+              <span className="text-sm font-medium">Download CSV</span>
+            </button>
           </div>
         </div>
       </div>

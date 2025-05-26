@@ -104,4 +104,6 @@ REACT_APP_DYNAMODB_ORDERS_TABLE=your_orders_table_name
 REACT_APP_DYNAMODB_PRODUCTS_TABLE=your_products_table_name
 REACT_APP_DYNAMODB_CUSTOMERS_TABLE=your_customers_table_name
 REACT_APP_DYNAMODB_SYNC_METADATA_TABLE=your_sync_metadata_table_name
+
+//node -e "console.log(require('crypto').createHash('sha256').update('frido123').digest('hex'))"
 ```
