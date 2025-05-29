@@ -129,7 +129,24 @@ const productsController = {
 
   getOverallProductMetrics: async (req, res, next) => {
     try {
-      const mockData = {
+      const cacheKey = `get_overall_product_metrics`;
+
+      // Try to get data from cache first
+      const cachedData = await valkeyClient.get(cacheKey);
+
+      
+      if (cachedData) {
+        console.log(chalk.bgGreen(`Cache hit for overall product metrics.`));
+        return res.status(200).json({ 
+          success: true, 
+          data: JSON.parse(cachedData),
+          fromCache: true 
+        });
+      }
+
+      // If not in cache, fetch from DynamoDB
+      console.log(chalk.bgYellow(`Cache miss for overall product metrics, fetching from DynamoDB`));
+      const mockData = {   
         totalProducts: await fetchTotalProductsCount(),
         averageProductPrice: await calculateAverageProductPrice(),
         totalCategories: 16,
@@ -142,6 +159,10 @@ const productsController = {
         leastSellingProducts24h: await getLeastSellingProducts24h(),
         mostReturnedProducts: await getMostReturnedProducts(),
       };
+
+      //add cache
+      await valkeyClient.set(cacheKey, JSON.stringify(mockData));
+
 
       res.status(200).json({ success: true, data: mockData });
     } catch (error) {

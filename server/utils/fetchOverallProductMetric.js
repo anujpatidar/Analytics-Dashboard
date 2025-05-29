@@ -198,6 +198,27 @@ const calculateAverageProductPrice = async () => {
 
 const getTopSellingProducts = async () => {
     try {
+
+        const query = `
+            SELECT 
+            TITLE as product_name,
+            SUM(CURRENT_QUANTITY) as total_quantity_sold,
+            COUNT(DISTINCT SKU) as number_of_variants
+            FROM 
+            \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.line_items\`
+            WHERE 
+            TITLE IS NOT NULL 
+            AND CURRENT_QUANTITY IS NOT NULL
+            AND CURRENT_QUANTITY > 0
+            GROUP BY 
+            TITLE
+            ORDER BY 
+            total_quantity_sold DESC
+            LIMIT 5;
+                    `;
+
+        const result = await queryForBigQuery(query);
+        console.log(result);
         const mockData = [
             { name: 'Product A', sales: 1200, revenue: 24000 },
             { name: 'Product B', sales: 950, revenue: 19000 },
@@ -205,7 +226,44 @@ const getTopSellingProducts = async () => {
             { name: 'Product D', sales: 750, revenue: 15000 },
             { name: 'Product E', sales: 600, revenue: 12000 },
         ];
-        return mockData;
+        //receiiving this data
+
+        // [
+        //     {
+        //       product_name: 'Frido Ultimate Wedge Plus Cushion',
+        //       total_quantity_sold: 28552,
+        //       number_of_variants: 10
+        //     },
+        //     {
+        //       product_name: 'Ultimate Car Comfort Bundle',
+        //       total_quantity_sold: 13679,
+        //       number_of_variants: 2
+        //     },
+        //     {
+        //       product_name: 'Frido Travel Neck Pillow',
+        //       total_quantity_sold: 11302,
+        //       number_of_variants: 5
+        //     },
+        //     {
+        //       product_name: 'Frido Ultimate Car Neck Rest Pillow',
+        //       total_quantity_sold: 10612,
+        //       number_of_variants: 7
+        //     },
+        //     {
+        //       product_name: 'Frido Ultimate Wedge Cushion',
+        //       total_quantity_sold: 7352,
+        //       number_of_variants: 4
+        //     }
+        //   ]
+
+        
+        const data = result.map(item => ({
+            name: item.product_name,
+            quantitySold: item.total_quantity_sold,
+            revenue: item.total_quantity_sold * 100 // Assuming each product sells for $100 change
+        }));
+
+        return data;
     } catch (error) {
         console.error('Error fetching top selling products:', error);
         throw error;

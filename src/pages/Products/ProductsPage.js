@@ -13,6 +13,9 @@ import {
   Cell,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import styled from 'styled-components';
 import './ProductsPage.css';
 
 // Mock data - Replace with actual API calls
@@ -156,6 +159,55 @@ const StatCard = ({ title, value, subtitle }) => (
   </div>
 );
 
+const DateRangeFilter = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow);
+
+  .date-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .date-picker-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .date-picker {
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9rem;
+    width: 120px;
+  }
+
+  .apply-button {
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+      background: var(--primary-color-dark);
+    }
+
+    &:disabled {
+      background: var(--text-secondary);
+      cursor: not-allowed;
+    }
+  }
+`;
+
 const ProductsPage = () => {
   const [data, setData] = useState({
     totalProducts: 0,
@@ -174,6 +226,8 @@ const ProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30))); // Last 30 days
+  const [endDate, setEndDate] = useState(new Date());
   const navigate = useNavigate();
 
   const PRODUCTS_PER_PAGE = 10;
@@ -198,51 +252,70 @@ const ProductsPage = () => {
     setCurrentPage(newPage);
   };
 
+  const handleDateRangeChange = () => {
+    fetchData();
+  };
+
+  // Custom date formatting functions
+  const formatDateForDisplay = (date) => {
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const formatDateForAPI = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
   // Fetch both products list and analytics data
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Format dates for API
+      const formatDate = (date) => {
+        return date.toISOString().split('T')[0];
+      };
+
+      // Fetch products list
+      const productsResponse = await fetch('http://localhost:8080/api/v1/get-all-products');
+      const productsData = await productsResponse.json();
+      setProductList(productsData.data.map(product => ({
+        id: product.id,
+        name: product.title,
+        sku: product.variants?.[0]?.sku || "N/A",
+        totalSold: product.totalSold || 0,
+        image: product?.images?.[0]?.src
+      })));
+
+      // Fetch analytics data with date range
+      const analyticsResponse = await fetch(`http://localhost:8080/api/v1/get-overall-product-metrics`);
+      const analyticsData = await analyticsResponse.json();
+      
+      setData({
+        totalProducts: analyticsData.data.totalProducts || 0,
+        averageProductPrice: analyticsData.data.averageProductPrice || 0,
+        totalCategories: analyticsData.data.totalCategories || 0,
+        averageReturnRate: analyticsData.data.averageReturnRate || 0,
+        topSellingProducts: analyticsData.data.topSellingProducts || [],
+        topSellingProducts24h: analyticsData.data.topSellingProducts24h || [],
+        topCategories: analyticsData.data.topCategories || [],
+        topCategories24h: analyticsData.data.topCategories24h || [],
+        leastSellingProducts: analyticsData.data.leastSellingProducts || [],
+        leastSellingProducts24h: analyticsData.data.leastSellingProducts24h || [],
+        mostReturnedProducts: analyticsData.data.mostReturnedProducts || []
+      });
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Fetch products list
-        const productsResponse = await fetch('http://localhost:8080/api/v1/get-all-products');
-        const productsData = await productsResponse.json();
-        setProductList(productsData.data.map(product => ({
-          id: product.id,
-          name: product.title,
-          sku: product.variants?.[0]?.sku || "N/A",
-          totalSold: product.totalSold || 0,
-          image: product?.images?.[0]?.src
-        })));
-
-        // Fetch analytics data
-        const analyticsResponse = await fetch('http://localhost:8080/api/v1/get-overall-product-metrics');
-        const analyticsJSON = await analyticsResponse.json();
-        const analyticsData = analyticsJSON.data;
-        // Update the data state with the API response
-        console.log('analyticsData', analyticsData);
-        setData({
-          totalProducts: analyticsData.totalProducts || 0,
-          averageProductPrice: analyticsData.averageProductPrice || 0,
-          totalCategories: analyticsData.totalCategories || 0,
-          averageReturnRate: analyticsData.averageReturnRate || 0,
-          topSellingProducts: analyticsData.topSellingProducts || [],
-          topSellingProducts24h: analyticsData.topSellingProducts24h || [],
-          topCategories: analyticsData.topCategories || [],
-          topCategories24h: analyticsData.topCategories24h || [],
-          leastSellingProducts: analyticsData.leastSellingProducts || [],
-          leastSellingProducts24h: analyticsData.leastSellingProducts24h || [],
-          mostReturnedProducts: analyticsData.mostReturnedProducts || []
-        });
-
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        // Optionally set error state or show error message to user
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -269,6 +342,56 @@ const ProductsPage = () => {
   return (
     <div className="products-page">
       <h1 className="page-title">Products Analytics</h1>
+
+      {/* Date Range Filter */}
+      <DateRangeFilter>
+        <div className="date-picker-container">
+          <span className="date-picker-label">From:</span>
+          <DatePicker
+            selected={startDate}
+            onChange={date => setStartDate(date)}
+            selectsStart
+            startDate={startDate}
+            endDate={endDate}
+            maxDate={endDate}
+            className="date-picker"
+            dateFormat="dd/MM/yyyy"
+            placeholderText="DD/MM/YYYY"
+            showYearDropdown
+            scrollableYearDropdown
+            yearDropdownItemNumber={10}
+            showMonthDropdown
+            scrollableMonthDropdown
+          />
+        </div>
+        <div className="date-picker-container">
+          <span className="date-picker-label">To:</span>
+          <DatePicker
+            selected={endDate}
+            onChange={date => setEndDate(date)}
+            selectsEnd
+            startDate={startDate}
+            endDate={endDate}
+            minDate={startDate}
+            maxDate={new Date()}
+            className="date-picker"
+            dateFormat="dd/MM/yyyy"
+            placeholderText="DD/MM/YYYY"
+            showYearDropdown
+            scrollableYearDropdown
+            yearDropdownItemNumber={10}
+            showMonthDropdown
+            scrollableMonthDropdown
+          />
+        </div>
+        <button 
+          className="apply-button"
+          onClick={handleDateRangeChange}
+          disabled={isLoading}
+        >
+          Apply Filter
+        </button>
+      </DateRangeFilter>
 
       {/* KPIs */}
       <div className="stats-grid">
@@ -304,11 +427,31 @@ const ProductsPage = () => {
               <BarChart data={data.topSellingProducts}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    if (name === 'revenue') {
+                      return [formatCurrency(value), 'Revenue'];
+                    }
+                    return [value, 'Units Sold'];
+                  }}
+                />
                 <Legend />
-                <Bar dataKey="sales" fill="#8884d8" name="Units Sold" />
-                <Bar dataKey="revenue" fill="#82ca9d" name="Revenue" />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="quantitySold" 
+                  fill="#8884d8" 
+                  name="Units Sold"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="right"
+                  dataKey="revenue" 
+                  fill="#82ca9d" 
+                  name="Revenue"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -321,11 +464,31 @@ const ProductsPage = () => {
               <BarChart data={data.topSellingProducts24h}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    if (name === 'revenue') {
+                      return [formatCurrency(value), 'Revenue'];
+                    }
+                    return [value, 'Units Sold'];
+                  }}
+                />
                 <Legend />
-                <Bar dataKey="sales" fill="#8884d8" name="Units Sold" />
-                <Bar dataKey="revenue" fill="#82ca9d" name="Revenue" />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="quantitySold" 
+                  fill="#8884d8" 
+                  name="Units Sold"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="right"
+                  dataKey="revenue" 
+                  fill="#82ca9d" 
+                  name="Revenue"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
