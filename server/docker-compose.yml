@@ -1,4 +1,30 @@
+version: '3.8'
+
 services:
+  server:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - valkey
+
+  client:
+    image: node:18-alpine
+    working_dir: /app
+    volumes:
+      - ../:/app
+    ports:
+      - "3000:3000"
+    command: sh -c "cd /app && npm install && npm start"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - server
+
   valkey:
     image: valkey/valkey
     ports:

@@ -1,98 +1,41 @@
 import React from 'react';
-import styled from 'styled-components';
 import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
-
-const CardContainer = styled.div`
-  background-color: var(--background-light);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
-  padding: var(--spacing-lg);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-  }
-`;
-
-const CardIcon = styled.div`
-  width: 50px;
-  height: 50px;
-  border-radius: var(--border-radius-md);
-  background-color: ${props => `var(--${props.color}-color)`};
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: var(--spacing-md);
-`;
-
-const CardTitle = styled.h3`
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-xs);
-`;
-
-const CardValue = styled.h2`
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: var(--spacing-sm);
-  color: var(--text-primary);
-`;
-
-const CardFooter = styled.div`
-  display: flex;
-  align-items: center;
-  margin-top: auto;
-`;
-
-const PercentageChange = styled.div`
-  display: flex;
-  align-items: center;
-  font-weight: 500;
-  font-size: 0.9rem;
-  color: ${props => props.isPositive ? 'var(--success-color)' : 'var(--danger-color)'};
-  
-  svg {
-    margin-right: 4px;
-  }
-`;
-
-const Period = styled.span`
-  margin-left: var(--spacing-sm);
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-`;
 
 const StatCard = ({ 
   title, 
   value, 
   icon: Icon, 
-  color = 'primary', 
-  percentageChange, 
-  period = 'vs last week'
+  change,
+  changeType,
+  loading = false
 }) => {
-  const isPositive = percentageChange >= 0;
-  
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+        <div className="h-12 w-12 bg-gray-200 rounded-lg mb-4"></div>
+        <div className="h-4 w-24 bg-gray-200 rounded mb-2"></div>
+        <div className="h-8 w-32 bg-gray-200 rounded mb-4"></div>
+        <div className="h-4 w-16 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
+
   return (
-    <CardContainer>
-      <CardIcon color={color}>
-        <Icon />
-      </CardIcon>
-      <CardTitle>{title}</CardTitle>
-      <CardValue>{value}</CardValue>
-      <CardFooter>
-        <PercentageChange isPositive={isPositive}>
-          {isPositive ? <FiArrowUp /> : <FiArrowDown />}
-          {Math.abs(percentageChange)}%
-        </PercentageChange>
-        <Period>{period}</Period>
-      </CardFooter>
-    </CardContainer>
+    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
+      <div className="flex items-center justify-between mb-4">
+        <div className="p-3 bg-blue-50 rounded-lg text-blue-600">
+          {Icon}
+        </div>
+        <div className={`flex items-center text-sm font-medium ${
+          changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+        }`}>
+          {changeType === 'increase' ? <FiArrowUp className="mr-1" /> : <FiArrowDown className="mr-1" />}
+          {change}
+        </div>
+      </div>
+      <h3 className="text-gray-500 text-sm font-medium mb-1">{title}</h3>
+      <p className="text-2xl font-bold text-gray-900 mb-2">{value}</p>
+    </div>
   );
 };
 

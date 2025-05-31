@@ -218,7 +218,7 @@ const ProductDetailsPage = () => {
         setIsLoading(true);
         setError(null);
         
-        const response = await fetch(`http://localhost:8080/api/v1/get-product-metrics-by-id/${productId}`);
+        const response = await fetch(`http://localhost:8080/api/v1/products/get-product-metrics-by-id/${productId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

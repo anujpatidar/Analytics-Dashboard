@@ -1,22 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+import { Line, Bar, Pie } from 'react-chartjs-2';
+import { 
+  Chart as ChartJS, 
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+  Filler
+} from 'chart.js';
 import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import styled from 'styled-components';
+import { FiPackage, FiDollarSign, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical } from 'react-icons/fi';
+import StatCard from '../../components/Dashboard/StatCard';
 import './ProductsPage.css';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 // Mock data - Replace with actual API calls
 const mockData = {
@@ -151,14 +168,6 @@ const mockProductList = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-const StatCard = ({ title, value, subtitle }) => (
-  <div className="stat-card">
-    <h3 className="stat-title">{title}</h3>
-    <div className="stat-value">{value}</div>
-    {subtitle && <div className="stat-subtitle">{subtitle}</div>}
-  </div>
-);
-
 const DateRangeFilter = styled.div`
   display: flex;
   align-items: center;
@@ -226,7 +235,7 @@ const ProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState(new Date(new Date().setDate(new Date().getDate() - 30))); // Last 30 days
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
   const [endDate, setEndDate] = useState(new Date());
   const navigate = useNavigate();
 
@@ -280,7 +289,7 @@ const ProductsPage = () => {
       };
 
       // Fetch products list
-      const productsResponse = await fetch('http://localhost:8080/api/v1/get-all-products');
+      const productsResponse = await fetch('http://localhost:8080/api/v1/products/get-all-products');
       const productsData = await productsResponse.json();
       setProductList(productsData.data.map(product => ({
         id: product.id,
@@ -291,7 +300,7 @@ const ProductsPage = () => {
       })));
 
       // Fetch analytics data with date range
-      const analyticsResponse = await fetch(`http://localhost:8080/api/v1/get-overall-product-metrics`);
+      const analyticsResponse = await fetch(`http://localhost:8080/api/v1/products/get-overall-product-metrics`);
       const analyticsData = await analyticsResponse.json();
       
       setData({
@@ -338,6 +347,92 @@ const ProductsPage = () => {
       ))}
     </div>
   );
+
+  // Prepare the top selling products chart data
+  const topSellingProductsData = {
+    labels: data.topSellingProducts.map(item => item.name),
+    datasets: [
+      {
+        label: 'Units Sold',
+        data: data.topSellingProducts.map(item => item.quantitySold),
+        backgroundColor: 'rgba(0, 115, 182, 0.8)',
+        borderRadius: 4,
+      },
+      {
+        label: 'Revenue',
+        data: data.topSellingProducts.map(item => item.revenue),
+        backgroundColor: 'rgba(76, 175, 80, 0.8)',
+        borderRadius: 4,
+      }
+    ]
+  };
+
+  const topSellingProductsOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const label = context.dataset.label;
+            const value = context.raw;
+            return `${label}: ${label === 'Revenue' ? formatCurrency(value) : value}`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+        ticks: {
+          callback: (value) => formatCurrency(value, 'USD', 'en-US', 0),
+        }
+      },
+      x: {
+        grid: {
+          display: false,
+        }
+      }
+    }
+  };
+
+  // Prepare the categories chart data
+  const categoriesData = {
+    labels: data.topCategories.map(item => item.name),
+    datasets: [
+      {
+        data: data.topCategories.map(item => item.value),
+        backgroundColor: [
+          'rgba(0, 115, 182, 0.8)',
+          'rgba(3, 169, 244, 0.8)',
+          'rgba(76, 175, 80, 0.8)',
+          'rgba(255, 193, 7, 0.8)',
+          'rgba(244, 67, 54, 0.8)',
+        ],
+        borderWidth: 0,
+      }
+    ]
+  };
+
+  const categoriesOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+        }
+      }
+    }
+  };
 
   return (
     <div className="products-page">
@@ -393,27 +488,39 @@ const ProductsPage = () => {
         </button>
       </DateRangeFilter>
 
-      {/* KPIs */}
+      {/* Stats Grid */}
       <div className="stats-grid">
         <StatCard
           title="Total Products"
           value={data.totalProducts}
-          subtitle="Active products in store"
+          icon={<FiPackage size={24} />}
+          change="12%"
+          changeType="increase"
+          loading={isLoading}
         />
         <StatCard
           title="Average Product Price"
           value={formatCurrency(data.averageProductPrice)}
-          subtitle="Based on all products"
+          icon={<FiDollarSign size={24} />}
+          change="8%"
+          changeType="increase"
+          loading={isLoading}
         />
         <StatCard
           title="Total Categories"
           value={data.totalCategories}
-          subtitle="Product categories"
+          icon={<FiGrid size={24} />}
+          change="5%"
+          changeType="increase"
+          loading={isLoading}
         />
         <StatCard
           title="Average Return Rate"
           value={data.averageReturnRate}
-          subtitle="Last 30 days"
+          icon={<FiRefreshCw size={24} />}
+          change="2%"
+          changeType="decrease"
+          loading={isLoading}
         />
       </div>
 
@@ -421,127 +528,97 @@ const ProductsPage = () => {
       <div className="charts-grid">
         {/* Top Selling Products */}
         <div className="chart-card">
-          <h2>Top 5 Selling Products (Overall)</h2>
+          <div className="chart-header">
+            <h2>Top 5 Selling Products (Overall)</h2>
+            <div className="chart-actions">
+              <button className="chart-action-button">
+                <FiDownload size={16} />
+              </button>
+              <button className="chart-action-button">
+                <FiMoreVertical size={16} />
+              </button>
+            </div>
+          </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.topSellingProducts}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                <Tooltip 
-                  formatter={(value, name) => {
-                    if (name === 'revenue') {
-                      return [formatCurrency(value), 'Revenue'];
-                    }
-                    return [value, 'Units Sold'];
-                  }}
-                />
-                <Legend />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="quantitySold" 
-                  fill="#8884d8" 
-                  name="Units Sold"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  yAxisId="right"
-                  dataKey="revenue" 
-                  fill="#82ca9d" 
-                  name="Revenue"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <Bar data={topSellingProductsData} options={topSellingProductsOptions} />
           </div>
         </div>
 
         <div className="chart-card">
-          <h2>Top 5 Selling Products (Last 24h)</h2>
+          <div className="chart-header">
+            <h2>Top 5 Selling Products (Last 24h)</h2>
+            <div className="chart-actions">
+              <button className="chart-action-button">
+                <FiDownload size={16} />
+              </button>
+              <button className="chart-action-button">
+                <FiMoreVertical size={16} />
+              </button>
+            </div>
+          </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.topSellingProducts24h}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
-                <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" />
-                <Tooltip 
-                  formatter={(value, name) => {
-                    if (name === 'revenue') {
-                      return [formatCurrency(value), 'Revenue'];
-                    }
-                    return [value, 'Units Sold'];
-                  }}
-                />
-                <Legend />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="quantitySold" 
-                  fill="#8884d8" 
-                  name="Units Sold"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  yAxisId="right"
-                  dataKey="revenue" 
-                  fill="#82ca9d" 
-                  name="Revenue"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <Bar 
+              data={{
+                ...topSellingProductsData,
+                labels: data.topSellingProducts24h.map(item => item.name),
+                datasets: [
+                  {
+                    ...topSellingProductsData.datasets[0],
+                    data: data.topSellingProducts24h.map(item => item.quantitySold),
+                  },
+                  {
+                    ...topSellingProductsData.datasets[1],
+                    data: data.topSellingProducts24h.map(item => item.revenue),
+                  }
+                ]
+              }} 
+              options={topSellingProductsOptions} 
+            />
           </div>
         </div>
 
         {/* Categories */}
         <div className="chart-card">
-          <h2>Top 5 Categories (Overall)</h2>
+          <div className="chart-header">
+            <h2>Top 5 Categories (Overall)</h2>
+            <div className="chart-actions">
+              <button className="chart-action-button">
+                <FiDownload size={16} />
+              </button>
+              <button className="chart-action-button">
+                <FiMoreVertical size={16} />
+              </button>
+            </div>
+          </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={data.topCategories}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {data.topCategories.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <Pie data={categoriesData} options={categoriesOptions} />
           </div>
         </div>
 
         <div className="chart-card">
-          <h2>Top 5 Categories (Last 24h)</h2>
+          <div className="chart-header">
+            <h2>Top 5 Categories (Last 24h)</h2>
+            <div className="chart-actions">
+              <button className="chart-action-button">
+                <FiDownload size={16} />
+              </button>
+              <button className="chart-action-button">
+                <FiMoreVertical size={16} />
+              </button>
+            </div>
+          </div>
           <div className="chart-container">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={data.topCategories24h}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {data.topCategories24h.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <Pie 
+              data={{
+                ...categoriesData,
+                labels: data.topCategories24h.map(item => item.name),
+                datasets: [{
+                  ...categoriesData.datasets[0],
+                  data: data.topCategories24h.map(item => item.value),
+                }]
+              }} 
+              options={categoriesOptions} 
+            />
           </div>
         </div>
 

@@ -17,18 +17,21 @@ import {
   FiShoppingCart, 
   FiDollarSign, 
   FiUsers, 
-  FiPackage 
+  FiPackage,
+  FiRefreshCw,
+  FiTrendingUp,
+  FiTrendingDown
 } from 'react-icons/fi';
 
 import { StatCard, ChartCard, DataTable } from '../../components/Dashboard';
 import useDataFetching from '../../hooks/useDataFetching';
-import { 
-  getDashboardSummaryFromDynamo, 
-  getSalesAnalyticsFromDynamo, 
-  getRecentOrdersFromDynamo 
-} from '../../api/dynamoAPI';
+import {
+  getOrdersOverview,
+  getOrdersByTimeRange,
+  getTopSellingProducts,
+  getRefundMetrics
+} from '../../api/ordersAPI';
 import { formatCurrency, formatNumber, formatDate } from '../../utils/formatters';
-import { runAWSTest, showAllTables } from '../../utils/awsUtils';
 
 // Register ChartJS components
 ChartJS.register(
@@ -47,46 +50,45 @@ ChartJS.register(
 const DashboardPage = () => {
   const [timeframe, setTimeframe] = useState('week');
   
-  // Fetch dashboard summary data directly from DynamoDB
-  const { 
-    data: summaryData, 
-    loading: summaryLoading 
-  } = useDataFetching(getDashboardSummaryFromDynamo, [], { timeframe });
-  
-  // Fetch sales analytics data directly from DynamoDB
-  const { 
-    data: salesData, 
-    loading: salesLoading, 
-    refetch: refetchSales 
-  } = useDataFetching(getSalesAnalyticsFromDynamo, [], { timeframe });
-  
-  // Fetch recent orders directly from DynamoDB
-  const { 
-    data: ordersData, 
-    loading: ordersLoading 
-  } = useDataFetching(getRecentOrdersFromDynamo, [], { page: 1, pageSize: 10 });
+  // Fetch orders overview data
+  const {
+    data: ordersOverview,
+    loading: ordersOverviewLoading
+  } = useDataFetching(getOrdersOverview);
 
-  // Add a useEffect to check AWS connection on mount
-  useEffect(() => {
-    console.log('Dashboard mounted - checking environment variables:');
-    console.log('AWS Region:', process.env.REACT_APP_AWS_REGION);
-    console.log('Has AWS Access Key:', !!process.env.REACT_APP_AWS_ACCESS_KEY_ID);
-    console.log('Orders Table:', process.env.REACT_APP_DYNAMODB_ORDERS_TABLE);
-  }, []);
+  // Fetch refund metrics
+  const {
+    data: refundMetrics,
+    loading: refundMetricsLoading
+  } = useDataFetching(getRefundMetrics);
+
+  // Fetch top selling products
+  const {
+    data: topProducts,
+    loading: topProductsLoading
+  } = useDataFetching(getTopSellingProducts);
+
+  // Fetch orders by time range
+  const {
+    data: ordersByTimeRange,
+    loading: ordersByTimeRangeLoading
+  } = useDataFetching(getOrdersByTimeRange, [], {
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    endDate: new Date().toISOString()
+  });
 
   // Handler for timeframe change
   const handleTimeframeChange = (newTimeframe) => {
     setTimeframe(newTimeframe.toLowerCase());
-    refetchSales({ timeframe: newTimeframe.toLowerCase() });
   };
   
   // Prepare the sales chart data
   const salesChartData = {
-    labels: salesData?.labels || [],
+    labels: ordersByTimeRange?.map(item => formatDate(item.date, 'short')) || [],
     datasets: [
       {
         label: 'Revenue',
-        data: salesData?.datasets?.[0]?.data || [],
+        data: ordersByTimeRange?.map(item => item.daily_revenue) || [],
         borderColor: 'rgba(0, 115, 182, 1)',
         backgroundColor: 'rgba(0, 115, 182, 0.1)',
         borderWidth: 2,
@@ -129,11 +131,11 @@ const DashboardPage = () => {
   
   // Prepare the orders chart data
   const ordersChartData = {
-    labels: salesData?.labels || [],
+    labels: ordersByTimeRange?.map(item => formatDate(item.date, 'short')) || [],
     datasets: [
       {
         label: 'Orders',
-        data: salesData?.datasets?.[1]?.data || [],
+        data: ordersByTimeRange?.map(item => item.order_count) || [],
         backgroundColor: 'rgba(76, 175, 80, 0.7)',
         borderRadius: 4,
       }
@@ -246,61 +248,170 @@ const DashboardPage = () => {
     },
   ];
   
+  // Prepare the orders overview stats
+  const orderStats = [
+    {
+      title: 'Total Orders',
+      value: formatNumber(ordersOverview?.total_orders || 0),
+      icon: <FiShoppingCart className="w-6 h-6" />,
+      change: '+12%',
+      changeType: 'increase'
+    },
+    {
+      title: 'Total Revenue',
+      value: formatCurrency(ordersOverview?.total_revenue || 0),
+      icon: <FiDollarSign className="w-6 h-6" />,
+      change: '+8%',
+      changeType: 'increase'
+    },
+    {
+      title: 'Average Order Value',
+      value: formatCurrency(ordersOverview?.average_order_value || 0),
+      icon: <FiTrendingUp className="w-6 h-6" />,
+      change: '+5%',
+      changeType: 'increase'
+    },
+    {
+      title: 'Refund Rate',
+      value: `${((ordersOverview?.total_refunds / ordersOverview?.total_orders) * 100 || 0).toFixed(1)}%`,
+      icon: <FiRefreshCw className="w-6 h-6" />,
+      change: '-2%',
+      changeType: 'decrease'
+    }
+  ];
+
+  // Prepare the refund metrics stats
+  const refundStats = [
+    {
+      title: 'Total Refunds',
+      value: formatNumber(refundMetrics?.total_refunds || 0),
+      icon: <FiRefreshCw className="w-6 h-6" />,
+      change: '-5%',
+      changeType: 'decrease'
+    },
+    {
+      title: 'Refunded Amount',
+      value: formatCurrency(refundMetrics?.total_refunded_amount || 0),
+      icon: <FiDollarSign className="w-6 h-6" />,
+      change: '-3%',
+      changeType: 'decrease'
+    },
+    {
+      title: 'Average Refund',
+      value: formatCurrency(refundMetrics?.average_refund_amount || 0),
+      icon: <FiTrendingDown className="w-6 h-6" />,
+      change: '-1%',
+      changeType: 'decrease'
+    },
+    {
+      title: '24h Refunds',
+      value: formatNumber(refundMetrics?.refunds_last_24h || 0),
+      icon: <FiRefreshCw className="w-6 h-6" />,
+      change: '+2%',
+      changeType: 'increase'
+    }
+  ];
+
+  // Prepare the orders over time chart data
+  const ordersOverTimeData = {
+    labels: ordersByTimeRange?.map(item => formatDate(item.date, 'short')) || [],
+    datasets: [
+      {
+        label: 'Orders',
+        data: ordersByTimeRange?.map(item => item.order_count) || [],
+        borderColor: 'rgba(0, 115, 182, 1)',
+        backgroundColor: 'rgba(0, 115, 182, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+      },
+      {
+        label: 'Refunds',
+        data: ordersByTimeRange?.map(item => item.refund_count) || [],
+        borderColor: 'rgba(244, 67, 54, 1)',
+        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+      }
+    ]
+  };
+
+  // Prepare the top products table columns
+  const topProductsColumns = [
+    {
+      key: 'product_name',
+      title: 'Product',
+      sortable: true,
+    },
+    {
+      key: 'total_quantity',
+      title: 'Quantity Sold',
+      sortable: true,
+      render: (row) => formatNumber(row.total_quantity),
+    },
+    {
+      key: 'total_revenue',
+      title: 'Revenue',
+      sortable: true,
+      render: (row) => formatCurrency(row.total_revenue),
+    },
+    {
+      key: 'number_of_variants',
+      title: 'Variants',
+      sortable: true,
+      render: (row) => formatNumber(row.number_of_variants),
+    }
+  ];
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
         <p className="text-gray-600">Welcome to your analytics dashboard</p>
       </div>
 
+      {/* Orders Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {summaryLoading ? (
-          <div>Loading stats...</div>
-        ) : (
-          <>
-            <StatCard 
-              title="Total Sales"
-              value={formatCurrency(summaryData?.salesSummary?.totalSales || 0)}
-              icon={FiDollarSign}
-              color="primary"
-              percentageChange={summaryData?.salesSummary?.percentageChange || 0}
-            />
-            <StatCard 
-              title="Orders"
-              value={formatNumber(summaryData?.ordersSummary?.totalOrders || 0)}
-              icon={FiShoppingCart}
-              color="success"
-              percentageChange={summaryData?.ordersSummary?.percentageChange || 0}
-            />
-            <StatCard 
-              title="Customers"
-              value={formatNumber(summaryData?.customersSummary?.totalCustomers || 0)}
-              icon={FiUsers}
-              color="secondary"
-              percentageChange={summaryData?.customersSummary?.percentageChange || 0}
-            />
-            <StatCard 
-              title="Products"
-              value={formatNumber(summaryData?.inventorySummary?.totalProducts || 0)}
-              icon={FiPackage}
-              color="warning"
-              percentageChange={5.2}
-            />
-          </>
-        )}
+        {orderStats.map((stat, index) => (
+          <StatCard
+            key={index}
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            change={stat.change}
+            changeType={stat.changeType}
+            loading={ordersOverviewLoading}
+          />
+        ))}
+      </div>
+
+      {/* Refund Metrics Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {refundStats.map((stat, index) => (
+          <StatCard
+            key={index}
+            title={stat.title}
+            value={stat.value}
+            icon={stat.icon}
+            change={stat.change}
+            changeType={stat.changeType}
+            loading={refundMetricsLoading}
+          />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <ChartCard 
           title="Revenue Overview" 
-          subtitle={`Total: ${formatCurrency(salesData?.totalRevenue || 0)}`}
+          subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
           legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
           timeframes={['Day', 'Week', 'Month', 'Year']}
           activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
           onTimeframeChange={handleTimeframeChange}
-          loading={salesLoading}
+          loading={ordersByTimeRangeLoading}
         >
-          {salesLoading ? (
+          {ordersByTimeRangeLoading ? (
             <div>Loading chart...</div>
           ) : (
             <div style={{ width: '100%', height: '300px' }}>
@@ -329,13 +440,13 @@ const DashboardPage = () => {
         
         <ChartCard 
           title="Orders Trend" 
-          subtitle={`Total Orders: ${formatNumber(salesData?.totalOrders || 0)}`}
+          subtitle={`Total Orders: ${formatNumber(ordersByTimeRange?.reduce((total, item) => total + item.order_count, 0) || 0)}`}
           legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
           timeframes={['Day', 'Week', 'Month', 'Year']}
           activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
           onTimeframeChange={handleTimeframeChange}
         >
-          {!salesLoading && salesData && (
+          {!ordersByTimeRangeLoading && ordersByTimeRange && (
             <div style={{ width: '100%', height: '300px' }}>
               <Bar data={ordersChartData} options={ordersChartOptions} />
             </div>
@@ -343,13 +454,61 @@ const DashboardPage = () => {
         </ChartCard>
       </div>
 
+      {/* Orders Over Time Chart */}
+      <ChartCard
+        title="Orders and Refunds Over Time"
+        loading={ordersByTimeRangeLoading}
+      >
+        <Line
+          data={ordersOverTimeData}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)',
+                }
+              },
+              x: {
+                grid: {
+                  display: false,
+                }
+              }
+            }
+          }}
+        />
+      </ChartCard>
+
+      {/* Top Selling Products Table */}
+      <ChartCard
+        title="Top Selling Products"
+        loading={topProductsLoading}
+      >
+        <DataTable
+          columns={topProductsColumns}
+          data={topProducts || []}
+          loading={topProductsLoading}
+        />
+      </ChartCard>
+
       <div className="mt-6">
         <DataTable 
           title="Recent Orders"
           columns={ordersColumns}
-          data={ordersData?.orders || []}
+          data={ordersByTimeRange?.map(item => ({ ...item, status: 'Completed' })) || []}
           pagination={true}
-          loading={ordersLoading}
+          loading={ordersByTimeRangeLoading}
         />
       </div>
     </div>

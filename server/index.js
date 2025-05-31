@@ -9,6 +9,7 @@ const logger = require('./utils/logger');
 const Redis=require('ioredis');
 const errorHandler = require('./middleware/errorHandler');
 const productRoutes = require('./routes/productRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
@@ -50,7 +51,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('combined', { stream: logger.stream }));
 
 // Routes
-app.use('/api/v1', productRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/orders', orderRoutes);
 
 // Error handling
 app.use(errorHandler);

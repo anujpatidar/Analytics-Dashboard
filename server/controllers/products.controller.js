@@ -1,26 +1,9 @@
-
 const logger = require('../utils/logger');
 const path=require('path');
-const { DynamoDBClient, ListTablesCommand } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, ScanCommand, GetCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const valkeyClient = require('../config/valkey');
 const chalk=require('chalk');
 const fetchProductsWithVariants=require('../utils/fetchmarketplaceprice');
 const {fetchTotalProductsCount,calculateAverageProductPrice,getTopSellingProducts,getTopSellingProducts24h,getTopCategories,getTopCategories24h,getLeastSellingProducts,getLeastSellingProducts24h,getMostReturnedProducts} = require('../utils/fetchOverallProductMetric');
-// Configure AWS SDK
-// Initialize DynamoDB client with detailed logging
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-  //enable for logs down below
-  // logger: console 
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-
 
 const productsController = {
 

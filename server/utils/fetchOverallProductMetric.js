@@ -1,21 +1,6 @@
-const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient } = require('@aws-sdk/lib-dynamodb');
-const { UpdateCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const queryForBigQuery = require('../config/bigquery');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-
-// DynamoDB configuration
-const client = new DynamoDBClient({
-    region: process.env.AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    }
-});
-
-const docClient = DynamoDBDocumentClient.from(client);
-
 
 const fetchTotalProductsCount = async () => {
     try {
