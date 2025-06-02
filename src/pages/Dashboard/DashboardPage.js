@@ -15,13 +15,13 @@ import {
 } from 'chart.js';
 import { 
   FiShoppingCart, 
-  FiDollarSign, 
   FiUsers, 
   FiPackage,
   FiRefreshCw,
   FiTrendingUp,
   FiTrendingDown
 } from 'react-icons/fi';
+import { FaRupeeSign } from 'react-icons/fa';
 
 import { StatCard, ChartCard, DataTable } from '../../components/Dashboard';
 import useDataFetching from '../../hooks/useDataFetching';
@@ -29,7 +29,8 @@ import {
   getOrdersOverview,
   getOrdersByTimeRange,
   getTopSellingProducts,
-  getRefundMetrics
+  getRefundMetrics,
+  getRecentOrders
 } from '../../api/ordersAPI';
 import { formatCurrency, formatNumber, formatDate } from '../../utils/formatters';
 
@@ -49,7 +50,37 @@ ChartJS.register(
 
 const DashboardPage = () => {
   const [timeframe, setTimeframe] = useState('week');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   
+  // Calculate date range based on timeframe
+  const getDateRange = (timeframe) => {
+    const endDate = new Date();
+    let startDate = new Date();
+    
+    switch(timeframe.toLowerCase()) {
+      case 'day':
+        startDate.setDate(endDate.getDate() - 1);
+        break;
+      case 'week':
+        startDate.setDate(endDate.getDate() - 7);
+        break;
+      case 'month':
+        startDate.setDate(endDate.getDate() - 30);
+        break;
+      case 'year':
+        startDate.setDate(endDate.getDate() - 365);
+        break;
+      default:
+        startDate.setDate(endDate.getDate() - 7);
+    }
+    
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString()
+    };
+  };
+
   // Fetch orders overview data
   const {
     data: ordersOverview,
@@ -71,20 +102,82 @@ const DashboardPage = () => {
   // Fetch orders by time range
   const {
     data: ordersByTimeRange,
-    loading: ordersByTimeRangeLoading
+    loading: ordersByTimeRangeLoading,
+    refetch: refetchOrdersByTimeRange
   } = useDataFetching(getOrdersByTimeRange, [], {
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    endDate: new Date().toISOString()
+    startDate: getDateRange(timeframe).startDate,
+    endDate: getDateRange(timeframe).endDate,
+    timeframe
+  });
+
+  // Fetch recent orders
+  const {
+    data: recentOrdersData,
+    loading: recentOrdersLoading,
+    refetch: refetchRecentOrders
+  } = useDataFetching(getRecentOrders, [], {
+    page: currentPage,
+    pageSize
   });
 
   // Handler for timeframe change
   const handleTimeframeChange = (newTimeframe) => {
-    setTimeframe(newTimeframe.toLowerCase());
+    const newTimeframeLower = newTimeframe.toLowerCase();
+    setTimeframe(newTimeframeLower);
+    refetchOrdersByTimeRange({
+      startDate: getDateRange(newTimeframeLower).startDate,
+      endDate: getDateRange(newTimeframeLower).endDate,
+      timeframe: newTimeframeLower
+    });
   };
-  
+
+  // Aggregate data based on timeframe
+  const aggregateData = (data, timeframe) => {
+    if (!data) return [];
+    
+    const groupedData = data.reduce((acc, item) => {
+      const date = new Date(item.date);
+      let key;
+      
+      switch(timeframe.toLowerCase()) {
+        case 'day':
+          key = date.toISOString().split('T')[0];
+          break;
+        case 'week':
+          const weekStart = new Date(date);
+          weekStart.setDate(date.getDate() - date.getDay());
+          key = weekStart.toISOString().split('T')[0];
+          break;
+        case 'month':
+          key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          break;
+        case 'year':
+          key = date.getFullYear().toString();
+          break;
+        default:
+          key = date.toISOString().split('T')[0];
+      }
+      
+      if (!acc[key]) {
+        acc[key] = {
+          date: key,
+          daily_revenue: 0,
+          order_count: 0
+        };
+      }
+      
+      acc[key].daily_revenue += item.daily_revenue;
+      acc[key].order_count += item.order_count;
+      
+      return acc;
+    }, {});
+    
+    return Object.values(groupedData).sort((a, b) => new Date(a.date) - new Date(b.date));
+  };
+
   // Prepare the sales chart data
   const salesChartData = {
-    labels: ordersByTimeRange?.map(item => formatDate(item.date, 'short')) || [],
+    labels: ordersByTimeRange?.map(item => formatDate(item.date, timeframe)) || [],
     datasets: [
       {
         label: 'Revenue',
@@ -118,7 +211,7 @@ const DashboardPage = () => {
           color: 'rgba(0, 0, 0, 0.05)',
         },
         ticks: {
-          callback: (value) => formatCurrency(value, 'USD', 'en-US', 0),
+          callback: (value) => formatCurrency(value),
         }
       },
       x: {
@@ -131,7 +224,7 @@ const DashboardPage = () => {
   
   // Prepare the orders chart data
   const ordersChartData = {
-    labels: ordersByTimeRange?.map(item => formatDate(item.date, 'short')) || [],
+    labels: ordersByTimeRange?.map(item => formatDate(item.date, timeframe)) || [],
     datasets: [
       {
         label: 'Orders',
@@ -229,10 +322,10 @@ const DashboardPage = () => {
       sortable: true,
       render: (row) => {
         const getStatusColor = (status) => {
-          switch (status.toLowerCase()) {
-            case 'completed': return 'success';
-            case 'processing': return 'primary';
-            case 'shipped': return 'secondary';
+          switch (status?.toLowerCase()) {
+            case 'paid': return 'success';
+            case 'pending': return 'primary';
+            case 'partially_paid': return 'secondary';
             case 'cancelled': return 'danger';
             case 'refunded': return 'warning';
             default: return 'grey';
@@ -260,14 +353,14 @@ const DashboardPage = () => {
     {
       title: 'Total Revenue',
       value: formatCurrency(ordersOverview?.total_revenue || 0),
-      icon: <FiDollarSign className="w-6 h-6" />,
+      icon: <FaRupeeSign className="w-6 h-6" />,
       change: '+8%',
       changeType: 'increase'
     },
     {
       title: 'Average Order Value',
       value: formatCurrency(ordersOverview?.average_order_value || 0),
-      icon: <FiTrendingUp className="w-6 h-6" />,
+      icon: <FaRupeeSign className="w-6 h-6" />,
       change: '+5%',
       changeType: 'increase'
     },
@@ -292,14 +385,14 @@ const DashboardPage = () => {
     {
       title: 'Refunded Amount',
       value: formatCurrency(refundMetrics?.total_refunded_amount || 0),
-      icon: <FiDollarSign className="w-6 h-6" />,
+      icon: <FaRupeeSign className="w-6 h-6" />,
       change: '-3%',
       changeType: 'decrease'
     },
     {
       title: 'Average Refund',
       value: formatCurrency(refundMetrics?.average_refund_amount || 0),
-      icon: <FiTrendingDown className="w-6 h-6" />,
+      icon: <FaRupeeSign className="w-6 h-6" />,
       change: '-1%',
       changeType: 'decrease'
     },
@@ -314,7 +407,7 @@ const DashboardPage = () => {
 
   // Prepare the orders over time chart data
   const ordersOverTimeData = {
-    labels: ordersByTimeRange?.map(item => formatDate(item.date, 'short')) || [],
+    labels: ordersByTimeRange?.map(item => formatDate(item.date, timeframe)) || [],
     datasets: [
       {
         label: 'Orders',
@@ -490,25 +583,21 @@ const DashboardPage = () => {
         />
       </ChartCard>
 
-      {/* Top Selling Products Table */}
-      <ChartCard
-        title="Top Selling Products"
-        loading={topProductsLoading}
-      >
-        <DataTable
-          columns={topProductsColumns}
-          data={topProducts || []}
-          loading={topProductsLoading}
-        />
-      </ChartCard>
+
 
       <div className="mt-6">
         <DataTable 
           title="Recent Orders"
           columns={ordersColumns}
-          data={ordersByTimeRange?.map(item => ({ ...item, status: 'Completed' })) || []}
+          data={recentOrdersData?.orders || []}
           pagination={true}
-          loading={ordersByTimeRangeLoading}
+          loading={recentOrdersLoading}
+          currentPage={currentPage}
+          totalPages={recentOrdersData?.totalPages || 1}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            refetchRecentOrders({ page, pageSize });
+          }}
         />
       </div>
     </div>

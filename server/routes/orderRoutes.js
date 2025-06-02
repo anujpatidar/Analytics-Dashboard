@@ -14,4 +14,7 @@ router.get('/top-selling', ordersController.getTopSellingProducts);
 // Get refund metrics
 router.get('/refund-metrics', ordersController.getRefundMetrics);
 
+// Get recent orders
+router.get('/recent', ordersController.getRecentOrders);
+
 module.exports = router; 

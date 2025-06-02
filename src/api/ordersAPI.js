@@ -12,12 +12,13 @@ export const getOrdersOverview = async () => {
   }
 };
 
-export const getOrdersByTimeRange = async (startDate, endDate) => {
+export const getOrdersByTimeRange = async (params) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/orders/time-range`, {
       params: { 
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
+        startDate: params.startDate,
+        endDate: params.endDate,
+        timeframe: params.timeframe
       }
     });
     return response.data.data;
@@ -45,6 +46,18 @@ export const getRefundMetrics = async () => {
     return response.data.data;
   } catch (error) {
     console.error('Error fetching refund metrics:', error);
+    throw error;
+  }
+};
+
+export const getRecentOrders = async (page = 1, pageSize = 10) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/orders/recent`, {
+      params: { page, pageSize }
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching recent orders:', error);
     throw error;
   }
 }; 

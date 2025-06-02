@@ -1,16 +1,16 @@
 /**
  * Format a number as currency
  * @param {number} value - The number to format
- * @param {string} currency - The currency code (default: USD)
- * @param {string} locale - The locale (default: en-US)
+ * @param {string} currency - The currency code (default: INR)
+ * @param {string} locale - The locale (default: en-IN)
  * @returns {string} Formatted currency string
  */
-export const formatCurrency = (value, currency = 'USD', locale = 'en-US') => {
+export const formatCurrency = (value, currency = 'INR', locale = 'en-IN') => {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(value);
 };
 
@@ -18,10 +18,10 @@ export const formatCurrency = (value, currency = 'USD', locale = 'en-US') => {
  * Format a number with thousands separators
  * @param {number} value - The number to format
  * @param {number} decimals - Number of decimal places (default: 0)
- * @param {string} locale - The locale (default: en-US)
+ * @param {string} locale - The locale (default: en-IN)
  * @returns {string} Formatted number string
  */
-export const formatNumber = (value, decimals = 0, locale = 'en-US') => {
+export const formatNumber = (value, decimals = 0, locale = 'en-IN') => {
   return new Intl.NumberFormat(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
@@ -43,6 +43,14 @@ export const formatDate = (date, format = 'medium', locale = 'en-US') => {
   }
   
   switch (format) {
+    case 'day':
+      return dateObj.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+    case 'week':
+      return `Week of ${dateObj.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}`;
+    case 'month':
+      return dateObj.toLocaleDateString(locale, { month: 'short', year: 'numeric' });
+    case 'year':
+      return dateObj.getFullYear().toString();
     case 'short':
       return dateObj.toLocaleDateString(locale, { month: 'numeric', day: 'numeric', year: '2-digit' });
     case 'medium':

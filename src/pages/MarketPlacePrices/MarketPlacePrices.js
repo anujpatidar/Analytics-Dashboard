@@ -23,6 +23,7 @@
 // Alphabetical sort by product title.
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle, ChevronsUp, ChevronsDown, Download } from 'lucide-react';
+import { FaRupeeSign } from 'react-icons/fa';
 import axios from 'axios';
 
 const MarketPlacePrices = () => {
@@ -199,7 +200,12 @@ const MarketPlacePrices = () => {
   // Function to format price display
   const formatPrice = (price) => {
     if (price === null) return 'N/A';
-    return `₹${price}`;
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
   };
 
   // Function to handle expand/collapse all
@@ -399,7 +405,7 @@ const MarketPlacePrices = () => {
                         {/* Best price badge */}
                         {variant.prices && getLowestPrice(variant.prices) && (
                           <div className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1.5 rounded-full flex items-center">
-                            <DollarSign className="h-4 w-4 mr-1.5" />
+                            <FaRupeeSign className="h-4 w-4 mr-1.5" />
                             Best: {getLowestPrice(variant.prices).platform}
                           </div>
                         )}

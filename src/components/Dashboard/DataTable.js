@@ -1,16 +1,36 @@
 import React, { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiSearch, FiFilter, FiDownload } from 'react-icons/fi';
 
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Invalid Date';
+  }
+};
+
 const DataTable = ({ 
   title, 
   columns, 
   data, 
   pagination = true, 
   itemsPerPage = 10,
-  loading = false
+  loading = false,
+  currentPage,
+  totalPages,
+  onPageChange
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   
   // Sorting logic
@@ -26,6 +46,12 @@ const DataTable = ({
     if (!sortConfig.key) return data;
     
     return [...data].sort((a, b) => {
+      if (sortConfig.key === 'date') {
+        const dateA = new Date(a[sortConfig.key]).getTime();
+        const dateB = new Date(b[sortConfig.key]).getTime();
+        return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+      }
+      
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === 'asc' ? -1 : 1;
       }
@@ -48,12 +74,6 @@ const DataTable = ({
       )
     );
   }, [sortedData, searchQuery]);
-  
-  // Pagination logic
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const paginatedData = pagination 
-    ? filteredData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage) 
-    : filteredData;
 
   if (loading) {
     return (
@@ -118,7 +138,7 @@ const DataTable = ({
                     onClick={() => handleSort(column.key)}
                     className="flex items-center space-x-1 focus:outline-none"
                   >
-                    <span>{column.label}</span>
+                    <span>{column.title}</span>
                     {sortConfig.key === column.key && (
                       sortConfig.direction === 'asc' ? 
                         <FiChevronUp className="w-4 h-4" /> : 
@@ -130,14 +150,15 @@ const DataTable = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedData.map((row, index) => (
+            {filteredData.map((row, index) => (
               <tr key={index} className="hover:bg-gray-50">
                 {columns.map((column) => (
                   <td
                     key={column.key}
                     className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                   >
-                    {row[column.key]}
+                    {column.key === 'date' ? formatDate(row[column.key]) : 
+                     column.render ? column.render(row) : row[column.key]}
                   </td>
                 ))}
               </tr>
@@ -150,31 +171,18 @@ const DataTable = ({
         <div className="px-6 py-4 border-t border-gray-200">
           <div className="flex justify-between items-center">
             <div className="text-sm text-gray-500">
-              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length} entries
+              Page {currentPage} of {totalPages}
             </div>
-            <div className="flex space-x-1">
+            <div className="flex space-x-2">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentPage(index + 1)}
-                  className={`px-3 py-1 border rounded-md text-sm font-medium ${
-                    currentPage === index + 1
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >

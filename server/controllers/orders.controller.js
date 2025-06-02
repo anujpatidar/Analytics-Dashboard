@@ -54,10 +54,13 @@ const ordersController = {
     }
   },
 
-  getOrdersByTimeRange: async (req, res, next) => {
+// ... existing code ...
+getOrdersByTimeRange: async (req, res, next) => {
     try {
-      const { startDate, endDate } = req.query;
-      const cacheKey = `get_orders_by_time_range:${startDate}:${endDate}`;
+      const { startDate, endDate, timeframe = 'day' } = req.query;
+      console.log('Received parameters:', { startDate, endDate, timeframe });
+      
+      const cacheKey = `get_orders_by_time_range:${startDate}:${endDate}:${timeframe}`;
       let cachedData = null;
 
       try {
@@ -78,24 +81,49 @@ const ordersController = {
       // Format dates for BigQuery
       const formattedStartDate = new Date(startDate).toISOString();
       const formattedEndDate = new Date(endDate).toISOString();
+      console.log('Formatted dates:', { formattedStartDate, formattedEndDate });
 
+      // First, let's check if we have any data at all
+      const checkQuery = `
+        SELECT 
+          COUNT(*) as total_records,
+          MIN(CREATED_AT) as earliest_date,
+          MAX(CREATED_AT) as latest_date,
+          COUNT(DISTINCT NAME) as unique_orders,
+          SUM(TOTAL_PRICE) as total_revenue
+        FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\`
+      `;
+
+      console.log('Executing check query...');
+      const checkResults = await executeQuery(checkQuery);
+      console.log('Check query results:', checkResults);
+
+      // Now let's try to get the data for the specific date range
       const query = `
         SELECT 
-          DATE(CREATED_AT) as date,
+          FORMAT_DATE('%Y-%m-%d', DATE(CREATED_AT)) as date,
+          COUNT(DISTINCT o.NAME) as total_orders,
+          SUM(o.TOTAL_PRICE) as total_revenue,
+          AVG(o.TOTAL_PRICE) as average_order_value,
           COUNT(DISTINCT NAME) as order_count,
           SUM(TOTAL_PRICE) as daily_revenue,
           COUNT(DISTINCT CASE WHEN r.ORDER_ID IS NOT NULL THEN NAME END) as refund_count
         FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\` o
-        LEFT JOIN \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.refunds\` r ON o.NAME = r.ORDER_NAME
-        WHERE CREATED_AT BETWEEN @startDate AND @endDate
+        LEFT JOIN \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.refunds\` r 
+          ON o.NAME = r.ORDER_NAME
+        WHERE CREATED_AT >= TIMESTAMP('${formattedStartDate}')
+          AND CREATED_AT <= TIMESTAMP('${formattedEndDate}')
         GROUP BY date
         ORDER BY date
       `;
 
-      const rows = await executeQuery(query, {
+      console.log('Executing main query with params:', {
         startDate: formattedStartDate,
         endDate: formattedEndDate
       });
+
+      const rows = await executeQuery(query);
+      console.log('Main query results:', rows);
       
       // Store in cache for 1 hour
       try {
@@ -110,6 +138,7 @@ const ordersController = {
       next(error);
     }
   },
+// ... existing code ...
 
   getTopSellingProducts: async (req, res, next) => {
     try {
@@ -147,10 +176,10 @@ const ordersController = {
           TITLE
         ORDER BY 
           total_quantity_sold DESC
-        LIMIT @limit
+        LIMIT ${parseInt(limit)}
       `;
 
-      const rows = await executeQuery(query, { limit: parseInt(limit) });
+      const rows = await executeQuery(query);
       
       // Store in cache for 1 hour
       try {
@@ -212,6 +241,80 @@ const ordersController = {
       res.status(200).json({ success: true, data: rows[0] });
     } catch (error) {
       logger.error('Error fetching refund metrics:', error);
+      next(error);
+    }
+  },
+
+  getRecentOrders: async (req, res, next) => {
+    try {
+      // Ensure page and pageSize are valid numbers
+      const page = Math.max(1, parseInt(req.query.page) || 1);
+      const pageSize = Math.max(1, Math.min(100, parseInt(req.query.pageSize) || 10));
+      const offset = (page - 1) * pageSize;
+      
+      const cacheKey = `get_recent_orders:${page}:${pageSize}`;
+      let cachedData = null;
+
+      try {
+        cachedData = await valkeyClient.get(cacheKey);
+      } catch (cacheError) {
+        logger.warn('Cache error:', cacheError);
+      }
+      
+      if (cachedData) {
+        console.log(chalk.bgGreen('Cache hit for recent orders'));
+        return res.status(200).json({
+          success: true,
+          data: JSON.parse(cachedData),
+          fromCache: true
+        });
+      }
+
+      // Get total count for pagination
+      const countQuery = `
+        SELECT COUNT(DISTINCT NAME) as total
+        FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\`
+      `;
+      const countResult = await executeQuery(countQuery);
+      const total = countResult[0].total;
+
+      // Get recent orders with pagination
+      const query = `
+        SELECT 
+          NAME as id,
+          FORMAT_TIMESTAMP('%Y-%m-%dT%H:%M:%S', CREATED_AT) as date,
+          CURRENT_TOTAL_PRICE as total,
+          COALESCE(FINANCIAL_STATUS, 'pending') as status,
+          COALESCE(FULFILLMENT_STATUS, 'unfulfilled') as fulfillment_status,
+          CURRENT_SUBTOTAL_PRICE as subtotal,
+          CURRENT_TOTAL_DISCOUNTS as discounts,
+          CURRENT_TOTAL_TAX as tax
+        FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\`
+        ORDER BY CREATED_AT DESC
+        LIMIT ${pageSize}
+        OFFSET ${offset}
+      `;
+
+      const rows = await executeQuery(query);
+      
+      const response = {
+        orders: rows,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize)
+      };
+      
+      // Store in cache for 5 minutes
+      try {
+        await valkeyClient.set(cacheKey, JSON.stringify(response), 300);
+      } catch (cacheError) {
+        logger.warn('Cache error:', cacheError);
+      }
+      
+      res.status(200).json({ success: true, data: response });
+    } catch (error) {
+      logger.error('Error fetching recent orders:', error);
       next(error);
     }
   }

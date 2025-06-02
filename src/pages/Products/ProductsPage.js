@@ -17,7 +17,8 @@ import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import styled from 'styled-components';
-import { FiPackage, FiDollarSign, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical } from 'react-icons/fi';
+import { FiPackage, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
+import { FaRupeeSign } from 'react-icons/fa';
 import StatCard from '../../components/Dashboard/StatCard';
 import './ProductsPage.css';
 
@@ -217,6 +218,127 @@ const DateRangeFilter = styled.div`
   }
 `;
 
+const SalesContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin: 2rem 0;
+`;
+
+const SalesCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  height: 100%;
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+
+    h2 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .trend-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+
+      &.positive {
+        background: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+      }
+
+      &.negative {
+        background: rgba(244, 67, 54, 0.1);
+        color: #F44336;
+      }
+    }
+  }
+
+  .product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .product-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f8f9fa;
+    transition: all 0.2s ease;
+    cursor: pointer;
+
+    &:hover {
+      background: #f0f2f5;
+      transform: translateX(4px);
+    }
+
+    .product-rank {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #666;
+      min-width: 2rem;
+      text-align: center;
+    }
+
+    .product-image {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .product-info {
+      flex: 1;
+
+      .product-name {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 0.25rem;
+      }
+
+      .product-metrics {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+
+        .metric {
+          display: flex;
+          align-items: center;
+          gap: 0.25rem;
+
+          &.sales {
+            color: #4CAF50;
+          }
+
+          &.revenue {
+            color: #2196F3;
+          }
+        }
+      }
+    }
+  }
+`;
+
 const ProductsPage = () => {
   const [data, setData] = useState({
     totalProducts: 0,
@@ -329,9 +451,11 @@ const ProductsPage = () => {
   }, []);
 
   const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(value);
   };
 
@@ -391,7 +515,7 @@ const ProductsPage = () => {
           color: 'rgba(0, 0, 0, 0.05)',
         },
         ticks: {
-          callback: (value) => formatCurrency(value, 'USD', 'en-US', 0),
+          callback: (value) => formatCurrency(value),
         }
       },
       x: {
@@ -501,8 +625,8 @@ const ProductsPage = () => {
         <StatCard
           title="Average Product Price"
           value={formatCurrency(data.averageProductPrice)}
-          icon={<FiDollarSign size={24} />}
-          change="8%"
+          icon={<FaRupeeSign className="w-6 h-6" />}
+          change="+5%"
           changeType="increase"
           loading={isLoading}
         />
@@ -516,7 +640,7 @@ const ProductsPage = () => {
         />
         <StatCard
           title="Average Return Rate"
-          value={data.averageReturnRate}
+          value={`${data.averageReturnRate}%`}
           icon={<FiRefreshCw size={24} />}
           change="2%"
           changeType="decrease"
@@ -749,6 +873,85 @@ const ProductsPage = () => {
           </button>
         </div>
       </div>
+
+      {/* Replace the SalesContainer section */}
+      <SalesContainer>
+        <SalesCard>
+          <div className="card-header">
+            <h2>
+              <FiTrendingUp style={{ color: '#4CAF50' }} />
+              Top Selling Products
+            </h2>
+            <div className="trend-indicator positive">
+              <FiTrendingUp />
+              <span>+12% from last period</span>
+            </div>
+          </div>
+          <div className="product-list">
+            {data.topSellingProducts.map((product, index) => (
+              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
+                <div className="product-rank">#{index + 1}</div>
+                <img
+                  src={product.image || 'https://via.placeholder.com/48'}
+                  alt={product.name}
+                  className="product-image"
+                />
+                <div className="product-info">
+                  <div className="product-name">{product.name}</div>
+                  <div className="product-metrics">
+                    <div className="metric sales">
+                      <FiTrendingUp />
+                      {product.sales} units
+                    </div>
+                    <div className="metric revenue">
+                      <FaRupeeSign />
+                      {formatCurrency(product.revenue)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SalesCard>
+
+        <SalesCard>
+          <div className="card-header">
+            <h2>
+              <FiTrendingDown style={{ color: '#F44336' }} />
+              Least Selling Products
+            </h2>
+            <div className="trend-indicator negative">
+              <FiTrendingDown />
+              <span>-8% from last period</span>
+            </div>
+          </div>
+          <div className="product-list">
+            {data.leastSellingProducts.map((product, index) => (
+              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
+                <div className="product-rank">#{index + 1}</div>
+                <img
+                  src={product.image || 'https://via.placeholder.com/48'}
+                  alt={product.name}
+                  className="product-image"
+                />
+                <div className="product-info">
+                  <div className="product-name">{product.name}</div>
+                  <div className="product-metrics">
+                    <div className="metric sales">
+                      <FiTrendingDown />
+                      {product.sales} units
+                    </div>
+                    <div className="metric revenue">
+                      <FaRupeeSign />
+                      {formatCurrency(product.revenue)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SalesCard>
+      </SalesContainer>
     </div>
   );
 };

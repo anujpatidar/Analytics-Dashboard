@@ -188,6 +188,7 @@ const getTopSellingProducts = async () => {
             SELECT 
             TITLE as product_name,
             SUM(CURRENT_QUANTITY) as total_quantity_sold,
+            SUM((CURRENT_QUANTITY * PRICE) - DISCOUNT_ALLOCATION_AMOUNT) as total_revenue,
             COUNT(DISTINCT SKU) as number_of_variants
             FROM 
             \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.line_items\`
@@ -203,7 +204,7 @@ const getTopSellingProducts = async () => {
                     `;
 
         const result = await queryForBigQuery(query);
-        console.log(result);
+        // console.log(result);
         const mockData = [
             { name: 'Product A', sales: 1200, revenue: 24000 },
             { name: 'Product B', sales: 950, revenue: 19000 },
@@ -245,7 +246,7 @@ const getTopSellingProducts = async () => {
         const data = result.map(item => ({
             name: item.product_name,
             quantitySold: item.total_quantity_sold,
-            revenue: item.total_quantity_sold * 100 // Assuming each product sells for $100 change
+            revenue: item.total_revenue
         }));
 
         return data;
