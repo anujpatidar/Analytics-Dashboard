@@ -375,8 +375,9 @@ const ProductsPage = () => {
   const endIndex = startIndex + PRODUCTS_PER_PAGE;
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
-  const handleProductClick = (productId) => {
-    navigate(`/products/${productId}`);
+  const handleProductClick = (productName) => {
+    const slug = productName.toLowerCase().replace(/ /g, '-'); // Convert to slug format such as "product-name"
+    navigate(`/products/${slug}`);
   };
 
   const handlePageChange = (newPage) => {
@@ -418,15 +419,15 @@ const ProductsPage = () => {
         name: product.title,
         sku: product.variants?.[0]?.sku || "N/A",
         totalSold: product.totalSold || 0,
-        image: product?.images?.[0]?.src
-      })));
+        image: product?.image})));
+
 
       // Fetch analytics data with date range
       const analyticsResponse = await fetch(`http://localhost:8080/api/v1/products/get-overall-product-metrics`);
       const analyticsData = await analyticsResponse.json();
       
       setData({
-        totalProducts: analyticsData.data.totalProducts || 0,
+        totalProducts: productsData.data.length || 0,
         averageProductPrice: analyticsData.data.averageProductPrice || 0,
         totalCategories: analyticsData.data.totalCategories || 0,
         averageReturnRate: analyticsData.data.averageReturnRate || 0,
@@ -824,7 +825,7 @@ const ProductsPage = () => {
                 currentProducts.map((product) => (
                   <tr
                     key={product.id}
-                    onClick={() => handleProductClick(product.id)}
+                    onClick={() => handleProductClick(product.name)}
                     className="product-row"
                   >
                     <td>
