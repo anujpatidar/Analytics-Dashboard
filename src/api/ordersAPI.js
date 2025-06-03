@@ -2,9 +2,14 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api/v1';
 
-export const getOrdersOverview = async () => {
+export const getOrdersOverview = async (params) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/orders/overview`);
+    const response = await axios.get(`${API_BASE_URL}/orders/overview`, {
+      params: {
+        startDate: params?.startDate,
+        endDate: params?.endDate
+      }
+    });
     return response.data.data;
   } catch (error) {
     console.error('Error fetching orders overview:', error);
@@ -28,10 +33,14 @@ export const getOrdersByTimeRange = async (params) => {
   }
 };
 
-export const getTopSellingProducts = async (limit = 5) => {
+export const getTopSellingProducts = async (params) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/orders/top-selling`, {
-      params: { limit }
+      params: { 
+        limit: params?.limit || 5,
+        startDate: params?.startDate,
+        endDate: params?.endDate
+      }
     });
     return response.data.data;
   } catch (error) {
@@ -40,9 +49,14 @@ export const getTopSellingProducts = async (limit = 5) => {
   }
 };
 
-export const getRefundMetrics = async () => {
+export const getRefundMetrics = async (params) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/orders/refund-metrics`);
+    const response = await axios.get(`${API_BASE_URL}/orders/refund-metrics`, {
+      params: {
+        startDate: params?.startDate,
+        endDate: params?.endDate
+      }
+    });
     return response.data.data;
   } catch (error) {
     console.error('Error fetching refund metrics:', error);
@@ -50,10 +64,15 @@ export const getRefundMetrics = async () => {
   }
 };
 
-export const getRecentOrders = async (page = 1, pageSize = 10) => {
+export const getRecentOrders = async (params) => {
   try {
     const response = await axios.get(`${API_BASE_URL}/orders/recent`, {
-      params: { page, pageSize }
+      params: { 
+        page: params.page, 
+        pageSize: params.pageSize,
+        startDate: params?.startDate,
+        endDate: params?.endDate
+      }
     });
     return response.data.data;
   } catch (error) {

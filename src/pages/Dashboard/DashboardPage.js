@@ -22,6 +22,10 @@ import {
   FiTrendingDown
 } from 'react-icons/fi';
 import { FaRupeeSign } from 'react-icons/fa';
+import DatePicker from 'react-datepicker';
+import { format, startOfDay, endOfDay } from 'date-fns';
+import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
+import "react-datepicker/dist/react-datepicker.css";
 
 import { StatCard, ChartCard, DataTable } from '../../components/Dashboard';
 import useDataFetching from '../../hooks/useDataFetching';
@@ -49,55 +53,96 @@ ChartJS.register(
 );
 
 const DashboardPage = () => {
+  const timeZone = 'Asia/Kolkata';
+  
+  // Helper function to convert to IST
+  const toIST = (date) => {
+    return toZonedTime(date, timeZone);
+  };
+
+  // Helper function to convert from IST to UTC
+  const toUTC = (date) => {
+    return new Date(formatInTimeZone(date, timeZone, "yyyy-MM-dd'T'HH:mm:ssXXX"));
+  };
+
+  // Initialize dates in IST
+  const getInitialDates = () => {
+    const now = toIST(new Date());
+    const weekAgo = new Date(now);
+    weekAgo.setDate(now.getDate() - 7);
+    return {
+      start: startOfDay(weekAgo),
+      end: endOfDay(now)
+    };
+  };
+
   const [timeframe, setTimeframe] = useState('week');
   const [currentPage, setCurrentPage] = useState(1);
+  const initialDates = getInitialDates();
+  const [dateRange, setDateRange] = useState([initialDates.start, initialDates.end]);
+  const [isCustomDateRange, setIsCustomDateRange] = useState(false);
   const pageSize = 10;
   
   // Calculate date range based on timeframe
   const getDateRange = (timeframe) => {
-    const endDate = new Date();
-    let startDate = new Date();
+    if (isCustomDateRange && dateRange[0] && dateRange[1]) {
+      return {
+        startDate: toUTC(startOfDay(dateRange[0])).toISOString(),
+        endDate: toUTC(endOfDay(dateRange[1])).toISOString()
+      };
+    }
+
+    const end = endOfDay(toIST(new Date()));
+    let start = startOfDay(toIST(new Date()));
     
     switch(timeframe.toLowerCase()) {
       case 'day':
-        startDate.setDate(endDate.getDate() - 1);
+        start.setDate(end.getDate() - 1);
         break;
       case 'week':
-        startDate.setDate(endDate.getDate() - 7);
+        start.setDate(end.getDate() - 7);
         break;
       case 'month':
-        startDate.setDate(endDate.getDate() - 30);
+        start.setDate(end.getDate() - 30);
         break;
       case 'year':
-        startDate.setDate(endDate.getDate() - 365);
+        start.setDate(end.getDate() - 365);
         break;
       default:
-        startDate.setDate(endDate.getDate() - 7);
+        start.setDate(end.getDate() - 7);
     }
     
     return {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString()
+      startDate: toUTC(start).toISOString(),
+      endDate: toUTC(end).toISOString()
     };
   };
 
-  // Fetch orders overview data
+  // Get current date range for API calls
+  const getCurrentDateRange = () => {
+    return getDateRange(isCustomDateRange ? 'custom' : timeframe);
+  };
+  
+  // Fetch orders overview data with date range
   const {
     data: ordersOverview,
-    loading: ordersOverviewLoading
-  } = useDataFetching(getOrdersOverview);
+    loading: ordersOverviewLoading,
+    refetch: refetchOrdersOverview
+  } = useDataFetching(getOrdersOverview, [], getCurrentDateRange());
 
-  // Fetch refund metrics
+  // Fetch refund metrics with date range
   const {
     data: refundMetrics,
-    loading: refundMetricsLoading
-  } = useDataFetching(getRefundMetrics);
+    loading: refundMetricsLoading,
+    refetch: refetchRefundMetrics
+  } = useDataFetching(getRefundMetrics, [], getCurrentDateRange());
 
-  // Fetch top selling products
+  // Fetch top selling products with date range
   const {
     data: topProducts,
-    loading: topProductsLoading
-  } = useDataFetching(getTopSellingProducts);
+    loading: topProductsLoading,
+    refetch: refetchTopProducts
+  } = useDataFetching(getTopSellingProducts, [], getCurrentDateRange());
 
   // Fetch orders by time range
   const {
@@ -105,30 +150,59 @@ const DashboardPage = () => {
     loading: ordersByTimeRangeLoading,
     refetch: refetchOrdersByTimeRange
   } = useDataFetching(getOrdersByTimeRange, [], {
-    startDate: getDateRange(timeframe).startDate,
-    endDate: getDateRange(timeframe).endDate,
+    startDate: getCurrentDateRange().startDate,
+    endDate: getCurrentDateRange().endDate,
     timeframe
   });
 
-  // Fetch recent orders
+  // Fetch recent orders with date range
   const {
     data: recentOrdersData,
     loading: recentOrdersLoading,
     refetch: refetchRecentOrders
   } = useDataFetching(getRecentOrders, [], {
     page: currentPage,
-    pageSize
+    pageSize,
+    ...getCurrentDateRange()
   });
+
+  // Function to refetch all data
+  const refetchAllData = (dateRange) => {
+    refetchOrdersOverview(dateRange);
+    refetchRefundMetrics(dateRange);
+    refetchTopProducts(dateRange);
+    refetchOrdersByTimeRange({
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate,
+      timeframe: isCustomDateRange ? 'custom' : timeframe
+    });
+    refetchRecentOrders({
+      page: currentPage,
+      pageSize,
+      ...dateRange
+    });
+  };
+
+  // Handler for custom date range change
+  const handleDateRangeChange = (update) => {
+    setDateRange(update);
+    if (update[0] && update[1]) {
+      setIsCustomDateRange(true);
+      const dateRange = {
+        startDate: toUTC(startOfDay(update[0])).toISOString(),
+        endDate: toUTC(endOfDay(update[1])).toISOString()
+      };
+      refetchAllData(dateRange);
+    }
+  };
 
   // Handler for timeframe change
   const handleTimeframeChange = (newTimeframe) => {
     const newTimeframeLower = newTimeframe.toLowerCase();
     setTimeframe(newTimeframeLower);
-    refetchOrdersByTimeRange({
-      startDate: getDateRange(newTimeframeLower).startDate,
-      endDate: getDateRange(newTimeframeLower).endDate,
-      timeframe: newTimeframeLower
-    });
+    setIsCustomDateRange(false);
+    const dateRange = getDateRange(newTimeframeLower);
+    refetchAllData(dateRange);
   };
 
   // Aggregate data based on timeframe
@@ -341,67 +415,67 @@ const DashboardPage = () => {
     },
   ];
   
-  // Prepare the orders overview stats
+  // Prepare the orders overview stats with date range
   const orderStats = [
     {
       title: 'Total Orders',
       value: formatNumber(ordersOverview?.total_orders || 0),
       icon: <FiShoppingCart className="w-6 h-6" />,
-      change: '+12%',
-      changeType: 'increase'
+      change: ordersOverview?.order_change_percentage ? `${ordersOverview.order_change_percentage}%` : '0%',
+      changeType: ordersOverview?.order_change_percentage > 0 ? 'increase' : 'decrease'
     },
     {
       title: 'Total Revenue',
       value: formatCurrency(ordersOverview?.total_revenue || 0),
       icon: <FaRupeeSign className="w-6 h-6" />,
-      change: '+8%',
-      changeType: 'increase'
+      change: ordersOverview?.revenue_change_percentage ? `${ordersOverview.revenue_change_percentage}%` : '0%',
+      changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease'
     },
     {
       title: 'Average Order Value',
       value: formatCurrency(ordersOverview?.average_order_value || 0),
       icon: <FaRupeeSign className="w-6 h-6" />,
-      change: '+5%',
-      changeType: 'increase'
+      change: ordersOverview?.aov_change_percentage ? `${ordersOverview.aov_change_percentage}%` : '0%',
+      changeType: ordersOverview?.aov_change_percentage > 0 ? 'increase' : 'decrease'
     },
     {
       title: 'Refund Rate',
       value: `${((ordersOverview?.total_refunds / ordersOverview?.total_orders) * 100 || 0).toFixed(1)}%`,
       icon: <FiRefreshCw className="w-6 h-6" />,
-      change: '-2%',
-      changeType: 'decrease'
+      change: ordersOverview?.refund_rate_change_percentage ? `${ordersOverview.refund_rate_change_percentage}%` : '0%',
+      changeType: ordersOverview?.refund_rate_change_percentage < 0 ? 'decrease' : 'increase'
     }
   ];
 
-  // Prepare the refund metrics stats
+  // Prepare the refund metrics stats with date range
   const refundStats = [
     {
       title: 'Total Refunds',
       value: formatNumber(refundMetrics?.total_refunds || 0),
       icon: <FiRefreshCw className="w-6 h-6" />,
-      change: '-5%',
-      changeType: 'decrease'
+      change: refundMetrics?.refund_change_percentage ? `${refundMetrics.refund_change_percentage}%` : '0%',
+      changeType: refundMetrics?.refund_change_percentage < 0 ? 'decrease' : 'increase'
     },
     {
       title: 'Refunded Amount',
       value: formatCurrency(refundMetrics?.total_refunded_amount || 0),
       icon: <FaRupeeSign className="w-6 h-6" />,
-      change: '-3%',
-      changeType: 'decrease'
+      change: refundMetrics?.refund_amount_change_percentage ? `${refundMetrics.refund_amount_change_percentage}%` : '0%',
+      changeType: refundMetrics?.refund_amount_change_percentage < 0 ? 'decrease' : 'increase'
     },
     {
       title: 'Average Refund',
       value: formatCurrency(refundMetrics?.average_refund_amount || 0),
       icon: <FaRupeeSign className="w-6 h-6" />,
-      change: '-1%',
-      changeType: 'decrease'
+      change: refundMetrics?.avg_refund_change_percentage ? `${refundMetrics.avg_refund_change_percentage}%` : '0%',
+      changeType: refundMetrics?.avg_refund_change_percentage < 0 ? 'decrease' : 'increase'
     },
     {
       title: '24h Refunds',
       value: formatNumber(refundMetrics?.refunds_last_24h || 0),
       icon: <FiRefreshCw className="w-6 h-6" />,
-      change: '+2%',
-      changeType: 'increase'
+      change: refundMetrics?.refund_24h_change_percentage ? `${refundMetrics.refund_24h_change_percentage}%` : '0%',
+      changeType: refundMetrics?.refund_24h_change_percentage < 0 ? 'decrease' : 'increase'
     }
   ];
 
@@ -459,9 +533,68 @@ const DashboardPage = () => {
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome to your analytics dashboard</p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <DatePicker
+              selected={dateRange[0]}
+              onChange={handleDateRangeChange}
+              startDate={dateRange[0]}
+              endDate={dateRange[1]}
+              selectsRange
+              dateFormat="dd/MM/yyyy"
+              showTimeSelect={false}
+              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholderText="Select date range"
+              maxDate={new Date()}
+              calendarClassName="custom-datepicker"
+              isClearable={true}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleTimeframeChange('day')}
+              className={`px-4 py-2 rounded-lg ${
+                timeframe === 'day' && !isCustomDateRange
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Day
+            </button>
+            <button
+              onClick={() => handleTimeframeChange('week')}
+              className={`px-4 py-2 rounded-lg ${
+                timeframe === 'week' && !isCustomDateRange
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Week
+            </button>
+            <button
+              onClick={() => handleTimeframeChange('month')}
+              className={`px-4 py-2 rounded-lg ${
+                timeframe === 'month' && !isCustomDateRange
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Month
+            </button>
+            <button
+              onClick={() => handleTimeframeChange('year')}
+              className={`px-4 py-2 rounded-lg ${
+                timeframe === 'year' && !isCustomDateRange
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Year
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Orders Overview Stats */}
@@ -582,8 +715,6 @@ const DashboardPage = () => {
           }}
         />
       </ChartCard>
-
-
 
       <div className="mt-6">
         <DataTable 
