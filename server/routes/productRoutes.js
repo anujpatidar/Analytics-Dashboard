@@ -5,5 +5,5 @@ router.get('/get-all-products', productsController.getAllProductsList);
 router.get('/get-product-by-id/:productId', productsController.getProductById);
 router.get('/get-marketplace-prices', productsController.getMarketplacePrices);
 router.get('/get-overall-product-metrics', productsController.getOverallProductMetrics);
-router.get('/get-product-metrics-by-id/:productId', productsController.getProductMetricsById);
+router.get('/get-product-metrics-by-id/:productSlug', productsController.getProductMetricsById);
 module.exports = router;

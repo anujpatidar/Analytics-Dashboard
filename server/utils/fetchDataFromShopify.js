@@ -1,6 +1,7 @@
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const SHOPIFY_STORE_URL = process.env.SHOPIFY_SHOP_DOMAIN;
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN;
+
 const fetchAllProducts = async () => {
   try {
     const query = `
@@ -115,6 +116,49 @@ const fetchAllProducts = async () => {
     throw error;
   }
 };
+
+//fetch listing image of product by Id
+const fetchListingImageAndDescriptionById = async (productId) => {
+  // Format the ID to match Shopify's global ID format
+  const globalId = `gid://shopify/Product/${productId}`;
+  const query = `
+    query {
+      product(id: "${globalId}") {
+        description
+        images(first: 1) {
+          edges {
+            node {
+              url
+              altText
+            } 
+          }
+        }
+      }
+    }
+  `;
+  const response = await fetch(`https://${SHOPIFY_STORE_URL}/admin/api/2024-01/graphql.json`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+    },
+    body: JSON.stringify({ query }),
+  });
+  const data = await response.json();
+  if (data.errors) {
+    console.error('Error fetching product image and description:', data.errors);
+    return { imageUrl: null, description: null };
+  }
+  return {
+    imageUrl: data.data.product?.images.edges[0]?.node.url || null,
+    description: data.data.product?.description || null
+  };
+};
+            
+
+
+
+
 // Function to fetch all products with pagination
 const fetchAllProductsWithPagination = async () => {
   let allProducts = [];
@@ -247,4 +291,5 @@ const fetchAllProductsWithPagination = async () => {
 module.exports = {
   fetchAllProducts,
   fetchAllProductsWithPagination,
+  fetchListingImageAndDescriptionById
 };

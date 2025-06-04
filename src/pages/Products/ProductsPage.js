@@ -414,6 +414,7 @@ const ProductsPage = () => {
       // Fetch products list
       const productsResponse = await fetch('http://localhost:8080/api/v1/products/get-all-products');
       const productsData = await productsResponse.json();
+      console.log('Products Data:', productsData.data);
       setProductList(productsData.data.map(product => ({
         id: product.id,
         name: product.title,

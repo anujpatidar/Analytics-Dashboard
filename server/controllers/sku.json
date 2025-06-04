@@ -1,0 +1,3622 @@
+[
+    {
+      "itemName": "Frido Ultimate Face Mask",
+      "productId": "6843689795618",
+      "MasterSKU": "frido-ultimate-face-mask",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Extra Small / Midnight Black",
+          "variantMasterSKU": "frido-ultimate-face-mask-extra-small-/-midnight-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULT-S-B"
+            }
+          ]
+        },
+        {
+          "variantName": "Medium / Midnight Black",
+          "variantMasterSKU": "frido-ultimate-face-mask-medium-/-midnight-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULT-M-B"
+            }
+          ]
+        },
+        {
+          "variantName": "Large / Midnight Black",
+          "variantMasterSKU": "frido-ultimate-face-mask-large-/-midnight-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULT-L-B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Dual Gel Insoles",
+      "productId": "6843693170722",
+      "MasterSKU": "frido-dual-gel-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Regular (9-13 UK)",
+          "variantMasterSKU": "frido-dual-gel-insoles-regular-(9-13-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-INS-M-1"
+            }
+          ]
+        },
+        {
+          "variantName": "Small (5-8 UK)",
+          "variantMasterSKU": "frido-dual-gel-insoles-small-(5-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-INS-W-1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Pro Face Mask",
+      "productId": "6871720951842",
+      "MasterSKU": "frido-ultimate-pro-face-mask",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "S / Black",
+          "variantMasterSKU": "frido-ultimate-pro-face-mask-s-/-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULTP-S-B"
+            }
+          ]
+        },
+        {
+          "variantName": "S / Metallic Grey",
+          "variantMasterSKU": "frido-ultimate-pro-face-mask-s-/-metallic-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULTP-S-G"
+            }
+          ]
+        },
+        {
+          "variantName": "M / Black",
+          "variantMasterSKU": "frido-ultimate-pro-face-mask-m-/-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULTP-M-B"
+            }
+          ]
+        },
+        {
+          "variantName": "M / Metallic Grey",
+          "variantMasterSKU": "frido-ultimate-pro-face-mask-m-/-metallic-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULTP-M-G"
+            }
+          ]
+        },
+        {
+          "variantName": "L / Black",
+          "variantMasterSKU": "frido-ultimate-pro-face-mask-l-/-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULTP-L-B"
+            }
+          ]
+        },
+        {
+          "variantName": "L / Metallic Grey",
+          "variantMasterSKU": "frido-ultimate-pro-face-mask-l-/-metallic-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-ULTP-L-G"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Gel Cloud Insoles",
+      "productId": "7082368565282",
+      "MasterSKU": "frido-gel-cloud-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (5 - 8 UK)",
+          "variantMasterSKU": "frido-gel-cloud-insoles-small-(5---8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-GCIN-S"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9 - 12 UK)",
+          "variantMasterSKU": "frido-gel-cloud-insoles-large-(9---12-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-GCIN-L"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Coccyx Seat Cushion",
+      "productId": "7118644281378",
+      "MasterSKU": "frido-ultimate-coccyx-seat-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Below 60Kg Wt.",
+          "variantMasterSKU": "frido-ultimate-coccyx-seat-cushion-below-60kg-wt.",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCSC-B"
+            }
+          ]
+        },
+        {
+          "variantName": "Above 60Kg Wt.",
+          "variantMasterSKU": "frido-ultimate-coccyx-seat-cushion-above-60kg-wt.",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCSC-B-B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Socket Seat Cushion",
+      "productId": "7125989457954",
+      "MasterSKU": "frido-ultimate-socket-seat-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Pack of 1",
+          "variantMasterSKU": "frido-ultimate-socket-seat-cushion-pack-of-1",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-USSC-G"
+            }
+          ]
+        },
+        {
+          "variantName": "Pack of 2",
+          "variantMasterSKU": "frido-ultimate-socket-seat-cushion-pack-of-2",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-USSC-G2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Deep Sleep Pillow",
+      "productId": "7138581413922",
+      "MasterSKU": "frido-ultimate-deep-sleep-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "4 Inch",
+          "variantMasterSKU": "frido-ultimate-deep-sleep-pillow-4-inch",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UNFP-M"
+            }
+          ]
+        },
+        {
+          "variantName": "5 Inch",
+          "variantMasterSKU": "frido-ultimate-deep-sleep-pillow-5-inch",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ORSP-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Arch Support Insoles",
+      "productId": "8400843014425",
+      "MasterSKU": "frido-arch-support-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small(3-5 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-small(3-5-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASI-S"
+            }
+          ]
+        },
+        {
+          "variantName": "Medium (6-8 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-medium-(6-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASI-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9-11 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-large-(9-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASI-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Back Lumbar Cushion",
+      "productId": "8406496772377",
+      "MasterSKU": "frido-ultimate-back-lumbar-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-ultimate-back-lumbar-cushion-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULSC-G"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-ultimate-back-lumbar-cushion-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULSC-B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Pro Seat Cushion",
+      "productId": "8435071451417",
+      "MasterSKU": "frido-ultimate-pro-seat-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Premium Grey",
+          "variantMasterSKU": "frido-ultimate-pro-seat-cushion-premium-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UPSC-G"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Pro Posture Corrector",
+      "productId": "8435124830489",
+      "MasterSKU": "frido-ultimate-pro-posture-corrector",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Premium Grey",
+          "variantMasterSKU": "frido-ultimate-pro-posture-corrector-premium-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UPPC-G"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Orthopedic Heel Pad",
+      "productId": "8938123821337",
+      "MasterSKU": "frido-orthopedic-heel-pad",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (4-7 UK)",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-small-(4-7-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-HC-S"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (8-11 UK)",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-large-(8-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-HC-L"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Car Neck Rest Pillow",
+      "productId": "8975623160089",
+      "MasterSKU": "frido-ultimate-car-neck-rest-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Premium Black",
+          "variantMasterSKU": "frido-ultimate-car-neck-rest-pillow-premium-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCNP-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium Grey",
+          "variantMasterSKU": "frido-ultimate-car-neck-rest-pillow-premium-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCNP-GB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium Beige",
+          "variantMasterSKU": "frido-ultimate-car-neck-rest-pillow-premium-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCNP-BE1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium Tan",
+          "variantMasterSKU": "frido-ultimate-car-neck-rest-pillow-premium-tan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCNP-TN1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Neck Contour Cervical Pillow",
+      "productId": "9005283639577",
+      "MasterSKU": "frido-ultimate-neck-contour-cervical-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Premium Blue",
+          "variantMasterSKU": "frido-ultimate-neck-contour-cervical-pillow-premium-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "⁠FR-OCVP-PB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium White",
+          "variantMasterSKU": "frido-ultimate-neck-contour-cervical-pillow-premium-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "⁠FR-OCVP-W1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Pro Seating Combo",
+      "productId": "9071504228633",
+      "MasterSKU": "frido-ultimate-pro-seating-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-ultimate-pro-seating-combo-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UPSCMB-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Cozy Pillow",
+      "productId": "9101976797465",
+      "MasterSKU": "frido-ultimate-cozy-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-ultimate-cozy-pillow-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCZP-R1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Office Neck Rest Pillow",
+      "productId": "9161556459801",
+      "MasterSKU": "frido-ultimate-office-neck-rest-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-ultimate-office-neck-rest-pillow-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UONRP-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-ultimate-office-neck-rest-pillow-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UONRP-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Car Backrest Cushion",
+      "productId": "9172473086233",
+      "MasterSKU": "frido-ultimate-car-backrest-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Premium Black",
+          "variantMasterSKU": "frido-ultimate-car-backrest-cushion-premium-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCBU-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium Grey",
+          "variantMasterSKU": "frido-ultimate-car-backrest-cushion-premium-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCBU-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Dual Car Comfort Combo",
+      "productId": "9172500906265",
+      "MasterSKU": "dual-car-comfort-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black Combo",
+          "variantMasterSKU": "dual-car-comfort-combo-black-combo",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCPC-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey Combo",
+          "variantMasterSKU": "dual-car-comfort-combo-grey-combo",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCPC-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Arch Sports Insole",
+      "productId": "9262324121881",
+      "MasterSKU": "frido-arch-sports-insole",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (3-6 UK)",
+          "variantMasterSKU": "frido-arch-sports-insole-small-(3-6-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASPI-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (7-10 UK)",
+          "variantMasterSKU": "frido-arch-sports-insole-large-(7-10-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASPI-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Extra Large (11-14 UK)",
+          "variantMasterSKU": "frido-arch-sports-insole-extra-large-(11-14-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASPI-XL1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Piles Pain Relief Seat Cushion",
+      "productId": "9287767851289",
+      "MasterSKU": "frido-ultimate-piles-pain-relief-seat-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Pack of 1",
+          "variantMasterSKU": "frido-ultimate-piles-pain-relief-seat-cushion-pack-of-1",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UPPR-R1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Tailbone Pain Relief Seat Cushion",
+      "productId": "9307906933017",
+      "MasterSKU": "frido-ultimate-tailbone-pain-relief-seat-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Premium Grey",
+          "variantMasterSKU": "frido-ultimate-tailbone-pain-relief-seat-cushion-premium-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UTPR-GM1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium Blue",
+          "variantMasterSKU": "frido-ultimate-tailbone-pain-relief-seat-cushion-premium-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UTPR-BM1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Max Comfort Arch Cushion Insoles",
+      "productId": "9391606235417",
+      "MasterSKU": "frido-max-comfort-arch-cushion-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Large (8-11 UK)",
+          "variantMasterSKU": "frido-max-comfort-arch-cushion-insoles-large-(8-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MXACI-L"
+            }
+          ]
+        },
+        {
+          "variantName": "Small (4-7 UK)",
+          "variantMasterSKU": "frido-max-comfort-arch-cushion-insoles-small-(4-7-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MXACI-S"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Wedge Cushion",
+      "productId": "9464502911257",
+      "MasterSKU": "frido-ultimate-wedge-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "White",
+          "variantMasterSKU": "frido-ultimate-wedge-cushion-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-W1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-ultimate-wedge-cushion-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CBS-BL1"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey",
+          "variantMasterSKU": "frido-ultimate-wedge-cushion-white-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-WG1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Wedge Plus Cushion",
+      "productId": "9464517001497",
+      "MasterSKU": "frido-ultimate-wedge-plus-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "White",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-W1"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-white-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-WG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Light Caramel",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-light-caramel",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-LC1"
+            }
+          ]
+        },
+        {
+          "variantName": "Mustard Yellow",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-mustard-yellow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-MY1"
+            }
+          ]
+        },
+        {
+          "variantName": "Coffee Brown",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-coffee-brown",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-CB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Slate Grey",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-slate-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-GR1"
+            }
+          ]
+        },
+        {
+          "variantName": "Sage Green",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-sage-green",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-SG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Blush Pink",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-blush-pink",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-BP1"
+            }
+          ]
+        },
+        {
+          "variantName": "Teal Blue",
+          "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-teal-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-TB1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ouch Free High Heels Ball of Foot Cushions",
+      "productId": "9481867428121",
+      "MasterSKU": "frido-ouch-free-high-heels-ball-of-foot-cushions",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-ouch-free-high-heels-ball-of-foot-cushions-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "‎FR-BOFCI-R1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Arch Support Insoles",
+      "productId": "9518238826777",
+      "MasterSKU": "frido-arch-support-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (3-5 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-small-(3-5-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASIR-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Medium (6-8 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-medium-(6-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASIR-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9-11 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-large-(9-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASIR-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Arch Support Insoles Rigid + Semi Rigid Combo",
+      "productId": "9529621512473",
+      "MasterSKU": "frido-arch-support-insoles-rigid-+-semi-rigid-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (3-5 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-rigid-+-semi-rigid-combo-small-(3-5-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASIR-COM-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Medium (6-8 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-rigid-+-semi-rigid-combo-medium-(6-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASIR-COM-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9-11 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-rigid-+-semi-rigid-combo-large-(9-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASIR-COM-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Max Comfort Memory Hi-Per Foam Insole",
+      "productId": "9543319388441",
+      "MasterSKU": "frido-max-comfort-memory-hi-per-foam-insole",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (4-8 UK)",
+          "variantMasterSKU": "frido-max-comfort-memory-hi-per-foam-insole-small-(4-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MHFI-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9-13 UK)",
+          "variantMasterSKU": "frido-max-comfort-memory-hi-per-foam-insole-large-(9-13-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MHFI-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Mattress Topper",
+      "productId": "9568300073241",
+      "MasterSKU": "frido-ultimate-mattress-topper",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Single / 72\" x 36\" / Standard Cover",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-72\"-x-36\"-/-standard-cover",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT-72X36-WC1"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 72\" x 36\" / Premium Cover",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-72\"-x-36\"-/-premium-cover",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT72X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 72\" x 36\" / Original Prices",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-72\"-x-36\"-/-original-prices",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT72X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 72\" x 42\" / Standard Cover",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-72\"-x-42\"-/-standard-cover",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT-72X42-WC1"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 72\" x 42\" / Premium Cover",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-72\"-x-42\"-/-premium-cover",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT72X42X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 72\" x 42\" / Original Prices",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-72\"-x-42\"-/-original-prices",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT72X42X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 75\" x 36\" / Standard Cover",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-75\"-x-36\"-/-standard-cover",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT-75X36-WC1"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 75\" x 36\" / Premium Cover",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-75\"-x-36\"-/-premium-cover",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT75X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 75\" x 36\" / Original Prices",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-75\"-x-36\"-/-original-prices",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT75X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 75\" x 42\" / Standard Cover",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-75\"-x-42\"-/-standard-cover",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT-75X42-WC1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Neck Contour Cervical Plus Pillow",
+      "productId": "9618182537497",
+      "MasterSKU": "frido-ultimate-neck-contour-cervical-plus-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Premium Blue",
+          "variantMasterSKU": "frido-ultimate-neck-contour-cervical-plus-pillow-premium-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OCVP-PB-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium White",
+          "variantMasterSKU": "frido-ultimate-neck-contour-cervical-plus-pillow-premium-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OCVP-W-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Max Comfort Arch Cushion Insoles",
+      "productId": "9679732637977",
+      "MasterSKU": "frido-max-comfort-arch-cushion-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Large (8-11 UK)",
+          "variantMasterSKU": "frido-max-comfort-arch-cushion-insoles-large-(8-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MXACI-L"
+            }
+          ]
+        },
+        {
+          "variantName": "Small (4-7 UK)",
+          "variantMasterSKU": "frido-max-comfort-arch-cushion-insoles-small-(4-7-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MXACI-S"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Car Wedge Seat Cushion",
+      "productId": "9698359869721",
+      "MasterSKU": "frido-ultimate-car-wedge-seat-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-ultimate-car-wedge-seat-cushion-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCWSC-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-ultimate-car-wedge-seat-cushion-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCWSC-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Dual Gel Pro Insoles",
+      "productId": "9705222308121",
+      "MasterSKU": "frido-dual-gel-pro-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (5-8 UK)",
+          "variantMasterSKU": "frido-dual-gel-pro-insoles-small-(5-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DGPI-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9-13 UK)",
+          "variantMasterSKU": "frido-dual-gel-pro-insoles-large-(9-13-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DGPI-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Complete Neck Support Combo",
+      "productId": "9728085328153",
+      "MasterSKU": "complete-neck-support-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "complete-neck-support-combo-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CPBCN-B1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Ultimate Car Comfort Bundle",
+      "productId": "9728088015129",
+      "MasterSKU": "ultimate-car-comfort-bundle",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "ultimate-car-comfort-bundle-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNCBCW-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "ultimate-car-comfort-bundle-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNCBCW-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido 3D Posture Plus Ergonomic Chair",
+      "productId": "9734062342425",
+      "MasterSKU": "frido-3d-posture-plus-ergonomic-chair",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Tan",
+          "variantMasterSKU": "frido-3d-posture-plus-ergonomic-chair-tan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-3DPPC-T1"
+            }
+          ]
+        },
+        {
+          "variantName": "Dark Grey",
+          "variantMasterSKU": "frido-3d-posture-plus-ergonomic-chair-dark-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-3DPPC-G1"
+            }
+          ]
+        },
+        {
+          "variantName": "Royal White",
+          "variantMasterSKU": "frido-3d-posture-plus-ergonomic-chair-royal-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-3DPPC-W1"
+            }
+          ]
+        },
+        {
+          "variantName": "Premium Black",
+          "variantMasterSKU": "frido-3d-posture-plus-ergonomic-chair-premium-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-3DPPC-B1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Active Socks",
+      "productId": "9735347536153",
+      "MasterSKU": "frido-active-socks",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "S (UK 2-5) / Cyan",
+          "variantMasterSKU": "frido-active-socks-s-(uk-2-5)-/-cyan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASC-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "S (UK 2-5) / Neon Green",
+          "variantMasterSKU": "frido-active-socks-s-(uk-2-5)-/-neon-green",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASNG-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "S (UK 2-5) / Core Black",
+          "variantMasterSKU": "frido-active-socks-s-(uk-2-5)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASCB-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "S (UK 2-5) / Charcoal Grey",
+          "variantMasterSKU": "frido-active-socks-s-(uk-2-5)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-AS-CG-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "M (UK 6-9) / Cyan",
+          "variantMasterSKU": "frido-active-socks-m-(uk-6-9)-/-cyan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASC-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "M (UK 6-9) / Neon Green",
+          "variantMasterSKU": "frido-active-socks-m-(uk-6-9)-/-neon-green",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASNG-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "M (UK 6-9) / Core Black",
+          "variantMasterSKU": "frido-active-socks-m-(uk-6-9)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASCB-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "M (UK 6-9) / Charcoal Grey",
+          "variantMasterSKU": "frido-active-socks-m-(uk-6-9)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-AS-CG-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "L (UK 10-13) / Cyan",
+          "variantMasterSKU": "frido-active-socks-l-(uk-10-13)-/-cyan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASC-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "L (UK 10-13) / Neon Green",
+          "variantMasterSKU": "frido-active-socks-l-(uk-10-13)-/-neon-green",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASNG-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Travel Neck Pillow",
+      "productId": "9750539370777",
+      "MasterSKU": "frido-travel-neck-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Core Black",
+          "variantMasterSKU": "frido-travel-neck-pillow-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-TNP-CB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Sapphire Blue",
+          "variantMasterSKU": "frido-travel-neck-pillow-sapphire-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-TNP-SB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-travel-neck-pillow-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-TNP-BG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Pink",
+          "variantMasterSKU": "frido-travel-neck-pillow-pink",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-TNP-P1"
+            }
+          ]
+        },
+        {
+          "variantName": "Wine",
+          "variantMasterSKU": "frido-travel-neck-pillow-wine",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-TNP-W1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Lap Desk Pillow",
+      "productId": "9760402407705",
+      "MasterSKU": "frido-ultimate-lap-desk-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Blue",
+          "variantMasterSKU": "frido-ultimate-lap-desk-pillow-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULDP-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-ultimate-lap-desk-pillow-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULDP-G1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-ultimate-lap-desk-pillow-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULDP-BL1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Sofa Backrest Cushion",
+      "productId": "9762204942617",
+      "MasterSKU": "frido-ultimate-sofa-backrest-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-ultimate-sofa-backrest-cushion-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-USBC-PG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Core Black",
+          "variantMasterSKU": "frido-ultimate-sofa-backrest-cushion-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-USBC-PCB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Bluish Grey",
+          "variantMasterSKU": "frido-ultimate-sofa-backrest-cushion-bluish-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-USBC-PBG1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Pillow Trial Pack Combo",
+      "productId": "9762403680537",
+      "MasterSKU": "pillow-trial-pack-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "pillow-trial-pack-combo-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UNFPCZCP-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Ultimate Flat Feet Combo",
+      "productId": "9762406564121",
+      "MasterSKU": "ultimate-flat-feet-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small(3-5 UK)",
+          "variantMasterSKU": "ultimate-flat-feet-combo-small(3-5-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASPI-S1-ASIR-COM-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Medium(6-8 UK)",
+          "variantMasterSKU": "ultimate-flat-feet-combo-medium(6-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASPI-L1-ASIR-COM-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large(9-11 UK)",
+          "variantMasterSKU": "ultimate-flat-feet-combo-large(9-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASPI-XL1-ASIR-COM-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Everyday Insole Combo",
+      "productId": "9762408595737",
+      "MasterSKU": "everyday-insole-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Large (9-13 UK)",
+          "variantMasterSKU": "everyday-insole-combo-large-(9-13-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DGPHFHC-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Small (5-8 UK)",
+          "variantMasterSKU": "everyday-insole-combo-small-(5-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DGPHFHC-S1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Barefoot Sock Shoe Pro",
+      "productId": "9770923393305",
+      "MasterSKU": "frido-barefoot-sock-shoe-pro",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Men / XS(4-5 UK) / Charcoal Grey",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-xs(4-5-uk)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CG-M-XS1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / XS(4-5 UK) / Neo Blue",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-xs(4-5-uk)-/-neo-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-XS1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / XS(4-5 UK) / Core Black",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-xs(4-5-uk)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-BL-M-XS1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / S (6-7 UK) / Charcoal Grey",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-s-(6-7-uk)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CG-M-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / S (6-7 UK) / Neo Blue",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-s-(6-7-uk)-/-neo-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UBFSS-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / S (6-7 UK) / Core Black",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-s-(6-7-uk)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-BL-M-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / M (8-9 UK) / Charcoal Grey",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-m-(8-9-uk)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CG-M-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / M (8-9 UK) / Neo Blue",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-m-(8-9-uk)-/-neo-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UBFSS-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / M (8-9 UK) / Core Black",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-m-(8-9-uk)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-BL-M-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / L (10-12 UK) / Charcoal Grey",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-pro-men-/-l-(10-12-uk)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CG-M-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Cervical Butterfly Pillow",
+      "productId": "9784425447705",
+      "MasterSKU": "frido-cervical-butterfly-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Beige",
+          "variantMasterSKU": "frido-cervical-butterfly-pillow-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CBP-BE1"
+            }
+          ]
+        },
+        {
+          "variantName": "Blue",
+          "variantMasterSKU": "frido-cervical-butterfly-pillow-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CBP-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-cervical-butterfly-pillow-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CBP-G1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Wedge Plus Cushion Cover",
+      "productId": "9798064636185",
+      "MasterSKU": "frido-wedge-plus-cushion-cover",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "White",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-W"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-white-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-WHGY"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Mustard Yellow",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-mustard-yellow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-YC"
+            }
+          ]
+        },
+        {
+          "variantName": "Coffee Brown",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-coffee-brown",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-CB"
+            }
+          ]
+        },
+        {
+          "variantName": "Slate Grey",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-slate-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-SLGY"
+            }
+          ]
+        },
+        {
+          "variantName": "Light Caramel",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-light-caramel",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-LC"
+            }
+          ]
+        },
+        {
+          "variantName": "Sage Green",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-sage-green",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-SG"
+            }
+          ]
+        },
+        {
+          "variantName": "Teal Blue",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-teal-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-TB"
+            }
+          ]
+        },
+        {
+          "variantName": "Blush Pink",
+          "variantMasterSKU": "frido-wedge-plus-cushion-cover-blush-pink",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "WED-PL-COVER-BP"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Silver Plus Face Mask",
+      "productId": "9807387099417",
+      "MasterSKU": "frido-silver-plus-face-mask",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "M / Soothing Grey",
+          "variantMasterSKU": "frido-silver-plus-face-mask-m-/-soothing-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-AS-M-G"
+            }
+          ]
+        },
+        {
+          "variantName": "M / Midnight Black",
+          "variantMasterSKU": "frido-silver-plus-face-mask-m-/-midnight-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-AS-M-B"
+            }
+          ]
+        },
+        {
+          "variantName": "L / Soothing Grey",
+          "variantMasterSKU": "frido-silver-plus-face-mask-l-/-soothing-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-AS-L-G"
+            }
+          ]
+        },
+        {
+          "variantName": "L / Midnight Black",
+          "variantMasterSKU": "frido-silver-plus-face-mask-l-/-midnight-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "MK-AS-L-B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Cuddle Sleep Pillow",
+      "productId": "9825592803609",
+      "MasterSKU": "frido-cuddle-sleep-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Barbie Pink",
+          "variantMasterSKU": "frido-cuddle-sleep-pillow-barbie-pink",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CP-BP1"
+            }
+          ]
+        },
+        {
+          "variantName": "Pebble Grey",
+          "variantMasterSKU": "frido-cuddle-sleep-pillow-pebble-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CP-PG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Mocha Brown",
+          "variantMasterSKU": "frido-cuddle-sleep-pillow-mocha-brown",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CP-MB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Olive Green",
+          "variantMasterSKU": "frido-cuddle-sleep-pillow-olive-green",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CP-OG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Tutu Pink",
+          "variantMasterSKU": "frido-cuddle-sleep-pillow-tutu-pink",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CP-TP1"
+            }
+          ]
+        },
+        {
+          "variantName": "Snow White",
+          "variantMasterSKU": "frido-cuddle-sleep-pillow-snow-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CP-SW1"
+            }
+          ]
+        },
+        {
+          "variantName": "Yellow",
+          "variantMasterSKU": "frido-cuddle-sleep-pillow-yellow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CP-Y1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido AeroMesh Ergo Chair",
+      "productId": "9832587591961",
+      "MasterSKU": "frido-aeromesh-ergo-chair",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-aeromesh-ergo-chair-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-AMEC-G1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-aeromesh-ergo-chair-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-AMEC-B1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Deep Sleep Pillow Cover",
+      "productId": "9838676476185",
+      "MasterSKU": "frido-deep-sleep-pillow-cover",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "White",
+          "variantMasterSKU": "frido-deep-sleep-pillow-cover-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DSFPC-W1-Cover"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-deep-sleep-pillow-cover-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DSFPC-G1-Cover"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Lumbo Sacral Belt",
+      "productId": "9843783270681",
+      "MasterSKU": "frido-lumbo-sacral-belt",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "S (28-34\")",
+          "variantMasterSKU": "frido-lumbo-sacral-belt-s-(28-34\")",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OLSC-N-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "M (34-38\")",
+          "variantMasterSKU": "frido-lumbo-sacral-belt-m-(34-38\")",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OLSC-N-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "L (38-42\")",
+          "variantMasterSKU": "frido-lumbo-sacral-belt-l-(38-42\")",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OLSC-N-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "XL (42-48\")",
+          "variantMasterSKU": "frido-lumbo-sacral-belt-xl-(42-48\")",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OLSC-N-XL1"
+            }
+          ]
+        },
+        {
+          "variantName": "XXL (48-54\")",
+          "variantMasterSKU": "frido-lumbo-sacral-belt-xxl-(48-54\")",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OLSC-N-XXL1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Baby Shoes",
+      "productId": "9860732092697",
+      "MasterSKU": "frido-baby-shoes",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "6-9 Months / Toffee Tan",
+          "variantMasterSKU": "frido-baby-shoes-6-9-months-/-toffee-tan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-6-9-TT1"
+            }
+          ]
+        },
+        {
+          "variantName": "6-9 Months / Blush Beige",
+          "variantMasterSKU": "frido-baby-shoes-6-9-months-/-blush-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-6-9-BB1"
+            }
+          ]
+        },
+        {
+          "variantName": "6-9 Months / Baa Baa Black",
+          "variantMasterSKU": "frido-baby-shoes-6-9-months-/-baa-baa-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-6-9-BBBLA1"
+            }
+          ]
+        },
+        {
+          "variantName": "9-12 Months / Toffee Tan",
+          "variantMasterSKU": "frido-baby-shoes-9-12-months-/-toffee-tan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-9-12-TT1"
+            }
+          ]
+        },
+        {
+          "variantName": "9-12 Months / Blush Beige",
+          "variantMasterSKU": "frido-baby-shoes-9-12-months-/-blush-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-9-12-BB1"
+            }
+          ]
+        },
+        {
+          "variantName": "9-12 Months / Baa Baa Black",
+          "variantMasterSKU": "frido-baby-shoes-9-12-months-/-baa-baa-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-9-12-BBBLA1"
+            }
+          ]
+        },
+        {
+          "variantName": "12-18 Months / Toffee Tan",
+          "variantMasterSKU": "frido-baby-shoes-12-18-months-/-toffee-tan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-12-18-TT1"
+            }
+          ]
+        },
+        {
+          "variantName": "12-18 Months / Blush Beige",
+          "variantMasterSKU": "frido-baby-shoes-12-18-months-/-blush-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-12-18-BB1"
+            }
+          ]
+        },
+        {
+          "variantName": "12-18 Months / Baa Baa Black",
+          "variantMasterSKU": "frido-baby-shoes-12-18-months-/-baa-baa-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-12-18-BBBLA1"
+            }
+          ]
+        },
+        {
+          "variantName": "18-24 Months / Toffee Tan",
+          "variantMasterSKU": "frido-baby-shoes-18-24-months-/-toffee-tan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BBS-18-24-TT1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Barefoot Sock Shoe Classic",
+      "productId": "9873170989337",
+      "MasterSKU": "frido-barefoot-sock-shoe-classic",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Men / XS (4-5 UK) / Core Black",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-xs-(4-5-uk)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-BL-M-XS1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / XS (4-5 UK) / Neo Blue",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-xs-(4-5-uk)-/-neo-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-M-XS1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / XS (4-5 UK) / Charcoal Grey",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-xs-(4-5-uk)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-CG-M-XS1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / S (6-8 UK) / Core Black",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-s-(6-8-uk)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-BL-M-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / S (6-8 UK) / Neo Blue",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-s-(6-8-uk)-/-neo-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-M-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / S (6-8 UK) / Charcoal Grey",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-s-(6-8-uk)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-CG-M-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / M (9-10 UK) / Core Black",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-m-(9-10-uk)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-BL-M-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / M (9-10 UK) / Neo Blue",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-m-(9-10-uk)-/-neo-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-M-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / M (9-10 UK) / Charcoal Grey",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-m-(9-10-uk)-/-charcoal-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-CG-M-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / L (11-12 UK) / Core Black",
+          "variantMasterSKU": "frido-barefoot-sock-shoe-classic-men-/-l-(11-12-uk)-/-core-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFSS-CL-BL-M-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Arch Support Insoles",
+      "productId": "9884906553625",
+      "MasterSKU": "frido-arch-support-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small(3-5 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-small(3-5-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASI-S"
+            }
+          ]
+        },
+        {
+          "variantName": "Medium (6-8 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-medium-(6-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASI-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9-11 UK)",
+          "variantMasterSKU": "frido-arch-support-insoles-large-(9-11-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ASI-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Dual Gel Insoles",
+      "productId": "9884934209817",
+      "MasterSKU": "frido-dual-gel-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Regular (9-13 UK)",
+          "variantMasterSKU": "frido-dual-gel-insoles-regular-(9-13-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-INS-M-1"
+            }
+          ]
+        },
+        {
+          "variantName": "Small (5-8 UK)",
+          "variantMasterSKU": "frido-dual-gel-insoles-small-(5-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-INS-W-1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Dual Gel Pro Insoles",
+      "productId": "9884934242585",
+      "MasterSKU": "frido-dual-gel-pro-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Small (5-8 UK)",
+          "variantMasterSKU": "frido-dual-gel-pro-insoles-small-(5-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DGPI-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Large (9-13 UK)",
+          "variantMasterSKU": "frido-dual-gel-pro-insoles-large-(9-13-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-DGPI-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Cozy Pillow",
+      "productId": "9884934373657",
+      "MasterSKU": "frido-ultimate-cozy-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-ultimate-cozy-pillow-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UCZP-R1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Deep Sleep Pillow",
+      "productId": "9884934504729",
+      "MasterSKU": "frido-ultimate-deep-sleep-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "4 Inch",
+          "variantMasterSKU": "frido-ultimate-deep-sleep-pillow-4-inch",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-UNFP-M"
+            }
+          ]
+        },
+        {
+          "variantName": "5 Inch",
+          "variantMasterSKU": "frido-ultimate-deep-sleep-pillow-5-inch",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ORSP-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Car Neck Rest Mini Pillow",
+      "productId": "9885617553689",
+      "MasterSKU": "frido-car-neck-rest-mini-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-car-neck-rest-mini-pillow-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNRM-BL1"
+            }
+          ]
+        },
+        {
+          "variantName": "Beige",
+          "variantMasterSKU": "frido-car-neck-rest-mini-pillow-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNRM-CR1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-car-neck-rest-mini-pillow-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNRM-GY1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ortho Memory Foam Pillow",
+      "productId": "9891612262681",
+      "MasterSKU": "frido-ortho-memory-foam-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-ortho-memory-foam-pillow-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OMFP-W1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Slim Seat Cushion",
+      "productId": "9893447631129",
+      "MasterSKU": "frido-slim-seat-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-slim-seat-cushion-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SSC-G1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-slim-seat-cushion-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SSC-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Tan",
+          "variantMasterSKU": "frido-slim-seat-cushion-tan",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SSC-T1"
+            }
+          ]
+        },
+        {
+          "variantName": "Beige",
+          "variantMasterSKU": "frido-slim-seat-cushion-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SSC-BG1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Mouse Wrist Support",
+      "productId": "9898413392153",
+      "MasterSKU": "frido-mouse-wrist-support",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Left",
+          "variantMasterSKU": "frido-mouse-wrist-support-left",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MWS-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Right",
+          "variantMasterSKU": "frido-mouse-wrist-support-right",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MWS-R1"
+            }
+          ]
+        },
+        {
+          "variantName": "Left + Right",
+          "variantMasterSKU": "frido-mouse-wrist-support-left-+-right",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MWS-COMBO-LR"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Plantar Fasciitis Pain Relief Ortho Insoles",
+      "productId": "9909414101273",
+      "MasterSKU": "frido-plantar-fasciitis-pain-relief-ortho-insoles",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "S (5-8 UK)",
+          "variantMasterSKU": "frido-plantar-fasciitis-pain-relief-ortho-insoles-s-(5-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-PFI-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "L (9-12 UK)",
+          "variantMasterSKU": "frido-plantar-fasciitis-pain-relief-ortho-insoles-l-(9-12-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-PFI-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Gel Max Comfort Insole",
+      "productId": "9913207882009",
+      "MasterSKU": "frido-gel-max-comfort-insole",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "S (6-8 UK)",
+          "variantMasterSKU": "frido-gel-max-comfort-insole-s-(6-8-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-GMI-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "L (9-12 UK)",
+          "variantMasterSKU": "frido-gel-max-comfort-insole-l-(9-12-uk)",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-GMI-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultimate Mattress Topper",
+      "productId": "9913360679193",
+      "MasterSKU": "frido-ultimate-mattress-topper",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Single / 6' x 3'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-6'-x-3'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT72X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 6' x 3.5'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-6'-x-3.5'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT72X42X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 6.25' x 3'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-6.25'-x-3'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT75X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 6.25' x 3.5'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-6.25'-x-3.5'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT75X42X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 6.5' x 3'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-6.5'-x-3'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT78X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 6.5' x 3.5'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-6.5'-x-3.5'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT78X42X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 7' x 3'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-7'-x-3'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT84X36X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Single / 7' x 3.5'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-single-/-7'-x-3.5'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT84X42X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Double / 6' x 4'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-double-/-6'-x-4'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT72X48X2"
+            }
+          ]
+        },
+        {
+          "variantName": "Double / 6.25' x 4'",
+          "variantMasterSKU": "frido-ultimate-mattress-topper-double-/-6.25'-x-4'",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULMT75X48X2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Active Knee Cap Support",
+      "productId": "9914535018777",
+      "MasterSKU": "frido-active-knee-cap-support",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "M / Black",
+          "variantMasterSKU": "frido-active-knee-cap-support-m-/-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-BLK-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "M / Grey",
+          "variantMasterSKU": "frido-active-knee-cap-support-m-/-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-GRY-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "M / Blue",
+          "variantMasterSKU": "frido-active-knee-cap-support-m-/-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-BLU-M1"
+            }
+          ]
+        },
+        {
+          "variantName": "L / Black",
+          "variantMasterSKU": "frido-active-knee-cap-support-l-/-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-BLK-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "L / Grey",
+          "variantMasterSKU": "frido-active-knee-cap-support-l-/-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-GRY-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "L / Blue",
+          "variantMasterSKU": "frido-active-knee-cap-support-l-/-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-BLU-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "XL / Black",
+          "variantMasterSKU": "frido-active-knee-cap-support-xl-/-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-BLK-XL1"
+            }
+          ]
+        },
+        {
+          "variantName": "XL / Grey",
+          "variantMasterSKU": "frido-active-knee-cap-support-xl-/-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-GRY-XL1"
+            }
+          ]
+        },
+        {
+          "variantName": "XL / Blue",
+          "variantMasterSKU": "frido-active-knee-cap-support-xl-/-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OKCS-BLU-XL1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Orthotics Wrist Support Brace",
+      "productId": "9914896580889",
+      "MasterSKU": "frido-orthotics-wrist-support-brace",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Female (5.5\" - 7.5\") / Right",
+          "variantMasterSKU": "frido-orthotics-wrist-support-brace-female-(5.5\"---7.5\")-/-right",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OWB-W-R1"
+            }
+          ]
+        },
+        {
+          "variantName": "Female (5.5\" - 7.5\") / Left",
+          "variantMasterSKU": "frido-orthotics-wrist-support-brace-female-(5.5\"---7.5\")-/-left",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OWB-W-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Male (6.5\" - 9\") / Right",
+          "variantMasterSKU": "frido-orthotics-wrist-support-brace-male-(6.5\"---9\")-/-right",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OWB-M-R1"
+            }
+          ]
+        },
+        {
+          "variantName": "Male (6.5\" - 9\") / Left",
+          "variantMasterSKU": "frido-orthotics-wrist-support-brace-male-(6.5\"---9\")-/-left",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OWB-M-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Cloud Backrest Cushion",
+      "productId": "9920267682073",
+      "MasterSKU": "frido-cloud-backrest-cushion",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Mocha Brown",
+          "variantMasterSKU": "frido-cloud-backrest-cushion-mocha-brown",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CLBC-MB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Pebble grey",
+          "variantMasterSKU": "frido-cloud-backrest-cushion-pebble-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CLBC-PG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Lilly Pad",
+          "variantMasterSKU": "frido-cloud-backrest-cushion-lilly-pad",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CLBC-LP1"
+            }
+          ]
+        },
+        {
+          "variantName": "Barbie Pink",
+          "variantMasterSKU": "frido-cloud-backrest-cushion-barbie-pink",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CLBC-BP1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-cloud-backrest-cushion-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CLBC-B1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ultra Slim Deep Sleep Pillow",
+      "productId": "9922148270361",
+      "MasterSKU": "frido-ultra-slim-deep-sleep-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-ultra-slim-deep-sleep-pillow-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ORSP-S1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Wedge Neck Rest Pillow",
+      "productId": "9922608464153",
+      "MasterSKU": "frido-wedge-neck-rest-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "White",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-white",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-W1"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-white-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-WG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Light Caramel",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-light-caramel",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-LC1"
+            }
+          ]
+        },
+        {
+          "variantName": "Mustard Yellow",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-mustard-yellow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-MY1"
+            }
+          ]
+        },
+        {
+          "variantName": "Coffee Brown",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-coffee-brown",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-CB1"
+            }
+          ]
+        },
+        {
+          "variantName": "Slate Grey",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-slate-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-SLGY1"
+            }
+          ]
+        },
+        {
+          "variantName": "Sage Green",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-sage-green",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-SGN1"
+            }
+          ]
+        },
+        {
+          "variantName": "Blush Pink",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-blush-pink",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-BP1"
+            }
+          ]
+        },
+        {
+          "variantName": "Teal Blue",
+          "variantMasterSKU": "frido-wedge-neck-rest-pillow-teal-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-TB1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Orthopedic Heel Pad Pro Insole",
+      "productId": "9922747040025",
+      "MasterSKU": "frido-orthopedic-heel-pad-pro-insole",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Beige / Women",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-pro-insole-beige-/-women",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OHPP-BE-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Beige / Men",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-pro-insole-beige-/-men",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OHPP-BE-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey / Women",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-pro-insole-grey-/-women",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OHPP-G-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey / Men",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-pro-insole-grey-/-men",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OHPP-G-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Transparent / Women",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-pro-insole-transparent-/-women",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OHPP-TP-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Transparent / Men",
+          "variantMasterSKU": "frido-orthopedic-heel-pad-pro-insole-transparent-/-men",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-OHPP-TP-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Ball of Foot Cushions Pro",
+      "productId": "9922749071641",
+      "MasterSKU": "frido-ball-of-foot-cushions-pro",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-ball-of-foot-cushions-pro-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-BFC-Pro1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Silicone Gel Insole",
+      "productId": "9922750808345",
+      "MasterSKU": "frido-silicone-gel-insole",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Women / Beige",
+          "variantMasterSKU": "frido-silicone-gel-insole-women-/-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SGI-BE-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Women / Grey",
+          "variantMasterSKU": "frido-silicone-gel-insole-women-/-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SGI-G-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Women / Transparent",
+          "variantMasterSKU": "frido-silicone-gel-insole-women-/-transparent",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SGI-TP-S1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / Beige",
+          "variantMasterSKU": "frido-silicone-gel-insole-men-/-beige",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SGI-BE-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / Grey",
+          "variantMasterSKU": "frido-silicone-gel-insole-men-/-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SGI-G-L1"
+            }
+          ]
+        },
+        {
+          "variantName": "Men / Transparent",
+          "variantMasterSKU": "frido-silicone-gel-insole-men-/-transparent",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SGI-TP-L1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Aeroluxe Massage Chair",
+      "productId": "9927471956249",
+      "MasterSKU": "frido-aeroluxe-massage-chair",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Default Title",
+          "variantMasterSKU": "frido-aeroluxe-massage-chair-default-title",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-AMC-01"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Work From Home Combo",
+      "productId": "9931872239897",
+      "MasterSKU": "work-from-home-combo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black Wedge Plus + Black Lap Desk",
+          "variantMasterSKU": "work-from-home-combo-black-wedge-plus-+-black-lap-desk",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-B1-ULDP-BL1"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey Wedge Plus + Grey Lap Desk",
+          "variantMasterSKU": "work-from-home-combo-white-grey-wedge-plus-+-grey-lap-desk",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-WG1-ULDP-G1"
+            }
+          ]
+        },
+        {
+          "variantName": "Teal Blue Wedge Plus + Blue Lap Desk",
+          "variantMasterSKU": "work-from-home-combo-teal-blue-wedge-plus-+-blue-lap-desk",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-TB1-ULDP-B1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Daily Car Comfort Duo",
+      "productId": "9931906122009",
+      "MasterSKU": "daily-car-comfort-duo",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black Car Neck Mini + Black Slim Seat",
+          "variantMasterSKU": "daily-car-comfort-duo-black-car-neck-mini-+-black-slim-seat",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNRM-BL1-SSC-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey Car Neck Mini + Grey Slim Seat",
+          "variantMasterSKU": "daily-car-comfort-duo-grey-car-neck-mini-+-grey-slim-seat",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNRM-GY1-SSC-G1"
+            }
+          ]
+        },
+        {
+          "variantName": "Beige Car Neck Mini + Beige Slim Seat",
+          "variantMasterSKU": "daily-car-comfort-duo-beige-car-neck-mini-+-beige-slim-seat",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-CNRM-CR1-SSC-BG1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Wedge Plus Cushion + Neck Rest Pillow",
+      "productId": "9933744046361",
+      "MasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "White / Neck Rest Pillow Only",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-white-/-neck-rest-pillow-only",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-W1"
+            }
+          ]
+        },
+        {
+          "variantName": "White / Wedge Plus Cushion",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-white-/-wedge-plus-cushion",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-W1"
+            }
+          ]
+        },
+        {
+          "variantName": "White / Wedge Plus Cushion + Neck Rest Pillow",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-white-/-wedge-plus-cushion-+-neck-rest-pillow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WCPL-NC-W1"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey / Neck Rest Pillow Only",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-white-grey-/-neck-rest-pillow-only",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-WG1"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey / Wedge Plus Cushion",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-white-grey-/-wedge-plus-cushion",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-WG1"
+            }
+          ]
+        },
+        {
+          "variantName": "White Grey / Wedge Plus Cushion + Neck Rest Pillow",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-white-grey-/-wedge-plus-cushion-+-neck-rest-pillow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WCPL-NC-WG1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black / Neck Rest Pillow Only",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-black-/-neck-rest-pillow-only",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black / Wedge Plus Cushion",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-black-/-wedge-plus-cushion",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Black / Wedge Plus Cushion + Neck Rest Pillow",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-black-/-wedge-plus-cushion-+-neck-rest-pillow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WCPL-NC-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Light Caramel / Neck Rest Pillow Only",
+          "variantMasterSKU": "frido-wedge-plus-cushion-+-neck-rest-pillow-light-caramel-/-neck-rest-pillow-only",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-WPNC-LC1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Maternity Pillow",
+      "productId": "9937887330585",
+      "MasterSKU": "frido-maternity-pillow",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Baby Blue / Maternity Pillow",
+          "variantMasterSKU": "frido-maternity-pillow-baby-blue-/-maternity-pillow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MP-BBLU1"
+            }
+          ]
+        },
+        {
+          "variantName": "Baby Blue / Maternity Bundle",
+          "variantMasterSKU": "frido-maternity-pillow-baby-blue-/-maternity-bundle",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MP-BUN-BBLU1"
+            }
+          ]
+        },
+        {
+          "variantName": "Baby Pink / Maternity Pillow",
+          "variantMasterSKU": "frido-maternity-pillow-baby-pink-/-maternity-pillow",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MP-BPNK1"
+            }
+          ]
+        },
+        {
+          "variantName": "Baby Pink / Maternity Bundle",
+          "variantMasterSKU": "frido-maternity-pillow-baby-pink-/-maternity-bundle",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-MP-BUN-BPNK1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "itemName": "Frido Sleep Eye Mask",
+      "productId": "9943224189209",
+      "MasterSKU": "frido-sleep-eye-mask",
+      "tax": 18,
+      "cogs": 150,
+      "variants": [
+        {
+          "variantName": "Black",
+          "variantMasterSKU": "frido-sleep-eye-mask-black",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SEM-B1"
+            }
+          ]
+        },
+        {
+          "variantName": "Grey",
+          "variantMasterSKU": "frido-sleep-eye-mask-grey",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SEM-GY1"
+            }
+          ]
+        },
+        {
+          "variantName": "Peach",
+          "variantMasterSKU": "frido-sleep-eye-mask-peach",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SEM-P1"
+            }
+          ]
+        },
+        {
+          "variantName": "Lavender",
+          "variantMasterSKU": "frido-sleep-eye-mask-lavender",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SEM-PL1"
+            }
+          ]
+        },
+        {
+          "variantName": "Navy Blue",
+          "variantMasterSKU": "frido-sleep-eye-mask-navy-blue",
+          "variantSkus": [
+            {
+              "storeName": "Shopify",
+              "variant_sku": "FR-SEM-BL1"
+            }
+          ]
+        }
+      ]
+    }
+  ]

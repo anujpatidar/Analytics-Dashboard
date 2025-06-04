@@ -1,13 +1,13 @@
 const logger = require('../utils/logger');
 const path=require('path');
-
+const skuJson=require('../controllers/sku.json');
 const valkeyClient = require('../config/valkey');
 const chalk=require('chalk');
 const fetchProductsWithVariants=require('../utils/fetchmarketplaceprice');
 const {fetchTotalProductsCount,calculateAverageProductPrice,getTopSellingProducts,getTopSellingProducts24h,getTopCategories,getTopCategories24h,getLeastSellingProducts,getLeastSellingProducts24h,getMostReturnedProducts} = require('../utils/fetchOverallProductMetric');
 const {fetchAllProducts} = require('../utils/fetchDataFromShopify');
-
-
+const {fetchListingImageAndDescriptionById} = require('../utils/fetchDataFromShopify');
+const queryForBigQuery = require('../config/bigquery');
 const productsController = {
   getAllProductsList: async (req, res, next) => {
     try {
@@ -127,25 +127,52 @@ const productsController = {
   },
   getProductMetricsById: async (req, res, next) => {
     try {
-      const { productId } = req.params;
+      const { productSlug } = req.params; //product Id referes to slug of the product
+      const product=skuJson.find(p=>p.MasterSKU===productSlug);
+      const productId=product.productId;
+    
+      const {imageUrl,description}=await fetchListingImageAndDescriptionById(productId);
+
+        const query=`SELECT 
+        COUNT(DISTINCT(li.ORDER_ID)) AS total_orders,
+        SUM(li.CURRENT_QUANTITY) AS total_quantity_sold,
+        SUM(li.CURRENT_QUANTITY * (li.PRICE - COALESCE(li.DISCOUNT_ALLOCATION_AMOUNT, 0))) AS total_sales,
+        COUNT(DISTINCT(CASE 
+            WHEN CONTAINS_SUBSTR(CAST(o.ID AS STRING), 'EX') 
+                 OR CONTAINS_SUBSTR(UPPER(COALESCE(o.TAGS, '')), 'EXCHANGE') 
+            THEN li.ORDER_ID 
+        END)) AS exchange_orders_count
+    FROM \`analytics-dashboard-459607.analytics.line_items\` li
+    LEFT JOIN \`analytics-dashboard-459607.analytics.orders\` o
+    ON li.ORDER_ID = o.ID
+    WHERE li.SKU IN ('${product.variants.map(v=>v.variantSkus.map(s=>s.variant_sku)).join("','")}')
+        AND li.QUANTITY IS NOT NULL
+        AND li.PRICE IS NOT NULL`;
+       
+        console.log('query',query);
+      
+      const fetchOverviewData=await queryForBigQuery(query);
+      console.log('response',fetchOverviewData);
+
       const mockData = {
         product: {
           id: 1,
-          name: 'Premium Wireless Headphones',
-          image: 'https://cdn.shopify.com/s/files/1/0553/0419/2034/files/products_4july-03_803b519a-125c-458b-bfab-15f0d0009fb1.jpg?v=1720861559&width=648',
-          description: 'High-quality wireless headphones with noise cancellation',
+          name: product.itemName,
+          image: imageUrl,
+          description: description,
           sku: 'PH-001',
           price: 12999,
           costPrice: 8000,
         },
-        overview: {
-          totalOrders: 1250,
-          totalSales: 15623750,
-          aov: 12500,
-          quantitySold: 1250,
+       overview: {
+          totalOrders: fetchOverviewData[0].total_orders,
+          totalSales: (fetchOverviewData[0].total_sales) * (1+(product.tax/100)),
+          aov: ((fetchOverviewData[0].total_sales) * (1+(product.tax/100)))/(fetchOverviewData[0].total_quantity_sold-fetchOverviewData[0].exchange_orders_count),
+          //
+          quantitySold: fetchOverviewData[0].total_quantity_sold,
           grossProfit: 6249500,
           profitMargin: 40,
-          refundRate: 5.2,
+          refundRate:  5.2,
         },
         salesAndProfit: {
           totalRevenue: 15623750,
