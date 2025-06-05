@@ -28,22 +28,8 @@ const StatCard = ({
     );
   }
 
-  // Determine icon color based on stat type
-  const getIconColor = () => {
-    if (title.toLowerCase().includes('revenue') || title.toLowerCase().includes('order')) {
-      return '#2563eb'; // Blue
-    } else if (title.toLowerCase().includes('refund')) {
-      return '#dc2626'; // Red
-    } else if (title.toLowerCase().includes('customer') || title.toLowerCase().includes('user')) {
-      return '#059669'; // Green
-    }
-    return color;
-  };
-
-  const iconColor = getIconColor();
-
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md border-l-4 hover:shadow-lg transition-shadow duration-300" style={{ borderLeftColor: iconColor }}>
+    <div className="bg-white p-6 rounded-lg shadow-md border-l-4 hover:shadow-lg transition-shadow duration-300" style={{ borderLeftColor: color }}>
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-600">{title}</p>
@@ -62,8 +48,8 @@ const StatCard = ({
             </div>
           )}
         </div>
-        <div className="p-3 rounded-full ml-4" style={{ backgroundColor: `${iconColor}20` }}>
-          <Icon className="w-6 h-6" style={{ color: iconColor }} />
+        <div className="p-3 rounded-full ml-4" style={{ backgroundColor: `${color}20` }}>
+          <Icon className="w-6 h-6" style={{ color: color }} />
         </div>
       </div>
     </div>
