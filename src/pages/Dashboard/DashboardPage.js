@@ -308,8 +308,28 @@ const DashboardPage = () => {
       {
         label: 'Orders',
         data: ordersByTimeRange?.map(item => item.order_count) || [],
-        backgroundColor: 'rgba(76, 175, 80, 0.7)',
-        borderRadius: 4,
+        backgroundColor: (context) => {
+          const chart = context.chart;
+          const {ctx, chartArea} = chart;
+          
+          if (!chartArea) {
+            return 'rgba(59, 130, 246, 0.8)';
+          }
+          
+          const gradient = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+          gradient.addColorStop(0, 'rgba(59, 130, 246, 0.2)');
+          gradient.addColorStop(1, 'rgba(59, 130, 246, 0.8)');
+          return gradient;
+        },
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 2,
+        borderRadius: 8,
+        borderSkipped: false,
+        barThickness: 'flex',
+        maxBarThickness: 40,
+        hoverBackgroundColor: 'rgba(59, 130, 246, 0.9)',
+        hoverBorderColor: 'rgba(59, 130, 246, 1)',
+        hoverBorderWidth: 3,
       }
     ]
   };
@@ -317,9 +337,26 @@ const DashboardPage = () => {
   const ordersChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      intersect: false,
+      mode: 'index',
+    },
     plugins: {
       legend: {
         display: false,
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: 'rgba(59, 130, 246, 1)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        displayColors: false,
+        callbacks: {
+          title: (context) => `${context[0].label}`,
+          label: (context) => `Orders: ${formatNumber(context.raw)}`,
+        }
       }
     },
     scales: {
@@ -327,13 +364,51 @@ const DashboardPage = () => {
         beginAtZero: true,
         grid: {
           color: 'rgba(0, 0, 0, 0.05)',
+          drawBorder: false,
+        },
+        border: {
+          display: false,
+        },
+        ticks: {
+          color: 'rgba(0, 0, 0, 0.6)',
+          font: {
+            size: 12,
+          },
+          padding: 8,
+          callback: (value) => formatNumber(value),
         }
       },
       x: {
         grid: {
           display: false,
+          drawBorder: false,
+        },
+        border: {
+          display: false,
+        },
+        ticks: {
+          color: 'rgba(0, 0, 0, 0.6)',
+          font: {
+            size: 12,
+          },
+          padding: 8,
+          maxRotation: 45,
         }
       }
+    },
+    elements: {
+      bar: {
+        borderRadius: {
+          topLeft: 8,
+          topRight: 8,
+          bottomLeft: 0,
+          bottomRight: 0,
+        }
+      }
+    },
+    animation: {
+      duration: 1000,
+      easing: 'easeInOutQuart',
     }
   };
   
@@ -491,20 +566,36 @@ const DashboardPage = () => {
       {
         label: 'Orders',
         data: ordersByTimeRange?.map(item => item.order_count) || [],
-        borderColor: 'rgba(0, 115, 182, 1)',
-        backgroundColor: 'rgba(0, 115, 182, 0.1)',
-        borderWidth: 2,
+        borderColor: 'rgba(59, 130, 246, 1)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderWidth: 3,
         fill: true,
         tension: 0.4,
+        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+        pointBorderColor: 'rgba(255, 255, 255, 1)',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: 'rgba(59, 130, 246, 1)',
+        pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+        pointHoverBorderWidth: 3,
       },
       {
         label: 'Refunds',
         data: ordersByTimeRange?.map(item => item.refund_count) || [],
-        borderColor: 'rgba(244, 67, 54, 1)',
-        backgroundColor: 'rgba(244, 67, 54, 0.1)',
-        borderWidth: 2,
+        borderColor: 'rgba(239, 68, 68, 1)',
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderWidth: 3,
         fill: true,
         tension: 0.4,
+        pointBackgroundColor: 'rgba(239, 68, 68, 1)',
+        pointBorderColor: 'rgba(255, 255, 255, 1)',
+        pointBorderWidth: 2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointHoverBackgroundColor: 'rgba(239, 68, 68, 1)',
+        pointHoverBorderColor: 'rgba(255, 255, 255, 1)',
+        pointHoverBorderWidth: 3,
       }
     ]
   };
@@ -540,13 +631,13 @@ const DashboardPage = () => {
     <div className="p-6">
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <FiBarChart2 className="w-8 h-8 text-blue-600" />
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-                <p className="text-gray-600">Monitor your store's performance and key metrics</p>
+                
               </div>
             </div>
             <div className="flex space-x-3">
@@ -555,8 +646,8 @@ const DashboardPage = () => {
                 disabled={ordersOverviewLoading || refundMetricsLoading}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                <FiRefreshCw className={`w-4 h-4 mr-2 ${(ordersOverviewLoading || refundMetricsLoading) ? 'animate-spin' : ''}`} />
-                Refresh
+                <FiRefreshCw className={`w-4 h-4 ${(ordersOverviewLoading || refundMetricsLoading) ? 'animate-spin' : ''}`} />
+  
               </button>
               <button
                 onClick={() => {/* Add export functionality */}}
@@ -734,6 +825,7 @@ const DashboardPage = () => {
       {/* Orders Over Time Chart */}
       <ChartCard
         title="Orders and Refunds Over Time"
+        subtitle={`Showing ${timeframe} trends`}
         loading={ordersByTimeRangeLoading}
       >
         <Line
@@ -741,13 +833,41 @@ const DashboardPage = () => {
           options={{
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+              intersect: false,
+              mode: 'index',
+            },
             plugins: {
               legend: {
                 position: 'top',
+                labels: {
+                  usePointStyle: true,
+                  pointStyle: 'circle',
+                  padding: 20,
+                  font: {
+                    size: 13,
+                    weight: '500',
+                  },
+                  color: 'rgba(0, 0, 0, 0.7)',
+                }
               },
               tooltip: {
-                mode: 'index',
-                intersect: false,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: true,
+                usePointStyle: true,
+                callbacks: {
+                  title: (context) => `${context[0].label}`,
+                  label: (context) => {
+                    const label = context.dataset.label || '';
+                    const value = formatNumber(context.raw);
+                    return `${label}: ${value}`;
+                  }
+                }
               }
             },
             scales: {
@@ -755,13 +875,47 @@ const DashboardPage = () => {
                 beginAtZero: true,
                 grid: {
                   color: 'rgba(0, 0, 0, 0.05)',
+                  drawBorder: false,
+                },
+                border: {
+                  display: false,
+                },
+                ticks: {
+                  color: 'rgba(0, 0, 0, 0.6)',
+                  font: {
+                    size: 12,
+                  },
+                  padding: 8,
+                  callback: (value) => formatNumber(value),
                 }
               },
               x: {
                 grid: {
                   display: false,
+                  drawBorder: false,
+                },
+                border: {
+                  display: false,
+                },
+                ticks: {
+                  color: 'rgba(0, 0, 0, 0.6)',
+                  font: {
+                    size: 12,
+                  },
+                  padding: 8,
+                  maxRotation: 45,
                 }
               }
+            },
+            elements: {
+              line: {
+                borderJoinStyle: 'round',
+                borderCapStyle: 'round',
+              }
+            },
+            animation: {
+              duration: 1200,
+              easing: 'easeInOutQuart',
             }
           }}
         />
