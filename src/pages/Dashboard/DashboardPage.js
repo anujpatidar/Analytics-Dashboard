@@ -631,13 +631,13 @@ const DashboardPage = () => {
     <div className="p-6">
       <div className="space-y-6">
         {/* Header */}
-        <div className="">
+        <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <FiBarChart2 className="w-8 h-8 text-blue-600" />
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-                
+                <p className="text-gray-600">Monitor your store's performance and key metrics</p>
               </div>
             </div>
             <div className="flex space-x-3">
@@ -646,8 +646,8 @@ const DashboardPage = () => {
                 disabled={ordersOverviewLoading || refundMetricsLoading}
                 className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                <FiRefreshCw className={`w-4 h-4 ${(ordersOverviewLoading || refundMetricsLoading) ? 'animate-spin' : ''}`} />
-  
+                <FiRefreshCw className={`w-4 h-4 mr-2 ${(ordersOverviewLoading || refundMetricsLoading) ? 'animate-spin' : ''}`} />
+                Refresh
               </button>
               <button
                 onClick={() => {/* Add export functionality */}}

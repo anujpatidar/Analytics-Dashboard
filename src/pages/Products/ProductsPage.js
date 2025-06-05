@@ -619,7 +619,7 @@ const ProductsPage = () => {
         <StatCard
           title="Total Products"
           value={data.totalProducts}
-          icon={<FiPackage size={24} />}
+          icon={FiPackage}
           change="12%"
           changeType="increase"
           loading={isLoading}
@@ -627,7 +627,7 @@ const ProductsPage = () => {
         <StatCard
           title="Average Product Price"
           value={formatCurrency(data.averageProductPrice)}
-          icon={<FaRupeeSign className="w-6 h-6" />}
+          icon={FaRupeeSign}
           change="+5%"
           changeType="increase"
           loading={isLoading}
@@ -635,7 +635,7 @@ const ProductsPage = () => {
         <StatCard
           title="Total Categories"
           value={data.totalCategories}
-          icon={<FiGrid size={24} />}
+          icon={FiGrid}
           change="5%"
           changeType="increase"
           loading={isLoading}
@@ -643,7 +643,7 @@ const ProductsPage = () => {
         <StatCard
           title="Average Return Rate"
           value={`${data.averageReturnRate}%`}
-          icon={<FiRefreshCw size={24} />}
+          icon={FiRefreshCw}
           change="2%"
           changeType="decrease"
           loading={isLoading}

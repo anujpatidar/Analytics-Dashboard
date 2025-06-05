@@ -17,14 +17,14 @@ const ordersController = {
         logger.warn('Cache error:', cacheError);
       }
       
-      if (cachedData) {
-        console.log(chalk.bgGreen('Cache hit for orders overview'));
-        return res.status(200).json({
-          success: true,
-          data: JSON.parse(cachedData),
-          fromCache: true
-        });
-      }
+      // if (cachedData) {
+      //   console.log(chalk.bgGreen('Cache hit for orders overview'));
+      //   return res.status(200).json({
+      //     success: true,
+      //     data: JSON.parse(cachedData),
+      //     fromCache: true
+      //   });
+      // }
 
       // Format dates for BigQuery
       const formattedStartDate = startDate ? new Date(startDate).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -99,14 +99,14 @@ const ordersController = {
         logger.warn('Cache error:', cacheError);
       }
       
-      if (cachedData) {
-        console.log(chalk.bgGreen('Cache hit for orders by time range'));
-        return res.status(200).json({
-          success: true,
-          data: JSON.parse(cachedData),
-          fromCache: true
-        });
-      }
+      // if (cachedData) {
+      //   console.log(chalk.bgGreen('Cache hit for orders by time range'));
+      //   return res.status(200).json({
+      //     success: true,
+      //     data: JSON.parse(cachedData),
+      //     fromCache: true
+      //   });
+      // }
 
       // Format dates for BigQuery
       const formattedStartDate = new Date(startDate).toISOString();
