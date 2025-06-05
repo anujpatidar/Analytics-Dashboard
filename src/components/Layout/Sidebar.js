@@ -186,6 +186,12 @@ const Sidebar = () => {
           <h2>Marketing</h2>
           <NavList>
             <NavItem>
+              <NavLink to="/combined-marketing" active={isActive('/combined-marketing')}>
+                <FiBarChart2 />
+                Combined Analytics
+              </NavLink>
+            </NavItem>
+            <NavItem>
               <NavLink to="/meta-ads" active={isActive('/meta-ads')}>
                 <FaFacebook />
                 Meta Ads

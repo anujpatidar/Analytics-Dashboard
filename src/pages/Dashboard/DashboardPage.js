@@ -19,7 +19,9 @@ import {
   FiPackage,
   FiRefreshCw,
   FiTrendingUp,
-  FiTrendingDown
+  FiTrendingDown,
+  FiBarChart2,
+  FiDownload
 } from 'react-icons/fi';
 import { FaRupeeSign } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
@@ -30,6 +32,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { StatCard, ChartCard, DataTable } from '../../components/Dashboard';
 import MetaAdsDashboardWidget from '../../components/MetaAds/MetaAdsDashboardWidget';
 import GoogleAdsDashboardWidget from '../../components/GoogleAds/GoogleAdsDashboardWidget';
+import CombinedMarketingWidget from '../../components/Marketing/CombinedMarketingWidget';
 import useDataFetching from '../../hooks/useDataFetching';
 import {
   getOrdersOverview,
@@ -422,28 +425,28 @@ const DashboardPage = () => {
     {
       title: 'Total Orders',
       value: formatNumber(ordersOverview?.total_orders || 0),
-      icon: <FiShoppingCart className="w-6 h-6" />,
+      icon: FiShoppingCart,
       change: ordersOverview?.order_change_percentage ? `${ordersOverview.order_change_percentage}%` : '0%',
       changeType: ordersOverview?.order_change_percentage > 0 ? 'increase' : 'decrease'
     },
     {
       title: 'Total Revenue',
       value: formatCurrency(ordersOverview?.total_revenue || 0),
-      icon: <FaRupeeSign className="w-6 h-6" />,
+      icon: FaRupeeSign,
       change: ordersOverview?.revenue_change_percentage ? `${ordersOverview.revenue_change_percentage}%` : '0%',
       changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease'
     },
     {
       title: 'Average Order Value',
       value: formatCurrency(ordersOverview?.average_order_value || 0),
-      icon: <FaRupeeSign className="w-6 h-6" />,
+      icon: FaRupeeSign,
       change: ordersOverview?.aov_change_percentage ? `${ordersOverview.aov_change_percentage}%` : '0%',
       changeType: ordersOverview?.aov_change_percentage > 0 ? 'increase' : 'decrease'
     },
     {
       title: 'Refund Rate',
       value: `${((ordersOverview?.total_refunds / ordersOverview?.total_orders) * 100 || 0).toFixed(1)}%`,
-      icon: <FiRefreshCw className="w-6 h-6" />,
+      icon: FiRefreshCw,
       change: ordersOverview?.refund_rate_change_percentage ? `${ordersOverview.refund_rate_change_percentage}%` : '0%',
       changeType: ordersOverview?.refund_rate_change_percentage < 0 ? 'decrease' : 'increase'
     }
@@ -454,28 +457,28 @@ const DashboardPage = () => {
     {
       title: 'Total Refunds',
       value: formatNumber(refundMetrics?.total_refunds || 0),
-      icon: <FiRefreshCw className="w-6 h-6" />,
+      icon: FiRefreshCw,
       change: refundMetrics?.refund_change_percentage ? `${refundMetrics.refund_change_percentage}%` : '0%',
       changeType: refundMetrics?.refund_change_percentage < 0 ? 'decrease' : 'increase'
     },
     {
       title: 'Refunded Amount',
       value: formatCurrency(refundMetrics?.total_refunded_amount || 0),
-      icon: <FaRupeeSign className="w-6 h-6" />,
+      icon: FaRupeeSign,
       change: refundMetrics?.refund_amount_change_percentage ? `${refundMetrics.refund_amount_change_percentage}%` : '0%',
       changeType: refundMetrics?.refund_amount_change_percentage < 0 ? 'decrease' : 'increase'
     },
     {
       title: 'Average Refund',
       value: formatCurrency(refundMetrics?.average_refund_amount || 0),
-      icon: <FaRupeeSign className="w-6 h-6" />,
+      icon: FaRupeeSign,
       change: refundMetrics?.avg_refund_change_percentage ? `${refundMetrics.avg_refund_change_percentage}%` : '0%',
       changeType: refundMetrics?.avg_refund_change_percentage < 0 ? 'decrease' : 'increase'
     },
     {
       title: '24h Refunds',
       value: formatNumber(refundMetrics?.refunds_last_24h || 0),
-      icon: <FiRefreshCw className="w-6 h-6" />,
+      icon: FiRefreshCw,
       change: refundMetrics?.refund_24h_change_percentage ? `${refundMetrics.refund_24h_change_percentage}%` : '0%',
       changeType: refundMetrics?.refund_24h_change_percentage < 0 ? 'decrease' : 'increase'
     }
@@ -534,11 +537,42 @@ const DashboardPage = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+    <div className="p-6">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <FiBarChart2 className="w-8 h-8 text-blue-600" />
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
+                <p className="text-gray-600">Monitor your store's performance and key metrics</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => refetchAllData(getCurrentDateRange())}
+                disabled={ordersOverviewLoading || refundMetricsLoading}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                <FiRefreshCw className={`w-4 h-4 mr-2 ${(ordersOverviewLoading || refundMetricsLoading) ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+              <button
+                onClick={() => {/* Add export functionality */}}
+                disabled={ordersOverviewLoading}
+                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                <FiDownload className="w-4 h-4 mr-2" />
+                Export
+              </button>
+            </div>
+          </div>
+
+          {/* Date Range Controls */}
+          <div className="flex flex-wrap items-center space-x-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
             <DatePicker
               selected={dateRange[0]}
               onChange={handleDateRangeChange}
@@ -547,54 +581,57 @@ const DashboardPage = () => {
               selectsRange
               dateFormat="dd/MM/yyyy"
               showTimeSelect={false}
-              className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholderText="Select date range"
               maxDate={new Date()}
               calendarClassName="custom-datepicker"
               isClearable={true}
             />
           </div>
-          <div className="flex items-center gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Quick Select</label>
+              <div className="flex items-center space-x-2">
             <button
               onClick={() => handleTimeframeChange('day')}
-              className={`px-4 py-2 rounded-lg ${
+                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
                 timeframe === 'day' && !isCustomDateRange
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               Day
             </button>
             <button
               onClick={() => handleTimeframeChange('week')}
-              className={`px-4 py-2 rounded-lg ${
+                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
                 timeframe === 'week' && !isCustomDateRange
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               Week
             </button>
             <button
               onClick={() => handleTimeframeChange('month')}
-              className={`px-4 py-2 rounded-lg ${
+                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
                 timeframe === 'month' && !isCustomDateRange
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               Month
             </button>
             <button
               onClick={() => handleTimeframeChange('year')}
-              className={`px-4 py-2 rounded-lg ${
+                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
                 timeframe === 'year' && !isCustomDateRange
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
               Year
             </button>
+              </div>
           </div>
         </div>
       </div>
@@ -629,36 +666,37 @@ const DashboardPage = () => {
         ))}
       </div>
 
-      {/* Marketing Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <MetaAdsDashboardWidget />
+        {/* Marketing Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="lg:col-span-1">
+            <CombinedMarketingWidget 
+              dateRange={timeframe}
+              customDateRange={dateRange}
+              isCustomDateRange={isCustomDateRange}
+            />
+          </div>
+          <div className="lg:col-span-1">
+        <ChartCard 
+          title="Revenue Overview" 
+          subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
+          legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
+          timeframes={['Day', 'Week', 'Month', 'Year']}
+          activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
+          onTimeframeChange={handleTimeframeChange}
+          loading={ordersByTimeRangeLoading}
+        >
+          {ordersByTimeRangeLoading ? (
+            <div>Loading chart...</div>
+          ) : (
+            <div style={{ width: '100%', height: '300px' }}>
+              <Line data={salesChartData} options={salesChartOptions} />
+            </div>
+          )}
+        </ChartCard>
+          </div>
         </div>
-        <div className="lg:col-span-1">
-          <GoogleAdsDashboardWidget />
-        </div>
-        <div className="lg:col-span-1">
-          <ChartCard 
-            title="Revenue Overview" 
-            subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
-            legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
-            timeframes={['Day', 'Week', 'Month', 'Year']}
-            activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-            onTimeframeChange={handleTimeframeChange}
-            loading={ordersByTimeRangeLoading}
-          >
-            {ordersByTimeRangeLoading ? (
-              <div>Loading chart...</div>
-            ) : (
-              <div style={{ width: '100%', height: '300px' }}>
-                <Line data={salesChartData} options={salesChartOptions} />
-              </div>
-            )}
-          </ChartCard>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard 
           title="Customer Acquisition" 
           subtitle="Source breakdown"
@@ -729,7 +767,6 @@ const DashboardPage = () => {
         />
       </ChartCard>
 
-      <div className="mt-6">
         <DataTable 
           title="Recent Orders"
           columns={ordersColumns}

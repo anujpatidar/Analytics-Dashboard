@@ -114,45 +114,63 @@ class GoogleAdsAnalytics {
         try {
             const timeRange = this.getDateRange(dateRange);
             
-            // Use a simple customer query first to test connection
             const query = `
                 SELECT 
-                    customer.id,
-                    customer.descriptive_name,
-                    customer.currency_code,
-                    customer.time_zone
-                FROM customer
-                LIMIT 1
+                    metrics.impressions,
+                    metrics.clicks,
+                    metrics.cost_micros,
+                    metrics.ctr,
+                    metrics.average_cpc_micros,
+                    metrics.average_cpm_micros,
+                    metrics.conversions,
+                    metrics.conversions_value,
+                    metrics.cost_per_conversion_micros,
+                    metrics.value_per_conversion
+                FROM customer 
+                WHERE segments.date BETWEEN '${timeRange.since}' AND '${timeRange.until}'
             `;
 
             const response = await this.customer.query(query);
             
-            if (response && response.length > 0) {
-                const customerInfo = response[0].customer;
-                return {
-                    customer_id: customerInfo.id?.value || 'N/A',
-                    account_name: customerInfo.descriptive_name?.value || 'N/A',
-                    currency: customerInfo.currency_code?.value || 'USD',
-                    timezone: customerInfo.time_zone?.value || 'UTC',
+            if (response.length > 0) {
+                // Aggregate all rows
+                const aggregated = response.reduce((acc, row) => {
+                    const parsed = this.parseReportData(row);
+                    acc.impressions += parsed.impressions;
+                    acc.clicks += parsed.clicks;
+                    acc.cost += parsed.cost;
+                    acc.conversions += parsed.conversions;
+                    acc.conversion_value += parsed.conversion_value;
+                    return acc;
+                }, {
                     impressions: 0,
                     clicks: 0,
                     cost: 0,
                     conversions: 0,
-                    conversion_value: 0,
-                    ctr: 0,
-                    cpc: 0,
-                    cpm: 0,
-                    cost_per_conversion: 0,
-                    roas: 0,
-                    conversion_rate: 0,
-                    date_range: timeRange,
-                    message: 'Account connected successfully. Campaign data requires approved developer token.'
-                };
+                    conversion_value: 0
+                });
+
+                // Calculate derived metrics
+                aggregated.ctr = aggregated.impressions > 0 ? (aggregated.clicks / aggregated.impressions) * 100 : 0;
+                aggregated.cpc = aggregated.clicks > 0 ? aggregated.cost / aggregated.clicks : 0;
+                aggregated.cpm = aggregated.impressions > 0 ? (aggregated.cost / aggregated.impressions) * 1000 : 0;
+                aggregated.cost_per_conversion = aggregated.conversions > 0 ? aggregated.cost / aggregated.conversions : 0;
+                aggregated.roas = aggregated.cost > 0 ? aggregated.conversion_value / aggregated.cost : 0;
+                aggregated.conversion_rate = aggregated.clicks > 0 ? (aggregated.conversions / aggregated.clicks) * 100 : 0;
+                aggregated.date_range = timeRange;
+
+                return aggregated;
             }
 
             return null;
         } catch (error) {
             console.error('Error fetching Google Ads account summary:', error.message);
+            
+            // Handle test token limitations
+            if (error.message.includes('GRPC target method') || error.code === 12) {
+                throw new Error('DEVELOPER_TOKEN_NOT_APPROVED: Your test developer token has limited access. Apply for Standard access in Google Ads > Tools & Settings > API Center to access campaign data.');
+            }
+            
             throw error;
         }
     }
@@ -163,43 +181,87 @@ class GoogleAdsAnalytics {
             
             console.log(`Fetching Google Ads campaign data from ${timeRange.since} to ${timeRange.until} (IST)`);
             
-            // Try a simple campaign query first
+            let whereClause = `WHERE segments.date BETWEEN '${timeRange.since}' AND '${timeRange.until}'`;
+            
+            if (campaignIds && campaignIds.length > 0) {
+                const campaignFilter = campaignIds.map(id => `'${id}'`).join(',');
+                whereClause += ` AND campaign.id IN (${campaignFilter})`;
+            }
+
             const query = `
                 SELECT 
                     campaign.id,
                     campaign.name,
-                    campaign.status
-                FROM campaign
-                WHERE campaign.status != 'REMOVED'
-                LIMIT 10
+                    campaign.status,
+                    metrics.impressions,
+                    metrics.clicks,
+                    metrics.cost_micros,
+                    metrics.ctr,
+                    metrics.average_cpc_micros,
+                    metrics.average_cpm_micros,
+                    metrics.conversions,
+                    metrics.conversions_value,
+                    metrics.cost_per_conversion_micros,
+                    metrics.value_per_conversion
+                FROM campaign 
+                ${whereClause}
+                ORDER BY metrics.cost_micros DESC
             `;
 
             const response = await this.customer.query(query);
             
-            if (response && response.length > 0) {
-                return response.map(row => ({
-                    campaign_id: row.campaign?.id?.value || 'N/A',
-                    campaign_name: row.campaign?.name?.value || 'N/A',
-                    campaign_status: row.campaign?.status || 'UNKNOWN',
-                    impressions: 0,
-                    clicks: 0,
-                    cost: 0,
-                    conversions: 0,
-                    conversion_value: 0,
-                    ctr: 0,
-                    cpc: 0,
-                    cpm: 0,
-                    cost_per_conversion: 0,
-                    roas: 0,
-                    conversion_rate: 0,
-                    message: 'Campaign found. Metrics require approved developer token.'
-                }));
-            }
+            // Group by campaign and aggregate metrics
+            const campaignMap = new Map();
+            
+            response.forEach(row => {
+                const campaignId = row.campaign?.id?.value;
+                const campaignName = row.campaign?.name?.value;
+                
+                if (!campaignMap.has(campaignId)) {
+                    campaignMap.set(campaignId, {
+                        campaign_id: campaignId,
+                        campaign_name: campaignName,
+                        campaign_status: row.campaign?.status?.value,
+                        impressions: 0,
+                        clicks: 0,
+                        cost: 0,
+                        conversions: 0,
+                        conversion_value: 0
+                    });
+                }
+                
+                const campaign = campaignMap.get(campaignId);
+                const parsed = this.parseReportData(row);
+                
+                campaign.impressions += parsed.impressions;
+                campaign.clicks += parsed.clicks;
+                campaign.cost += parsed.cost;
+                campaign.conversions += parsed.conversions;
+                campaign.conversion_value += parsed.conversion_value;
+            });
 
-            return [];
+            // Calculate derived metrics for each campaign
+            const campaigns = Array.from(campaignMap.values()).map(campaign => {
+                campaign.ctr = campaign.impressions > 0 ? (campaign.clicks / campaign.impressions) * 100 : 0;
+                campaign.cpc = campaign.clicks > 0 ? campaign.cost / campaign.clicks : 0;
+                campaign.cpm = campaign.impressions > 0 ? (campaign.cost / campaign.impressions) * 1000 : 0;
+                campaign.cost_per_conversion = campaign.conversions > 0 ? campaign.cost / campaign.conversions : 0;
+                campaign.roas = campaign.cost > 0 ? campaign.conversion_value / campaign.cost : 0;
+                campaign.conversion_rate = campaign.clicks > 0 ? (campaign.conversions / campaign.clicks) * 100 : 0;
+                
+                return campaign;
+            });
+
+            return campaigns;
 
         } catch (error) {
             console.error('Error fetching Google Ads campaign insights:', error.message);
+            
+            // Handle test token limitations
+            if (error.message.includes('GRPC target method') || error.code === 12) {
+                throw new Error('DEVELOPER_TOKEN_NOT_APPROVED: Your test developer token has limited access. Apply for Standard access in Google Ads > Tools & Settings > API Center to access campaign data.');
+            }
+            
             throw error;
         }
     }
@@ -238,42 +300,47 @@ class GoogleAdsAnalytics {
         try {
             const timeRange = this.getDateRange(dateRange);
             
-            // Simple query to check access - keywords require more permissions
             const query = `
                 SELECT 
-                    ad_group.id,
+                    ad_group_criterion.keyword.text,
+                    ad_group_criterion.keyword.match_type,
+                    campaign.name,
                     ad_group.name,
-                    campaign.name
-                FROM ad_group
-                WHERE ad_group.status != 'REMOVED'
+                    metrics.impressions,
+                    metrics.clicks,
+                    metrics.cost_micros,
+                    metrics.ctr,
+                    metrics.average_cpc_micros,
+                    metrics.conversions,
+                    metrics.conversions_value
+                FROM keyword_view 
+                WHERE segments.date BETWEEN '${timeRange.since}' AND '${timeRange.until}'
+                    AND ad_group_criterion.type = 'KEYWORD'
+                ORDER BY metrics.cost_micros DESC
                 LIMIT ${limit}
             `;
 
             const response = await this.customer.query(query);
             
-            if (response && response.length > 0) {
-                return response.map(row => ({
-                    keyword_text: 'Sample Keyword',
-                    match_type: 'BROAD',
-                    ad_group_name: row.ad_group?.name?.value || 'N/A',
-                    campaign_name: row.campaign?.name?.value || 'N/A',
-                    impressions: 0,
-                    clicks: 0,
-                    cost: 0,
-                    conversions: 0,
-                    conversion_value: 0,
-                    ctr: 0,
-                    cpc: 0,
-                    roas: 0,
-                    conversion_rate: 0,
-                    message: 'Ad group found. Keyword data requires approved developer token.'
-                }));
-            }
-
-            return [];
+            return response.map(row => {
+                const parsed = this.parseReportData(row);
+                return {
+                    ...parsed,
+                    keyword_text: row.ad_group_criterion?.keyword?.text?.value,
+                    match_type: row.ad_group_criterion?.keyword?.match_type?.value,
+                    ad_group_name: row.ad_group?.name?.value,
+                    ...this.calculateAdditionalMetrics(parsed)
+                };
+            });
 
         } catch (error) {
             console.error('Error fetching Google Ads keywords:', error.message);
+            
+            // Handle test token limitations
+            if (error.message.includes('GRPC target method') || error.code === 12) {
+                throw new Error('DEVELOPER_TOKEN_NOT_APPROVED: Your test developer token has limited access. Apply for Standard access in Google Ads > Tools & Settings > API Center to access keyword data.');
+            }
+            
             throw error;
         }
     }

@@ -41,6 +41,30 @@ router.get('/summary', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching Google Ads summary:', error);
+        
+        // Handle developer token limitation
+        if (error.message.includes('DEVELOPER_TOKEN_NOT_APPROVED')) {
+            return res.status(200).json({
+                success: true,
+                data: {
+                    impressions: 0,
+                    clicks: 0,
+                    cost: 0,
+                    conversions: 0,
+                    conversion_value: 0,
+                    ctr: 0,
+                    cpc: 0,
+                    cpm: 0,
+                    cost_per_conversion: 0,
+                    roas: 0,
+                    conversion_rate: 0,
+                    date_range: { since: '2025-06-05', until: '2025-06-05' }
+                },
+                message: 'Test developer token detected. Apply for Standard access in Google Ads to view real data.',
+                tokenStatus: 'TEST_TOKEN'
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: 'Failed to fetch Google Ads summary',
@@ -80,6 +104,18 @@ router.get('/campaigns', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching Google Ads campaigns:', error);
+        
+        // Handle developer token limitation
+        if (error.message.includes('DEVELOPER_TOKEN_NOT_APPROVED')) {
+            return res.status(200).json({
+                success: true,
+                data: [],
+                count: 0,
+                message: 'Test developer token detected. Apply for Standard access in Google Ads to view campaign data.',
+                tokenStatus: 'TEST_TOKEN'
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: 'Failed to fetch Google Ads campaigns',
@@ -114,6 +150,18 @@ router.get('/keywords', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching Google Ads keywords:', error);
+        
+        // Handle developer token limitation
+        if (error.message.includes('DEVELOPER_TOKEN_NOT_APPROVED')) {
+            return res.status(200).json({
+                success: true,
+                data: [],
+                count: 0,
+                message: 'Test developer token detected. Apply for Standard access in Google Ads to view keyword data.',
+                tokenStatus: 'TEST_TOKEN'
+            });
+        }
+        
         res.status(500).json({
             success: false,
             message: 'Failed to fetch Google Ads keywords',

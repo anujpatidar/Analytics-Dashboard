@@ -37,10 +37,10 @@ const GoogleAdsAnalytics = () => {
   ];
 
   const fetchData = async (selectedDateRange = dateRange) => {
-    setLoading(true);
-    setError(null);
-    
     try {
+      setLoading(true);
+      setError(null);
+      
       let queryParams = { dateRange: selectedDateRange };
       
       if (selectedDateRange === 'custom' && customDateRange.since && customDateRange.until) {
@@ -50,18 +50,25 @@ const GoogleAdsAnalytics = () => {
         };
       }
 
-      const [summaryResponse, campaignResponse, keywordsResponse] = await Promise.all([
+      const [summaryResponse, campaignsResponse, keywordsResponse] = await Promise.all([
         googleAdsAPI.getSummary(queryParams),
         googleAdsAPI.getCampaigns(queryParams),
         googleAdsAPI.getKeywords({ ...queryParams, limit: 20 })
       ]);
 
       setSummary(summaryResponse.data);
-      setCampaigns(campaignResponse.data);
+      setCampaigns(campaignsResponse.data);
       setKeywords(keywordsResponse.data);
+      
+      // Check for test token status
+      if (summaryResponse.tokenStatus === 'TEST_TOKEN' || 
+          campaignsResponse.tokenStatus === 'TEST_TOKEN' || 
+          keywordsResponse.tokenStatus === 'TEST_TOKEN') {
+        setError('TEST_TOKEN_DETECTED');
+      }
+      
     } catch (err) {
-      setError('Failed to fetch Google Ads data: ' + err.message);
-      console.error('Google Ads fetch error:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -92,7 +99,10 @@ const GoogleAdsAnalytics = () => {
       let params = { dateRange };
       
       if (dateRange === 'custom' && customDateRange.since && customDateRange.until) {
-        params = customDateRange;
+        params = {
+          since: customDateRange.since,
+          until: customDateRange.until
+        };
       }
 
       await googleAdsAPI.exportToCsv(params);
@@ -188,8 +198,53 @@ const GoogleAdsAnalytics = () => {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-        <strong>Error:</strong> {error}
+      <div className="space-y-4">
+        {error === 'TEST_TOKEN_DETECTED' ? (
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
+            <div className="flex items-center">
+              <FaGoogle className="w-5 h-5 mr-2" />
+              <div>
+                <strong>Test Developer Token Detected</strong>
+                <p className="mt-1 text-sm">
+                  Your Google Ads integration is configured correctly, but you're using a test developer token 
+                  which has limited data access. To view real campaign data, apply for Standard access in your 
+                  Google Ads account: Tools & Settings → API Center.
+                </p>
+                <p className="mt-2 text-sm font-medium">
+                  Once approved, simply restart the server - no code changes needed!
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+        
+        {/* Still show the interface even with test token */}
+        {error === 'TEST_TOKEN_DETECTED' && (
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <FaGoogle className="w-8 h-8 text-blue-600" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Google Ads Analytics</h2>
+                  <p className="text-gray-600">Ready for your approved developer token</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center py-12">
+              <FaGoogle className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Integration Ready!</h3>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Your Google Ads API is properly configured. Once you get Standard access approval, 
+                real campaign data will appear here automatically.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
