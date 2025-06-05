@@ -10,6 +10,8 @@ const Redis=require('ioredis');
 const errorHandler = require('./middleware/errorHandler');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
+const metaAdsRoutes = require('./routes/metaAdsRoutes');
+const googleAdsRoutes = require('./routes/googleAdsRoutes');
 
 const app = express();
 
@@ -53,6 +55,8 @@ app.use(morgan('combined', { stream: logger.stream }));
 // Routes
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/meta-ads', metaAdsRoutes);
+app.use('/api/v1/google-ads', googleAdsRoutes);
 
 // Error handling
 app.use(errorHandler);

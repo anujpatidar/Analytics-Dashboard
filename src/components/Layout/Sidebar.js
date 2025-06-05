@@ -12,6 +12,7 @@ import {
   FiPackage,
   FiDollarSign
 } from 'react-icons/fi';
+import { FaFacebook, FaGoogle } from 'react-icons/fa';
 
 const SidebarContainer = styled.aside`
   width: 260px;
@@ -176,6 +177,24 @@ const Sidebar = () => {
               <NavLink to="/marketplace-prices" active={isActive('/marketplace-prices')}>
                 <FiUsers />
                 Marketplace Prices
+              </NavLink>
+            </NavItem>
+          </NavList>
+        </NavSection>
+        
+        <NavSection>
+          <h2>Marketing</h2>
+          <NavList>
+            <NavItem>
+              <NavLink to="/meta-ads" active={isActive('/meta-ads')}>
+                <FaFacebook />
+                Meta Ads
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink to="/google-ads" active={isActive('/google-ads')}>
+                <FaGoogle />
+                Google Ads
               </NavLink>
             </NavItem>
           </NavList>

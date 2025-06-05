@@ -6,6 +6,8 @@ import DashboardPage from './pages/Dashboard/DashboardPage';
 import ProductsPage from './pages/Products/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage/ProductDetailsPage';
 import MarketPlacePrices from './pages/MarketPlacePrices/MarketPlacePrices';
+import MetaAdsAnalytics from './components/MetaAds/MetaAdsAnalytics';
+import GoogleAdsAnalytics from './components/GoogleAds/GoogleAdsAnalytics';
 import PasswordProtection from './components/PasswordProtection';
 // Routes to be implemented later
 const SalesPage = () => <div>Sales Page - Coming Soon</div>;
@@ -28,6 +30,8 @@ function App() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:productId" element={<ProductDetailsPage />} />
             <Route path="/marketplace-prices" element={<MarketPlacePrices />} />
+            <Route path="/meta-ads" element={<MetaAdsAnalytics />} />
+            <Route path="/google-ads" element={<GoogleAdsAnalytics />} />
             <Route path="/customers" element={<CustomersPage />} />
             <Route path="/performance" element={<PerformancePage />} />
             <Route path="/trends" element={<TrendsPage />} />

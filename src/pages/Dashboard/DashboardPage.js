@@ -28,6 +28,8 @@ import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import "react-datepicker/dist/react-datepicker.css";
 
 import { StatCard, ChartCard, DataTable } from '../../components/Dashboard';
+import MetaAdsDashboardWidget from '../../components/MetaAds/MetaAdsDashboardWidget';
+import GoogleAdsDashboardWidget from '../../components/GoogleAds/GoogleAdsDashboardWidget';
 import useDataFetching from '../../hooks/useDataFetching';
 import {
   getOrdersOverview,
@@ -627,25 +629,36 @@ const DashboardPage = () => {
         ))}
       </div>
 
+      {/* Marketing Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <ChartCard 
-          title="Revenue Overview" 
-          subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
-          legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
-          timeframes={['Day', 'Week', 'Month', 'Year']}
-          activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-          onTimeframeChange={handleTimeframeChange}
-          loading={ordersByTimeRangeLoading}
-        >
-          {ordersByTimeRangeLoading ? (
-            <div>Loading chart...</div>
-          ) : (
-            <div style={{ width: '100%', height: '300px' }}>
-              <Line data={salesChartData} options={salesChartOptions} />
-            </div>
-          )}
-        </ChartCard>
-        
+        <div className="lg:col-span-1">
+          <MetaAdsDashboardWidget />
+        </div>
+        <div className="lg:col-span-1">
+          <GoogleAdsDashboardWidget />
+        </div>
+        <div className="lg:col-span-1">
+          <ChartCard 
+            title="Revenue Overview" 
+            subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
+            legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
+            timeframes={['Day', 'Week', 'Month', 'Year']}
+            activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
+            onTimeframeChange={handleTimeframeChange}
+            loading={ordersByTimeRangeLoading}
+          >
+            {ordersByTimeRangeLoading ? (
+              <div>Loading chart...</div>
+            ) : (
+              <div style={{ width: '100%', height: '300px' }}>
+                <Line data={salesChartData} options={salesChartOptions} />
+              </div>
+            )}
+          </ChartCard>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard 
           title="Customer Acquisition" 
           subtitle="Source breakdown"
