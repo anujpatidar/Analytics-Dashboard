@@ -25,6 +25,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle, ChevronsUp, ChevronsDown, Download } from 'lucide-react';
 import { FaRupeeSign } from 'react-icons/fa';
 import axios from 'axios';
+import { formatCurrency } from '../../utils/formatters';
 
 const MarketPlacePrices = () => {
   const [products, setProducts] = useState([]);
@@ -195,17 +196,6 @@ const MarketPlacePrices = () => {
     });
     
     return { platform: lowestPlatform, price: prices[lowestPlatform] };
-  };
-
-  // Function to format price display
-  const formatPrice = (price) => {
-    if (price === null) return 'N/A';
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
   };
 
   // Function to handle expand/collapse all
@@ -437,7 +427,7 @@ const MarketPlacePrices = () => {
                                 >
                                   <div className="text-sm font-medium mb-1 capitalize text-gray-700">{platform}</div>
                                   <div className={`text-lg font-bold ${isShopifyHigher ? 'text-red-600' : 'text-gray-800'}`}>
-                                    {formatPrice(price)}
+                                    {formatCurrency(price)}
                                   </div>
                                 </div>
                               );

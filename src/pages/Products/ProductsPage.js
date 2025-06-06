@@ -17,10 +17,11 @@ import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import styled from 'styled-components';
-import { FiPackage, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical, FiTrendingUp, FiTrendingDown } from 'react-icons/fi';
+import { FiPackage, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical, FiTrendingUp, FiTrendingDown, FiSearch, FiFilter } from 'react-icons/fi';
 import { FaRupeeSign } from 'react-icons/fa';
 import StatCard from '../../components/Dashboard/StatCard';
 import './ProductsPage.css';
+import { formatCurrency } from '../../utils/formatters';
 
 // Register ChartJS components
 ChartJS.register(
@@ -451,15 +452,6 @@ const ProductsPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const ProductSkeleton = () => (
     <div className="product-skeleton">

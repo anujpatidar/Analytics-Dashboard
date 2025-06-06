@@ -1,35 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Line, Bar, Pie } from 'react-chartjs-2';
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import { 
-  Chart as ChartJS, 
+  FiShoppingCart, 
+  FiTrendingUp, 
+  FiUsers, 
+  FiDollarSign, 
+  FiTarget, 
+  FiRefreshCw,
+  FiFilter
+} from 'react-icons/fi';
+import { FaRupeeSign } from 'react-icons/fa';
+import { 
+  Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  PointElement,
-  LineElement,
   BarElement,
-  ArcElement,
   Title,
   Tooltip,
   Legend,
+  LineElement,
+  PointElement,
+  ArcElement,
   Filler
 } from 'chart.js';
+import { Bar, Line, Doughnut } from 'react-chartjs-2';
+import StatCard from '../../components/Dashboard/StatCard';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 import { 
-  FiShoppingCart, 
-  FiUsers, 
   FiPackage,
-  FiRefreshCw,
-  FiTrendingUp,
-  FiTrendingDown,
   FiBarChart2,
   FiDownload
 } from 'react-icons/fi';
-import { FaRupeeSign } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 import "react-datepicker/dist/react-datepicker.css";
 
-import { StatCard, ChartCard, DataTable } from '../../components/Dashboard';
+import { ChartCard, DataTable } from '../../components/Dashboard';
 import MetaAdsDashboardWidget from '../../components/MetaAds/MetaAdsDashboardWidget';
 import GoogleAdsDashboardWidget from '../../components/GoogleAds/GoogleAdsDashboardWidget';
 import CombinedMarketingWidget from '../../components/Marketing/CombinedMarketingWidget';
@@ -41,7 +49,7 @@ import {
   getRefundMetrics,
   getRecentOrders
 } from '../../api/ordersAPI';
-import { formatCurrency, formatNumber, formatDate } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
 
 // Register ChartJS components
 ChartJS.register(
@@ -789,7 +797,7 @@ const DashboardPage = () => {
             timeframes={[]}
           >
             <div style={{ width: '100%', height: '300px' }}>
-              <Pie data={customerAcquisitionData} options={customerAcquisitionOptions} />
+              <Doughnut data={customerAcquisitionData} options={customerAcquisitionOptions} />
             </div>
           </ChartCard>
           

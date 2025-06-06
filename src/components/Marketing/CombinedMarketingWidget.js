@@ -368,7 +368,7 @@ const CombinedMarketingWidget = ({
             </div>
             <div className="text-right">
               <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Marketing Cost</p>
-              <p className="text-2xl font-bold text-red-600">₹{formatNumber(data.totalMarketingCost)}</p>
+              <p className="text-2xl font-bold text-red-600">{formatCurrency(data.totalMarketingCost)}</p>
             </div>
           </div>
         </div>
@@ -442,7 +442,7 @@ const CombinedMarketingWidget = ({
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-gray-900">₹{formatNumber(data.metaCost)}</p>
+                <p className="text-xl font-bold text-gray-900">{formatCurrency(data.metaCost)}</p>
                 <p className="text-sm text-gray-500">
                   {data.totalMarketingCost > 0 ? ((data.metaCost / data.totalMarketingCost) * 100).toFixed(1) : 0}% of spend
                 </p>
@@ -469,7 +469,7 @@ const CombinedMarketingWidget = ({
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-gray-900">₹{formatNumber(data.googleCost)}</p>
+                <p className="text-xl font-bold text-gray-900">{formatCurrency(data.googleCost)}</p>
                 <p className="text-sm text-gray-500">
                   {data.totalMarketingCost > 0 ? ((data.googleCost / data.totalMarketingCost) * 100).toFixed(1) : 0}% of spend
                 </p>
@@ -517,7 +517,7 @@ const CombinedMarketingWidget = ({
                       callbacks: {
                         label: function(context) {
                           const percentage = ((context.raw / data.totalMarketingCost) * 100).toFixed(1);
-                          return `${context.label}: ₹${formatNumber(context.raw)} (${percentage}%)`;
+                          return `${context.label}: ${formatCurrency(context.raw)} (${percentage}%)`;
                         }
                       }
                     }
@@ -550,7 +550,7 @@ const CombinedMarketingWidget = ({
             <p className={`text-xl font-bold ${
               data.contributionMargin >= 0 ? 'text-green-600' : 'text-red-600'
             }`}>
-              ₹{formatNumber(data.contributionMargin)}
+              {formatCurrency(data.contributionMargin)}
             </p>
           </div>
         </div>
@@ -567,7 +567,7 @@ const CombinedMarketingWidget = ({
                 <p className="text-sm text-gray-500">For selected period</p>
               </div>
             </div>
-            <p className="text-xl font-bold text-indigo-600">₹{formatNumber(data.totalRevenue)}</p>
+            <p className="text-xl font-bold text-indigo-600">{formatCurrency(data.totalRevenue)}</p>
           </div>
         </div>
       </div>

@@ -36,6 +36,7 @@ import {
   FiCalendar,
   FiFilter
 } from 'react-icons/fi';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 
 // Mock data - Replace with actual API calls
 // const mockProductData = {
@@ -326,15 +327,6 @@ const VariantsTable = styled.table`
   }
 `;
 
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
 const formatPercentage = (value) => {
   return `${value.toFixed(1)}%`;
 };
@@ -437,14 +429,6 @@ const safeDisplayValue = (value, fallback = 'N/A', formatter = null) => {
     return formatter(value);
   }
   return value;
-};
-
-// Add helper function to safely format currency
-const safeCurrencyFormat = (value, fallback = 'N/A') => {
-  if (value === null || value === undefined || value === '' || (typeof value === 'number' && isNaN(value))) {
-    return fallback;
-  }
-  return `₹${parseInt(value).toLocaleString()}`;
 };
 
 // Add helper function to safely format percentage
@@ -560,19 +544,18 @@ const ProductDetailsPage = () => {
         <ProductInfo>
           <h1>{data.product.name}</h1>
           <p>SKU: {data.product.sku}</p>
-          <p>{data.product.description}</p>
           <div className="product-meta">
             <div className="meta-item">
               <div className="label">Price</div>
-              <div className="value">{safeCurrencyFormat(data.product.price)}</div>
+              <div className="value">{formatCurrency(data.product.price)}</div>
             </div>
             <div className="meta-item">
               <div className="label">Cost Price</div>
-              <div className="value">{safeCurrencyFormat(data.product.costPrice)}</div>
+              <div className="value">{formatCurrency(data.product.costPrice)}</div>
             </div>
             <div className="meta-item">
               <div className="label">Profit Margin</div>
-              <div className="value">{safePercentageFormat(data.overview.profitMargin)}</div>
+              <div className="value">{formatPercentage(data.overview.profitMargin)}</div>
             </div>
           </div>
         </ProductInfo>
@@ -631,25 +614,6 @@ const ProductDetailsPage = () => {
         </div>
       </DateFilterContainer>
 
-      {/* Applied Date Range Display */}
-      {data && data.dateFilter && (
-        <div style={{ 
-          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-          padding: 'var(--spacing-md)',
-          borderRadius: 'var(--border-radius-md)',
-          marginBottom: 'var(--spacing-lg)',
-          border: '1px solid var(--border-color)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--spacing-sm)'
-        }}>
-          <FiCalendar style={{ color: '#6c757d' }} />
-          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Showing data from <strong>{new Date(data.dateFilter.startDate).toLocaleDateString()}</strong> to <strong>{new Date(data.dateFilter.endDate).toLocaleDateString()}</strong>
-          </span>
-        </div>
-      )}
-
       {/* Overview Section */}
       <Section>
         <h2>Overview</h2>
@@ -663,42 +627,50 @@ const ProductDetailsPage = () => {
           />
           <StatCard
             title="Total Sales"
-            value={safeCurrencyFormat(data.overview.totalSales)}
+            value={formatCurrency(data.overview.totalSales)}
             icon={FiDollarSign}
             color="#10b981"
             change={data.overview.salesTrend}
           />
           <StatCard
-            title="AOV"
-            value={safeCurrencyFormat(data.overview.aov)}
-            icon={FiCreditCard}
-            color="#8b5cf6"
-            change={data.overview.aovTrend}
-          />
-          <StatCard
-            title="Quantity Sold"
-            value={safeNumberFormat(data.overview.quantitySold)}
+            title="Total Quantity Sold"
+            value={safeNumberFormat(data.overview.totalQuantitySold)}
             icon={FiPackage}
             color="#f59e0b"
             change={data.overview.quantityTrend}
           />
           <StatCard
-            title="Gross Profit"
-            value={safeCurrencyFormat(data.overview.grossProfit)}
+            title="Net Quantity Sold"
+            value={safeNumberFormat(data.overview.netQuantitySold)}
+            icon={FiPackage}
+            color="#f59e0b"
+            change={data.overview.quantityTrend}
+          />
+          
+          <StatCard
+            title="AOV"
+            value={formatCurrency(data.overview.aov)}
+            icon={FiCreditCard}
+            color="#8b5cf6"
+            change={data.overview.aovTrend}
+          />
+          <StatCard
+            title="Gross Profit(DEMO)"
+            value={formatCurrency(data.overview.grossProfit)}
             icon={FiTrendingUp}
             color="#059669"
             change={data.overview.profitTrend}
           />
           <StatCard
-            title="Profit Margin"
-            value={safePercentageFormat(data.overview.profitMargin)}
+            title="Profit Margin(DEMO)"
+            value={formatPercentage(data.overview.profitMargin)}
             icon={FiPercent}
             color="#dc2626"
             change={data.overview.marginTrend}
           />
           <StatCard
-            title="Refund Rate"
-            value={safePercentageFormat(data.overview.refundRate)}
+            title="Refund Rate(WRONG)"
+            value={formatPercentage(data.overview.refundRate)}
             icon={FiRefreshCw}
             color="#ef4444"
             change={data.overview.refundTrend > 0 ? -Math.abs(data.overview.refundTrend) : Math.abs(data.overview.refundTrend)}
@@ -712,37 +684,37 @@ const ProductDetailsPage = () => {
         <StatsGrid>
           <StatCard
             title="Total Revenue"
-            value={safeCurrencyFormat(data.salesAndProfit.totalRevenue)}
+            value={formatCurrency(data.salesAndProfit.totalRevenue)}
             icon={FiDollarSign}
             color="#10b981"
           />
           <StatCard
             title="Marketing Cost"
-            value={safeCurrencyFormat(data.salesAndProfit.marketingCost)}
+            value={formatCurrency(data.salesAndProfit.marketingCost)}
             icon={FiTarget}
             color="#ef4444"
           />
           <StatCard
-            title="Profit After Marketing"
-            value={safeCurrencyFormat(data.salesAndProfit.profitAfterMarketing)}
+            title="Profit After Marketing(DEMO)"
+            value={formatCurrency(data.salesAndProfit.profitAfterMarketing)}
             icon={FiTrendingUp}
             color="#059669"
           />
           <StatCard
-            title="Profit per Unit"
-            value={safeCurrencyFormat(data.salesAndProfit.profitPerUnit)}
+            title="Profit per Unit(DEMO)"
+            value={formatCurrency(data.salesAndProfit.profitPerUnit)}
             icon={FiDollarSign}
             color="#8b5cf6"
           />
           <StatCard
-            title="Cost Price per Unit"
-            value={safeCurrencyFormat(data.salesAndProfit.costPricePerUnit)}
+            title="Cost Price per Unit(DEMO)"
+            value={formatCurrency(data.salesAndProfit.costPricePerUnit)}
             icon={FiPackage}
             color="#f59e0b"
           />
           <StatCard
-            title="Return Rate"
-            value={safePercentageFormat(data.salesAndProfit.returnRate)}
+            title="Return Rate(WRONG)"
+            value={formatPercentage(data.salesAndProfit.returnRate)}
             icon={FiRefreshCw}
             color="#dc2626"
           />
@@ -779,13 +751,13 @@ const ProductDetailsPage = () => {
           <StatsGrid>
             <StatCard
               title="Total Ad Spend"
-              value={safeCurrencyFormat(data.marketing.totalSpend)}
+              value={formatCurrency(data.marketing.totalSpend)}
               icon={FiDollarSign}
               color="#ef4444"
             />
             <StatCard
               title="Total Impressions"
-              value={safeNumberFormat(data.marketing.totalImpressions)}
+              value={safeNumberFormat(data.marketing.totalImpressions)} 
               icon={FiEye}
               color="#3b82f6"
             />
@@ -803,25 +775,25 @@ const ProductDetailsPage = () => {
             />
             <StatCard
               title="Purchase Value"
-              value={safeCurrencyFormat(data.marketing.totalPurchaseValue)}
+              value={formatCurrency(data.marketing.totalPurchaseValue)}
               icon={FiDollarSign}
               color="#059669"
             />
             <StatCard
               title="ROAS"
-              value={safePercentageFormat(data.marketing.averageRoas)}
+              value={formatPercentage(data.marketing.averageRoas)}
               icon={FiTrendingUp}
               color="#10b981"
             />
             <StatCard
               title="Cost Per Click"
-              value={safeCurrencyFormat(data.marketing.averageCpc)}
+              value={formatCurrency(data.marketing.averageCpc)}
               icon={FiTarget}
               color="#f59e0b"
             />
             <StatCard
               title="Click-Through Rate"
-              value={safePercentageFormat(data.marketing.averageCtr)}
+              value={formatPercentage(data.marketing.averageCtr)}
               icon={FiActivity}
               color="#6366f1"
             />
@@ -833,19 +805,19 @@ const ProductDetailsPage = () => {
             <StatsGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
               <StatCard
                 title="Cost Per Purchase"
-                value={safeCurrencyFormat(data.marketing.performanceMetrics.costPerPurchase)}
+                value={formatCurrency(data.marketing.performanceMetrics.costPerPurchase)}
                 icon={FiTarget}
                 color="#ef4444"
               />
               <StatCard
                 title="Conversion Rate"
-                value={safePercentageFormat(data.marketing.performanceMetrics.conversionRate)}
+                value={formatPercentage(data.marketing.performanceMetrics.conversionRate)}
                 icon={FiPercent}
                 color="#10b981"
               />
               <StatCard
                 title="Profit from Ads"
-                value={safeCurrencyFormat(data.marketing.performanceMetrics.profitFromAds)}
+                value={formatCurrency(data.marketing.performanceMetrics.profitFromAds)}
                 icon={FiTrendingUp}
                 color={data.marketing.performanceMetrics.profitFromAds > 0 ? "#059669" : "#dc2626"}
               />
@@ -1068,21 +1040,21 @@ const ProductDetailsPage = () => {
           />
           <StatCard
             title="Repeat Customer Rate"
-            value={safePercentageFormat(data.customerInsights.repeatCustomerRate)}
+            value={formatPercentage(data.customerInsights.repeatCustomerRate)}
             icon={FiPercent}
             color="#dc2626"
             change={1.2}
           />
           <StatCard
             title="Avg. Orders per Customer"
-            value={safeNumberFormat(data.customerInsights.avgOrdersPerCustomer)}
+            value={(data.customerInsights.avgOrdersPerCustomer)}
             icon={FiUsers}
             color="#3b82f6"
             change={5.1}
           />
           <StatCard
             title="Customer Acquisition Cost"
-            value={safeCurrencyFormat(data.customerInsights.customerAcquisitionCost)}
+            value={formatCurrency(data.customerInsights.customerAcquisitionCost)}
             icon={FiCreditCard}
             color="#ef4444"
           />
@@ -1195,21 +1167,21 @@ const ProductDetailsPage = () => {
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
               <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-                  {safeCurrencyFormat(data.overview.aov)}
+                  {formatCurrency(data.overview.aov)}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Average Order Value</div>
               </div>
               
               <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-                  {safePercentageFormat(data.customerInsights.firstTimeCustomers / data.customerInsights.totalCustomers * 100)}
+                  {formatPercentage(data.customerInsights.firstTimeCustomers / data.customerInsights.totalCustomers * 100)}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>First-time Buyers</div>
               </div>
               
               <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#45B7D1' }}>
-                  {safeCurrencyFormat(Math.round(data.overview.totalSales / data.overview.totalOrders))}
+                  {formatCurrency(Math.round(data.overview.totalSales / data.overview.totalOrders))}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Revenue per Order</div>
               </div>
@@ -1261,7 +1233,7 @@ const ProductDetailsPage = () => {
             </div>
             <div style={{ textAlign: 'center', padding: '0.5rem', background: '#fff3e0', borderRadius: '6px' }}>
               <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#FF9800' }}>
-                {safeCurrencyFormat(Math.round(data.customerInsights.customerAcquisitionCost / (data.overview.aov / 1000)))}
+                {formatCurrency(Math.round(data.customerInsights.customerAcquisitionCost / (data.overview.aov / 1000)))}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>CAC to AOV Ratio</div>
             </div>
@@ -1326,7 +1298,7 @@ const ProductDetailsPage = () => {
           </div>
           <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#45B7D1' }}>
-              {safeCurrencyFormat(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseFloat(variant.total_sales_amount), 0) / data.variantInsights.length))}
+              {formatCurrency(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseFloat(variant.total_sales_amount), 0) / data.variantInsights.length))}
             </div>
             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Revenue/Variant</div>
           </div>
@@ -1385,7 +1357,7 @@ const ProductDetailsPage = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value, name) => [
-                    name === 'revenue' ? safeCurrencyFormat(value) : value.toLocaleString(),
+                    name === 'revenue' ? formatCurrency(value) : value.toLocaleString(),
                     name === 'revenue' ? 'Revenue' : 'Units'
                   ]} />
                   <Legend />
@@ -1415,8 +1387,8 @@ const ProductDetailsPage = () => {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip formatter={(value, name) => {
                   if (name === 'units') return [value.toLocaleString(), 'Units Sold'];
-                  if (name === 'revenue') return [safeCurrencyFormat(value), 'Revenue'];
-                  if (name === 'avgPrice') return [safeCurrencyFormat(value), 'Avg Price per Unit'];
+                  if (name === 'revenue') return [formatCurrency(value), 'Revenue'];
+                  if (name === 'avgPrice') return [formatCurrency(value), 'Avg Price per Unit'];
                   return [value, name];
                 }} />
                 <Legend />
@@ -1479,11 +1451,11 @@ const ProductDetailsPage = () => {
                             borderRadius: '4px'
                           }}></div>
                         </div>
-                        <span>{safePercentageFormat(performance)}</span>
+                        <span>{formatPercentage(performance)}</span>
                       </div>
                     </td>
-                    <td>{safeCurrencyFormat(parseFloat(variant.total_sales_amount))}</td>
-                    <td>{safeCurrencyFormat(avgPrice)}</td>
+                    <td>{formatCurrency(parseFloat(variant.total_sales_amount))}</td>
+                    <td>{formatCurrency(avgPrice)}</td>
                     <td>
                       <span style={{ 
                         padding: '0.25rem 0.5rem', 

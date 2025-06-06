@@ -205,7 +205,8 @@ const productsController = {
       // Query 1: Overview data with error handling
       const query = `SELECT 
         COUNT(DISTINCT(li.ORDER_ID)) AS total_orders,
-        SUM(li.CURRENT_QUANTITY) AS total_quantity_sold,
+        SUM(li.CURRENT_QUANTITY) AS net_quantity_sold,
+        SUM(li.QUANTITY) AS total_quantity_sold,
         SUM(li.CURRENT_QUANTITY * li.PRICE) - SUM(COALESCE(li.DISCOUNT_ALLOCATION_AMOUNT, 0)) AS total_sales,
         COUNT(DISTINCT(CASE 
         WHEN UPPER(COALESCE(li.ORDER_NAME, '')) LIKE '%EX%' 
@@ -232,6 +233,7 @@ const productsController = {
         fetchOverviewData = [{
           total_orders: 0,
           total_quantity_sold: 0,
+          net_quantity_sold: 0,
           total_sales: 0,
           exchange_orders_count: 0
         }];
@@ -241,114 +243,115 @@ const productsController = {
       const overviewData = fetchOverviewData && fetchOverviewData.length > 0 ? fetchOverviewData[0] : {
         total_orders: 0,
         total_quantity_sold: 0,
+        net_quantity_sold: 0,
         total_sales: 0,
         exchange_orders_count: 0
       };
 
       // Query 2: Customer insights with error handling
       const query2 = `WITH product_orders AS (
-  SELECT DISTINCT
-    o.CUSTOMER_ID,
-    o.NAME as order_name,
-    o.PROCESSED_AT,
-    o.CURRENT_TOTAL_PRICE
-  FROM \`analytics-dashboard-459607.analytics.orders\` o
-  INNER JOIN \`analytics-dashboard-459607.analytics.line_items\` li ON CAST(o.ID AS STRING) = CAST(li.ORDER_ID AS STRING)
-  WHERE o.CUSTOMER_ID IS NOT NULL
-    AND li.SKU IN ('${variantSkus.join("','")}')
-    AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
-    AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
-),
+      SELECT DISTINCT
+      o.CUSTOMER_ID,
+      o.NAME as order_name,
+      o.PROCESSED_AT,
+      o.CURRENT_TOTAL_PRICE
+      FROM \`analytics-dashboard-459607.analytics.orders\` o
+      INNER JOIN \`analytics-dashboard-459607.analytics.line_items\` li ON CAST(o.ID AS STRING) = CAST(li.ORDER_ID AS STRING)
+      WHERE o.CUSTOMER_ID IS NOT NULL
+      AND li.SKU IN ('${variantSkus.join("','")}')
+      AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
+      AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
+      ),
 
-customer_order_counts AS (
-  SELECT 
-    CUSTOMER_ID,
-    COUNT(DISTINCT order_name) as total_orders,
-    SUM(CURRENT_TOTAL_PRICE) as total_spent
-  FROM product_orders
-  GROUP BY CUSTOMER_ID
-),
+      customer_order_counts AS (
+      SELECT 
+      CUSTOMER_ID,
+      COUNT(DISTINCT order_name) as total_orders,
+      SUM(CURRENT_TOTAL_PRICE) as total_spent
+      FROM product_orders
+      GROUP BY CUSTOMER_ID
+      ),
 
-customer_segments AS (
-  SELECT 
-    CUSTOMER_ID,
-    total_orders,
-    total_spent,
-    CASE 
-      WHEN total_spent >= 5000 THEN 'High Value'
-      WHEN total_spent >= 3000 THEN 'Medium Value'
-      ELSE 'Low Value'
-    END as value_segment,
-    CASE 
-      WHEN total_orders = 1 THEN '1 Order'
-      WHEN total_orders = 2 THEN '2 Orders'
-      WHEN total_orders = 3 THEN '3 Orders'
-      WHEN total_orders >= 4 THEN '4+ Orders'
-    END as order_frequency_segment
-  FROM customer_order_counts
-)
+      customer_segments AS (
+      SELECT 
+      CUSTOMER_ID,
+      total_orders,
+      total_spent,
+      CASE 
+        WHEN total_spent >= 5000 THEN 'High Value'
+        WHEN total_spent >= 3000 THEN 'Medium Value'
+        ELSE 'Low Value'
+      END as value_segment,
+      CASE 
+        WHEN total_orders = 1 THEN '1 Order'
+        WHEN total_orders = 2 THEN '2 Orders'
+        WHEN total_orders = 3 THEN '3 Orders'
+        WHEN total_orders >= 4 THEN '4+ Orders'
+      END as order_frequency_segment
+      FROM customer_order_counts
+      )
 
--- Main metrics
-SELECT 
-  'MAIN_METRICS' as metric_type,
-  COUNT(DISTINCT CUSTOMER_ID) as total_customers,
-  COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) as repeat_customers,
-  ROUND(
-    (COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) * 100.0) / 
-    NULLIF(COUNT(DISTINCT CUSTOMER_ID), 0), 2
-  ) as repeat_customer_rate_percentage,
-  ROUND(AVG(total_orders), 2) as avg_orders_per_customer,
-  COUNT(DISTINCT CASE WHEN total_orders = 1 THEN CUSTOMER_ID END) as first_time_customers,
-  NULL as segment_name,
-  NULL as segment_count,
-  NULL as segment_percentage
-FROM customer_segments
+      -- Main metrics
+      SELECT 
+      'MAIN_METRICS' as metric_type,
+      COUNT(DISTINCT CUSTOMER_ID) as total_customers,
+      COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) as repeat_customers,
+      ROUND(
+      (COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) * 100.0) / 
+      NULLIF(COUNT(DISTINCT CUSTOMER_ID), 0), 2
+      ) as repeat_customer_rate_percentage,
+      ROUND(AVG(total_orders), 2) as avg_orders_per_customer,
+      COUNT(DISTINCT CASE WHEN total_orders = 1 THEN CUSTOMER_ID END) as first_time_customers,
+      NULL as segment_name,
+      NULL as segment_count,
+      NULL as segment_percentage
+      FROM customer_segments
 
-UNION ALL
+      UNION ALL
 
--- Value segment breakdown
-SELECT 
-  'VALUE_SEGMENTS' as metric_type,
-  NULL as total_customers,
-  NULL as repeat_customers,
-  NULL as repeat_customer_rate_percentage,
-  NULL as avg_orders_per_customer,
-  NULL as first_time_customers,
-  value_segment as segment_name,
-  COUNT(DISTINCT CUSTOMER_ID) as segment_count,
-  ROUND(
-    (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
-    NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
-  ) as segment_percentage
-FROM customer_segments
-GROUP BY value_segment
+      -- Value segment breakdown
+      SELECT 
+      'VALUE_SEGMENTS' as metric_type,
+      NULL as total_customers,
+      NULL as repeat_customers,
+      NULL as repeat_customer_rate_percentage,
+      NULL as avg_orders_per_customer,
+      NULL as first_time_customers,
+      value_segment as segment_name,
+      COUNT(DISTINCT CUSTOMER_ID) as segment_count,
+      ROUND(
+      (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
+      NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
+      ) as segment_percentage
+      FROM customer_segments
+      GROUP BY value_segment
 
-UNION ALL
+      UNION ALL
 
--- Purchase frequency distribution
-SELECT 
-  'FREQUENCY_DISTRIBUTION' as metric_type,
-  NULL as total_customers,
-  NULL as repeat_customers,
-  NULL as repeat_customer_rate_percentage,
-  NULL as avg_orders_per_customer,
-  NULL as first_time_customers,
-  order_frequency_segment as segment_name,
-  COUNT(DISTINCT CUSTOMER_ID) as segment_count,
-  ROUND(
-    (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
-    NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
-  ) as segment_percentage
-FROM customer_segments
-GROUP BY order_frequency_segment
+      -- Purchase frequency distribution
+      SELECT 
+      'FREQUENCY_DISTRIBUTION' as metric_type,
+      NULL as total_customers,
+      NULL as repeat_customers,
+      NULL as repeat_customer_rate_percentage,
+      NULL as avg_orders_per_customer,
+      NULL as first_time_customers,
+      order_frequency_segment as segment_name,
+      COUNT(DISTINCT CUSTOMER_ID) as segment_count,
+      ROUND(
+      (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
+      NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
+      ) as segment_percentage
+      FROM customer_segments
+      GROUP BY order_frequency_segment
 
-ORDER BY 
-  CASE 
-    WHEN metric_type = 'MAIN_METRICS' THEN 1
-    WHEN metric_type = 'VALUE_SEGMENTS' THEN 2
-    WHEN metric_type = 'FREQUENCY_DISTRIBUTION' THEN 3
-  END,
-  segment_name;`;
+      ORDER BY 
+      CASE 
+      WHEN metric_type = 'MAIN_METRICS' THEN 1
+      WHEN metric_type = 'VALUE_SEGMENTS' THEN 2
+      WHEN metric_type = 'FREQUENCY_DISTRIBUTION' THEN 3
+      END,
+      segment_name;`;
 
       let fetchCustomerInsights = [];
       try {
@@ -384,25 +387,25 @@ ORDER BY
 
       // Query 3: Variant insights with error handling
       const query3 = `SELECT 
-  VARIANT_TITLE,
-  
-  -- Core metrics you requested
-  SUM(CURRENT_QUANTITY) as total_units_sold,
-  ROUND(SUM((QUANTITY * PRICE) - COALESCE(DISCOUNT_ALLOCATION_AMOUNT, 0)), 2) as total_sales_amount,
-  
-  -- Performance share
-  ROUND(
-    (SUM(QUANTITY) * 100.0) / NULLIF(SUM(SUM(QUANTITY)) OVER(), 0), 2
-  ) as units_sold_percentage
-  
+      VARIANT_TITLE,
+      
+      -- Core metrics you requested
+      SUM(CURRENT_QUANTITY) as total_units_sold,
+      ROUND(SUM((QUANTITY * PRICE) - COALESCE(DISCOUNT_ALLOCATION_AMOUNT, 0)), 2) as total_sales_amount,
+      
+      -- Performance share
+      ROUND(
+        (SUM(QUANTITY) * 100.0) / NULLIF(SUM(SUM(QUANTITY)) OVER(), 0), 2
+      ) as units_sold_percentage
+      
 
-FROM \`analytics-dashboard-459607.analytics.line_items\` li
-LEFT JOIN \`analytics-dashboard-459607.analytics.orders\` o ON li.ORDER_ID = o.ID
-WHERE li.SKU IN ('${variantSkus.join("','")}') 
-  AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
-  AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
-GROUP BY VARIANT_TITLE
-ORDER BY total_sales_amount DESC;`;
+    FROM \`analytics-dashboard-459607.analytics.line_items\` li
+    LEFT JOIN \`analytics-dashboard-459607.analytics.orders\` o ON li.ORDER_ID = o.ID
+    WHERE li.SKU IN ('${variantSkus.join("','")}') 
+      AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
+      AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
+    GROUP BY VARIANT_TITLE
+    ORDER BY total_sales_amount DESC;`;
 
       let fetchVariantInsights = [];
       try {
@@ -416,12 +419,13 @@ ORDER BY total_sales_amount DESC;`;
       const totalRevenue = parseFloat(overviewData.total_sales) || 0;
       const totalOrders = parseInt(overviewData.total_orders) || 0;
       const totalQuantitySold = parseInt(overviewData.total_quantity_sold) || 0;
+      const netQuantitySold = parseInt(overviewData.net_quantity_sold) || 0;
       const exchangeOrdersCount = parseInt(overviewData.exchange_orders_count) || 0;
       
       const totalMarketingCost = marketingData ? (marketingData.totalSpend || 0) : 0;
       const grossProfit = totalRevenue * 0.4; // Assuming 40% gross margin
       const profitAfterMarketing = grossProfit - totalMarketingCost;
-      const aov = totalQuantitySold > 0 ? totalRevenue / totalQuantitySold : 0;
+      const aov = netQuantitySold > 0 ? totalRevenue / netQuantitySold : 0;
       const refundRate = totalOrders > 0 ? (exchangeOrdersCount / totalOrders) * 100 : 0;
       
       const mockData = {
@@ -442,7 +446,8 @@ ORDER BY total_sales_amount DESC;`;
           totalOrders: totalOrders,
           totalSales: totalRevenue,
           aov: aov,
-          quantitySold: totalQuantitySold,
+          netQuantitySold: netQuantitySold,
+          totalQuantitySold: totalQuantitySold,
           grossProfit: grossProfit,
           profitMargin: totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0,
           refundRate: refundRate,
@@ -451,7 +456,7 @@ ORDER BY total_sales_amount DESC;`;
           totalRevenue: totalRevenue,
           marketingCost: totalMarketingCost,
           profitAfterMarketing: profitAfterMarketing,
-          profitPerUnit: totalQuantitySold > 0 ? profitAfterMarketing / totalQuantitySold : 0,
+          profitPerUnit: netQuantitySold > 0 ? profitAfterMarketing / netQuantitySold : 0,
           costPricePerUnit: product.costPrice || 8000,
           returnUnits: exchangeOrdersCount,
           returnRate: refundRate,
@@ -528,7 +533,7 @@ ORDER BY total_sales_amount DESC;`;
         },
         variants: fetchVariantInsights && Array.isArray(fetchVariantInsights) ? fetchVariantInsights.map(variant => ({
           name: variant.VARIANT_TITLE || 'Unknown Variant',
-          soldCount: parseInt(variant.total_quantity_sold) || 0,
+          soldCount: parseInt(variant.net_quantity_sold) || 0,
           profit: parseFloat(variant.total_sales_amount) * 0.4 || 0 // Assuming 40% profit margin
         })) : [],
         salesTrend: [

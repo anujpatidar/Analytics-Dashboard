@@ -1,17 +1,27 @@
 /**
- * Format a number as currency
+ * Format a number as currency in Indian format (Crores, Lacs, Thousands)
  * @param {number} value - The number to format
- * @param {string} currency - The currency code (default: INR)
- * @param {string} locale - The locale (default: en-IN)
+ * @param {string} fallback - Fallback value for null/undefined (default: 'N/A')
  * @returns {string} Formatted currency string
  */
-export const formatCurrency = (value, currency = 'INR', locale = 'en-IN') => {
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
+export const formatCurrency = (value, fallback = 'N/A') => {
+  if (value === null || value === undefined || value === '' || (typeof value === 'number' && isNaN(value))) {
+    return fallback;
+  }
+  
+  const numValue = parseFloat(value);
+  const absValue = Math.abs(numValue);
+  
+  // Format in Indian currency notation
+  if (absValue >= 10000000) { // 1 Crore = 10,000,000
+    return `₹${(numValue / 10000000).toFixed(2)} Cr`;
+  } else if (absValue >= 100000) { // 1 Lac = 100,000
+    return `₹${(numValue / 100000).toFixed(2)} L`;
+  } else if (absValue >= 1000) { // 1 Thousand = 1,000
+    return `₹${(numValue / 1000).toFixed(2)} K`;
+  } else {
+    return `₹${numValue.toFixed(0)}`;
+  }
 };
 
 /**
