@@ -8,6 +8,8 @@ const {fetchTotalProductsCount,calculateAverageProductPrice,getTopSellingProduct
 const {fetchAllProducts} = require('../utils/fetchDataFromShopify');
 const {fetchListingImageAndDescriptionById} = require('../utils/fetchDataFromShopify');
 const queryForBigQuery = require('../config/bigquery');
+const marketingKeywords = require('./marketingKeywords.json');
+const MetaAdsAnalytics = require('../utils/MetaAdsAnalytics');
 const productsController = {
   getAllProductsList: async (req, res, next) => {
     try {
@@ -128,12 +130,80 @@ const productsController = {
   getProductMetricsById: async (req, res, next) => {
     try {
       const { productSlug } = req.params; //product Id referes to slug of the product
-      const product=skuJson.find(p=>p.MasterSKU===productSlug);
-      const productId=product.productId;
+      const { startDate, endDate } = req.query; // Get date filter parameters
+      
+      // Set default date range if not provided (last 30 days)
+      const defaultEndDate = new Date().toISOString().split('T')[0];
+      const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      const filterStartDate = startDate || defaultStartDate;
+      const filterEndDate = endDate || defaultEndDate;
+      
+      console.log(`Filtering data from ${filterStartDate} to ${filterEndDate}`);
+      
+      // Validate product exists
+      const product = skuJson.find(p => p.MasterSKU === productSlug);
+      if (!product) {
+        return res.status(404).json({ 
+          success: false, 
+          message: `Product with SKU ${productSlug} not found` 
+        });
+      }
+      
+      const productId = product.productId;
     
-      const {imageUrl,description}=await fetchListingImageAndDescriptionById(productId);
+      // Handle image and description with fallbacks
+      let imageUrl = null;
+      let description = null;
+      try {
+        const productDetails = await fetchListingImageAndDescriptionById(productId);
+        imageUrl = productDetails.imageUrl || null;
+        description = productDetails.description || 'No description available';
+      } catch (error) {
+        console.log('Error fetching product details:', error.message);
+        imageUrl = null;
+        description = 'No description available';
+      }
 
-        const query=`SELECT 
+      // Get marketing data for this product with date filter - with error handling
+      let marketingData = null;
+      try {
+        marketingData = await getProductMarketingData(product.itemName, filterStartDate, filterEndDate);
+      } catch (error) {
+        console.log('Error fetching marketing data:', error.message);
+        marketingData = {
+          campaigns: [],
+          totalSpend: 0,
+          totalImpressions: 0,
+          totalClicks: 0,
+          totalPurchases: 0,
+          totalPurchaseValue: 0,
+          averageRoas: 0,
+          averageCpc: 0,
+          averageCpm: 0,
+          averageCtr: 0,
+          keyword: null
+        };
+      }
+
+      // Build variants SKU list with validation
+      const variantSkus = product.variants && Array.isArray(product.variants) 
+        ? product.variants.flatMap(v => 
+            v.variantSkus && Array.isArray(v.variantSkus) 
+              ? v.variantSkus.map(s => s.variant_sku).filter(Boolean)
+              : []
+          ).filter(Boolean)
+        : [];
+
+      if (variantSkus.length === 0) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `No valid variant SKUs found for product ${productSlug}` 
+        });
+      }
+
+      // Query 1: Overview data with error handling
+      const query = `SELECT 
         COUNT(DISTINCT(li.ORDER_ID)) AS total_orders,
         SUM(li.CURRENT_QUANTITY) AS total_quantity_sold,
         SUM(li.CURRENT_QUANTITY * li.PRICE) - SUM(COALESCE(li.DISCOUNT_ALLOCATION_AMOUNT, 0)) AS total_sales,
@@ -146,17 +216,37 @@ const productsController = {
     FROM \`analytics-dashboard-459607.analytics.line_items\` li
     LEFT JOIN \`analytics-dashboard-459607.analytics.orders\` o
     ON li.ORDER_ID = o.ID
-    WHERE li.SKU IN ('${product.variants.map(v=>v.variantSkus.map(s=>s.variant_sku)).join("','")}')
+    WHERE li.SKU IN ('${variantSkus.join("','")}')
         AND li.QUANTITY IS NOT NULL
-        AND li.PRICE IS NOT NULL`;
+        AND li.PRICE IS NOT NULL
+        AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
+        AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'`;
        
-        console.log('query',query);
+      // console.log('Overview query:', query);
       
-      const fetchOverviewData=await queryForBigQuery(query);
-      console.log('response',fetchOverviewData);
+      let fetchOverviewData = [];
+      try {
+        fetchOverviewData = await queryForBigQuery(query);
+      } catch (error) {
+        console.error('Error fetching overview data:', error.message);
+        fetchOverviewData = [{
+          total_orders: 0,
+          total_quantity_sold: 0,
+          total_sales: 0,
+          exchange_orders_count: 0
+        }];
+      }
 
+      // Validate overview data
+      const overviewData = fetchOverviewData && fetchOverviewData.length > 0 ? fetchOverviewData[0] : {
+        total_orders: 0,
+        total_quantity_sold: 0,
+        total_sales: 0,
+        exchange_orders_count: 0
+      };
 
-      const query2=`WITH product_orders AS (
+      // Query 2: Customer insights with error handling
+      const query2 = `WITH product_orders AS (
   SELECT DISTINCT
     o.CUSTOMER_ID,
     o.NAME as order_name,
@@ -165,7 +255,9 @@ const productsController = {
   FROM \`analytics-dashboard-459607.analytics.orders\` o
   INNER JOIN \`analytics-dashboard-459607.analytics.line_items\` li ON CAST(o.ID AS STRING) = CAST(li.ORDER_ID AS STRING)
   WHERE o.CUSTOMER_ID IS NOT NULL
-    AND li.SKU IN ('${product.variants.map(v=>v.variantSkus.map(s=>s.variant_sku)).join("','")}')
+    AND li.SKU IN ('${variantSkus.join("','")}')
+    AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
+    AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
 ),
 
 customer_order_counts AS (
@@ -203,7 +295,7 @@ SELECT
   COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) as repeat_customers,
   ROUND(
     (COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) * 100.0) / 
-    COUNT(DISTINCT CUSTOMER_ID), 2
+    NULLIF(COUNT(DISTINCT CUSTOMER_ID), 0), 2
   ) as repeat_customer_rate_percentage,
   ROUND(AVG(total_orders), 2) as avg_orders_per_customer,
   COUNT(DISTINCT CASE WHEN total_orders = 1 THEN CUSTOMER_ID END) as first_time_customers,
@@ -226,7 +318,7 @@ SELECT
   COUNT(DISTINCT CUSTOMER_ID) as segment_count,
   ROUND(
     (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
-    (SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 2
+    NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
   ) as segment_percentage
 FROM customer_segments
 GROUP BY value_segment
@@ -245,7 +337,7 @@ SELECT
   COUNT(DISTINCT CUSTOMER_ID) as segment_count,
   ROUND(
     (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
-    (SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 2
+    NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
   ) as segment_percentage
 FROM customer_segments
 GROUP BY order_frequency_segment
@@ -258,11 +350,40 @@ ORDER BY
   END,
   segment_name;`;
 
-      const fetchCustomerInsights=await queryForBigQuery(query2);
-      console.log('fetchCustomerInsights',fetchCustomerInsights);
+      let fetchCustomerInsights = [];
+      try {
+        fetchCustomerInsights = await queryForBigQuery(query2);
+      } catch (error) {
+        console.error('Error fetching customer insights:', error.message);
+        // Default customer insights structure
+        fetchCustomerInsights = [
+          { metric_type: 'MAIN_METRICS', total_customers: 0, repeat_customers: 0, repeat_customer_rate_percentage: 0, avg_orders_per_customer: 0, first_time_customers: 0 },
+          { metric_type: 'VALUE_SEGMENTS', segment_name: 'High Value', segment_count: 0, segment_percentage: 0 },
+          { metric_type: 'VALUE_SEGMENTS', segment_name: 'Medium Value', segment_count: 0, segment_percentage: 0 },
+          { metric_type: 'VALUE_SEGMENTS', segment_name: 'Low Value', segment_count: 0, segment_percentage: 0 },
+          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '1 Order', segment_count: 0, segment_percentage: 0 },
+          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '2 Orders', segment_count: 0, segment_percentage: 0 },
+          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '3 Orders', segment_count: 0, segment_percentage: 0 },
+          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '4+ Orders', segment_count: 0, segment_percentage: 0 }
+        ];
+      }
 
+      // Helper function to safely get customer insight value
+      const getCustomerInsightValue = (metricType, segmentName = null, field) => {
+        try {
+          const item = fetchCustomerInsights.find(item => 
+            item.metric_type === metricType && 
+            (segmentName ? item.segment_name === segmentName : true)
+          );
+          return item ? (item[field] || 0) : 0;
+        } catch (error) {
+          console.log(`Error getting customer insight for ${metricType}:${segmentName}:${field}`, error.message);
+          return 0;
+        }
+      };
 
-      const query3=`SELECT 
+      // Query 3: Variant insights with error handling
+      const query3 = `SELECT 
   VARIANT_TITLE,
   
   -- Core metrics you requested
@@ -271,89 +392,145 @@ ORDER BY
   
   -- Performance share
   ROUND(
-    (SUM(QUANTITY) * 100.0) / SUM(SUM(QUANTITY)) OVER(), 2
-  ) as units_sold_percentage,
+    (SUM(QUANTITY) * 100.0) / NULLIF(SUM(SUM(QUANTITY)) OVER(), 0), 2
+  ) as units_sold_percentage
   
 
-FROM \`analytics-dashboard-459607.analytics.line_items\` 
-WHERE SKU IN ('${product.variants.map(v=>v.variantSkus.map(s=>s.variant_sku)).join("','")}') 
+FROM \`analytics-dashboard-459607.analytics.line_items\` li
+LEFT JOIN \`analytics-dashboard-459607.analytics.orders\` o ON li.ORDER_ID = o.ID
+WHERE li.SKU IN ('${variantSkus.join("','")}') 
+  AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
+  AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
 GROUP BY VARIANT_TITLE
-ORDER BY total_sales_amount DESC;`
+ORDER BY total_sales_amount DESC;`;
 
-      const fetchVariantInsights=await queryForBigQuery(query3);
-      console.log('fetchVariantInsights',fetchVariantInsights);
+      let fetchVariantInsights = [];
+      try {
+        fetchVariantInsights = await queryForBigQuery(query3);
+      } catch (error) {
+        console.error('Error fetching variant insights:', error.message);
+        fetchVariantInsights = [];
+      }
+      
+      // Safe calculations with null checks
+      const totalRevenue = parseFloat(overviewData.total_sales) || 0;
+      const totalOrders = parseInt(overviewData.total_orders) || 0;
+      const totalQuantitySold = parseInt(overviewData.total_quantity_sold) || 0;
+      const exchangeOrdersCount = parseInt(overviewData.exchange_orders_count) || 0;
+      
+      const totalMarketingCost = marketingData ? (marketingData.totalSpend || 0) : 0;
+      const grossProfit = totalRevenue * 0.4; // Assuming 40% gross margin
+      const profitAfterMarketing = grossProfit - totalMarketingCost;
+      const aov = totalQuantitySold > 0 ? totalRevenue / totalQuantitySold : 0;
+      const refundRate = totalOrders > 0 ? (exchangeOrdersCount / totalOrders) * 100 : 0;
+      
       const mockData = {
+        dateFilter: {
+          startDate: filterStartDate,
+          endDate: filterEndDate
+        },
         product: {
-          id: 1,
-          name: product.itemName,
+          id: productId || null,
+          name: product.itemName || 'Unknown Product',
           image: imageUrl,
           description: description,
-          sku: 'PH-001',
-          price: 12999,
-          costPrice: 8000,
+          sku: product.MasterSKU || 'N/A',
+          price: product.price || 0,
+          costPrice: product.costPrice || 0,
         },
        overview: {
-          totalOrders: fetchOverviewData[0].total_orders,
-          totalSales: (fetchOverviewData[0].total_sales),
-          aov: ((fetchOverviewData[0].total_sales))/(fetchOverviewData[0].total_quantity_sold),
-          //
-          quantitySold: fetchOverviewData[0].total_quantity_sold,
-          grossProfit: "to be calculated",
-          profitMargin: 0,
-          refundRate: (fetchOverviewData[0].exchange_orders_count/fetchOverviewData[0].total_orders)*100,
+          totalOrders: totalOrders,
+          totalSales: totalRevenue,
+          aov: aov,
+          quantitySold: totalQuantitySold,
+          grossProfit: grossProfit,
+          profitMargin: totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0,
+          refundRate: refundRate,
         },
         salesAndProfit: {
-          totalRevenue: 15623750,
-          marketingCost: 1250000,
-          profitAfterMarketing: 4999500,
-          profitPerUnit: 4000,
-          costPricePerUnit: 8000,
-          returnUnits: 65,
-          returnRate: 5.2,
+          totalRevenue: totalRevenue,
+          marketingCost: totalMarketingCost,
+          profitAfterMarketing: profitAfterMarketing,
+          profitPerUnit: totalQuantitySold > 0 ? profitAfterMarketing / totalQuantitySold : 0,
+          costPricePerUnit: product.costPrice || 8000,
+          returnUnits: exchangeOrdersCount,
+          returnRate: refundRate,
         },
+        // Add marketing data section with safe access
+        marketing: marketingData ? {
+          keyword: marketingData.keyword || null,
+          totalSpend: marketingData.totalSpend || 0,
+          totalImpressions: marketingData.totalImpressions || 0,
+          totalClicks: marketingData.totalClicks || 0,
+          totalPurchases: marketingData.totalPurchases || 0,
+          totalPurchaseValue: marketingData.totalPurchaseValue || 0,
+          averageRoas: marketingData.averageRoas || 0,
+          averageCpc: marketingData.averageCpc || 0,
+          averageCpm: marketingData.averageCpm || 0,
+          averageCtr: marketingData.averageCtr || 0,
+          campaignCount: marketingData.campaigns ? marketingData.campaigns.length : 0,
+          campaigns: marketingData.campaigns && Array.isArray(marketingData.campaigns) ? marketingData.campaigns.map(campaign => ({
+            id: campaign.campaign_id || null,
+            name: campaign.campaign_name || 'Unknown Campaign',
+            spend: campaign.spend || 0,
+            impressions: campaign.impressions || 0,
+            clicks: campaign.clicks || 0,
+            purchases: campaign.total_purchases || 0,
+            purchaseValue: campaign.total_purchase_value || 0,
+            roas: campaign.overall_roas || 0,
+            cpc: campaign.cpc || 0,
+            cpm: campaign.cpm || 0,
+            ctr: campaign.ctr || 0
+          })) : [],
+          performanceMetrics: {
+            costPerPurchase: (marketingData.totalPurchases || 0) > 0 ? (marketingData.totalSpend || 0) / (marketingData.totalPurchases || 1) : 0,
+            conversionRate: (marketingData.totalClicks || 0) > 0 ? ((marketingData.totalPurchases || 0) / (marketingData.totalClicks || 1)) * 100 : 0,
+            profitFromAds: (marketingData.totalPurchaseValue || 0) - (marketingData.totalSpend || 0)
+          }
+        } : null,
         customerInsights: {
-          totalCustomers: fetchCustomerInsights[0].total_customers,
-          repeatCustomers: fetchCustomerInsights[0].repeat_customers,
-          repeatCustomerRate: fetchCustomerInsights[0].repeat_customer_rate_percentage,
-          avgOrdersPerCustomer: fetchCustomerInsights[0].avg_orders_per_customer,
-          firstTimeCustomers: fetchCustomerInsights[0].first_time_customers,
+          totalCustomers: getCustomerInsightValue('MAIN_METRICS', null, 'total_customers'),
+          repeatCustomers: getCustomerInsightValue('MAIN_METRICS', null, 'repeat_customers'),
+          repeatCustomerRate: getCustomerInsightValue('MAIN_METRICS', null, 'repeat_customer_rate_percentage'),
+          avgOrdersPerCustomer: getCustomerInsightValue('MAIN_METRICS', null, 'avg_orders_per_customer'),
+          firstTimeCustomers: getCustomerInsightValue('MAIN_METRICS', null, 'first_time_customers'),
           customerAcquisitionCost: 0,
           highValueCustomers: {
-            customerCount: fetchCustomerInsights[1].segment_count,
-            customerPercentage: fetchCustomerInsights[1].segment_percentage,
+            customerCount: getCustomerInsightValue('VALUE_SEGMENTS', 'High Value', 'segment_count'),
+            customerPercentage: getCustomerInsightValue('VALUE_SEGMENTS', 'High Value', 'segment_percentage'),
           },
           mediumValueCustomers: {
-            customerCount: fetchCustomerInsights[3].segment_count,
-            customerPercentage: fetchCustomerInsights[3].segment_percentage,
+            customerCount: getCustomerInsightValue('VALUE_SEGMENTS', 'Medium Value', 'segment_count'),
+            customerPercentage: getCustomerInsightValue('VALUE_SEGMENTS', 'Medium Value', 'segment_percentage'),
           },
           lowValueCustomers: {
-            customerCount: fetchCustomerInsights[2].segment_count,
-            customerPercentage: fetchCustomerInsights[2].segment_percentage,
+            customerCount: getCustomerInsightValue('VALUE_SEGMENTS', 'Low Value', 'segment_count'),
+            customerPercentage: getCustomerInsightValue('VALUE_SEGMENTS', 'Low Value', 'segment_percentage'),
           },
           frequencyDistribution: {
             oneOrderCustomers: {
-              customerCount: fetchCustomerInsights[4].segment_count,
-              customerPercentage: fetchCustomerInsights[4].segment_percentage,
+              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '1 Order', 'segment_count'),
+              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '1 Order', 'segment_percentage'),
             },
             twoOrdersCustomers: {
-              customerCount: fetchCustomerInsights[5].segment_count,
-              customerPercentage: fetchCustomerInsights[5].segment_percentage,
+              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '2 Orders', 'segment_count'),
+              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '2 Orders', 'segment_percentage'),
             },
             threeOrdersCustomers: {
-              customerCount: fetchCustomerInsights[6].segment_count,
-              customerPercentage: fetchCustomerInsights[6].segment_percentage,
+              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '3 Orders', 'segment_count'),
+              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '3 Orders', 'segment_percentage'),
             },
             fourOrdersCustomers: {
-              customerCount: fetchCustomerInsights[7].segment_count,
-              customerPercentage: fetchCustomerInsights[7].segment_percentage,
+              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '4+ Orders', 'segment_count'),
+              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '4+ Orders', 'segment_percentage'),
             }
           }
         },
-        variants: [
-          { name: 'Black', soldCount: 500, profit: 2000000 },
-          { name: 'White', soldCount: 450, profit: 1800000 },
-          { name: 'Blue', soldCount: 300, profit: 1200000 },
-        ],
+        variants: fetchVariantInsights && Array.isArray(fetchVariantInsights) ? fetchVariantInsights.map(variant => ({
+          name: variant.VARIANT_TITLE || 'Unknown Variant',
+          soldCount: parseInt(variant.total_quantity_sold) || 0,
+          profit: parseFloat(variant.total_sales_amount) * 0.4 || 0 // Assuming 40% profit margin
+        })) : [],
         salesTrend: [
           { date: 'Jan', sales: 1200000 },
           { date: 'Feb', sales: 1500000 },
@@ -414,4 +591,123 @@ ORDER BY total_sales_amount DESC;`
     }
   }
 };
+
+// Helper function to initialize Meta Ads Analytics
+const initializeMetaAds = () => {
+  const accessToken = process.env.META_ACCESS_TOKEN || 'EAATpfGwjZCXkBO33nuWkRLZCpRpsBbNU5EVkes11zoG5VewkbMqYZC2aDn2H4y5tYCQye4ZBd2OQBSQ1al25QJNAM8TMZBWUkDQpH89C3D9kC9azE7hwTDq7HA2CpIbq9rzPqBjyPlcjYUtydyR5dCX0pdWltSbRdcZBI3iqmjBtvORMy6MMpM';
+  const appId = process.env.META_APP_ID || '1609334849774379';
+  const appSecret = process.env.META_APP_SECRET || 'c43c137e36f234e9a9f38df459d018bd';
+  const adAccountId = process.env.META_AD_ACCOUNT_ID || 'act_1889983027860390';
+
+  return new MetaAdsAnalytics(accessToken, appId, appSecret, adAccountId);
+};
+
+// Helper function to get marketing data for a product
+const getProductMarketingData = async (productName, startDate, endDate) => {
+  try {
+    // Find the keyword for this product
+    const productKeyword = marketingKeywords.find(item => 
+      item.productName.toLowerCase() === productName.toLowerCase()
+    );
+    
+    if (!productKeyword || productKeyword.keyword === '-') {
+      console.log(`No marketing keyword found for product: ${productName}`);
+      return {
+        campaigns: [],
+        totalSpend: 0,
+        totalImpressions: 0,
+        totalClicks: 0,
+        totalPurchases: 0,
+        totalPurchaseValue: 0,
+        averageRoas: 0,
+        averageCpc: 0,
+        averageCpm: 0,
+        averageCtr: 0,
+        keyword: null
+      };
+    }
+
+    const keyword = productKeyword.keyword;
+    // console.log(`Searching Meta Ads campaigns for keyword: ${keyword} (Product: ${productName}) from ${startDate} to ${endDate}`);
+    
+    const analytics = initializeMetaAds();
+    
+    // Create date range for Meta Ads API
+    const dateRange = {
+      since: startDate,
+      until: endDate
+    };
+    
+    // Get campaigns for the specified date range
+    const allCampaigns = await analytics.getCampaignInsights(dateRange);
+    
+    // Filter campaigns that contain the product keyword in their name
+    const matchingCampaigns = allCampaigns.filter(campaign => 
+      campaign.campaign_name && 
+      campaign.campaign_name.toLowerCase().includes(keyword.toLowerCase().replace(/[_-]/g, ''))
+    );
+
+    // console.log(`Found ${matchingCampaigns.length} matching campaigns for keyword: ${keyword} in date range ${startDate} to ${endDate}`);
+    
+    if (matchingCampaigns.length === 0) {
+      return {
+        campaigns: [],
+        totalSpend: 0,
+        totalImpressions: 0,
+        totalClicks: 0,
+        totalPurchases: 0,
+        totalPurchaseValue: 0,
+        averageRoas: 0,
+        averageCpc: 0,
+        averageCpm: 0,
+        averageCtr: 0,
+        keyword: keyword
+      };
+    }
+
+    // Calculate aggregate metrics
+    const totalSpend = matchingCampaigns.reduce((sum, campaign) => sum + campaign.spend, 0);
+    const totalImpressions = matchingCampaigns.reduce((sum, campaign) => sum + campaign.impressions, 0);
+    const totalClicks = matchingCampaigns.reduce((sum, campaign) => sum + campaign.clicks, 0);
+    const totalPurchases = matchingCampaigns.reduce((sum, campaign) => sum + campaign.total_purchases, 0);
+    const totalPurchaseValue = matchingCampaigns.reduce((sum, campaign) => sum + campaign.total_purchase_value, 0);
+    
+    // Calculate averages
+    const averageRoas = totalSpend > 0 ? totalPurchaseValue / totalSpend : 0;
+    const averageCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
+    const averageCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
+    const averageCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+
+    return {
+      campaigns: matchingCampaigns,
+      totalSpend: Math.round(totalSpend * 100) / 100,
+      totalImpressions,
+      totalClicks,
+      totalPurchases,
+      totalPurchaseValue: Math.round(totalPurchaseValue * 100) / 100,
+      averageRoas: Math.round(averageRoas * 100) / 100,
+      averageCpc: Math.round(averageCpc * 100) / 100,
+      averageCpm: Math.round(averageCpm * 100) / 100,
+      averageCtr: Math.round(averageCtr * 100) / 100,
+      keyword: keyword
+    };
+  } catch (error) {
+    console.error('Error fetching marketing data:', error);
+    return {
+      campaigns: [],
+      totalSpend: 0,
+      totalImpressions: 0,
+      totalClicks: 0,
+      totalPurchases: 0,
+      totalPurchaseValue: 0,
+      averageRoas: 0,
+      averageCpc: 0,
+      averageCpm: 0,
+      averageCtr: 0,
+      error: error.message,
+      keyword: null
+    };
+  }
+};
+
 module.exports = productsController;

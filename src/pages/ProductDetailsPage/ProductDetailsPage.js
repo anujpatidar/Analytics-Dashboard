@@ -18,7 +18,24 @@ import {
   Area
 } from 'recharts';
 import { useParams } from 'react-router-dom';
-import { FiTrendingUp, FiTrendingDown} from 'react-icons/fi';
+import { 
+  FiTrendingUp, 
+  FiTrendingDown, 
+  FiShoppingCart, 
+  FiDollarSign, 
+  FiPackage, 
+  FiPercent, 
+  FiRefreshCw,
+  FiUsers,
+  FiTarget,
+  FiCreditCard,
+  FiEye,
+  FiMousePointer,
+  FiBarChart2,
+  FiActivity,
+  FiCalendar,
+  FiFilter
+} from 'react-icons/fi';
 
 // Mock data - Replace with actual API calls
 // const mockProductData = {
@@ -94,73 +111,188 @@ const PageContainer = styled.div`
 `;
 
 const PageHeader = styled.div`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: var(--spacing-xl);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    z-index: 1;
+  }
+  
+  & > * {
+    position: relative;
+    z-index: 2;
+  }
+  
   display: flex;
   align-items: center;
-  margin-bottom: var(--spacing-xl);
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    text-align: center;
+    padding: var(--spacing-lg);
+  }
 `;
 
 const ProductImage = styled.img`
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   object-fit: cover;
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  }
+  
+  @media (max-width: 768px) {
+    width: 120px;
+    height: 120px;
+  }
 `;
 
 const ProductInfo = styled.div`
+  flex: 1;
+  color: white;
+  
   h1 {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-xs);
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 700;
+    background: linear-gradient(45deg, #ffffff, #f0f0f0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
   }
   
   p {
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.9);
     margin-bottom: var(--spacing-sm);
+    font-size: 1.1rem;
+    font-weight: 500;
+    
+    &:first-of-type {
+      background: rgba(255, 255, 255, 0.2);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: 25px;
+      display: inline-block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: var(--spacing-md);
+    }
+    
+    &:last-child {
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 600px;
+    }
+  }
+  
+  .product-meta {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-md);
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+  }
+  
+  .meta-item {
+    background: rgba(255, 255, 255, 0.15);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
+    .label {
+      font-size: 0.8rem;
+      opacity: 0.8;
+      margin-bottom: 2px;
+    }
+    
+    .value {
+      font-weight: 600;
+      font-size: 1rem;
+    }
   }
 `;
 
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-xl);
+  
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
-const StatCard = styled.div`
-  background: white;
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
-  
-  h3 {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-sm);
-  }
-  
-  .value {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: var(--spacing-xs);
-  }
-  
-  .trend {
-    display: flex;
-    align-items: center;
-    font-size: 0.9rem;
-    
-    &.positive {
-      color: var(--success-color);
-    }
-    
-    &.negative {
-      color: var(--danger-color);
-    }
-  }
-`;
+const StatCard = ({ title, value, icon: Icon, color = '#3b82f6', change, prefix = '' }) => (
+  <div className="bg-white p-6 rounded-lg shadow-md border-l-4" style={{ borderLeftColor: color }}>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-600">{title}</p>
+        <p className="text-2xl font-bold text-gray-900">
+          {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
+        </p>
+        {change !== undefined && (
+          <div className={`flex items-center mt-1 ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {change >= 0 ? <FiTrendingUp className="w-4 h-4 mr-1" /> : <FiTrendingDown className="w-4 h-4 mr-1" />}
+            <span className="text-sm font-medium">{Math.abs(change).toFixed(1)}%</span>
+          </div>
+        )}
+      </div>
+      <div className="p-3 rounded-full" style={{ backgroundColor: `${color}20` }}>
+        <Icon className="w-6 h-6" style={{ color }} />
+      </div>
+    </div>
+  </div>
+);
 
 const Section = styled.div`
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  
+  h2 {
+    font-size: 1.2rem;
+    margin-bottom: var(--spacing-lg);
+  }
+`;
+
+const BackgroundSection = styled.div`
   background: white;
   padding: var(--spacing-lg);
   border-radius: var(--border-radius-md);
@@ -207,35 +339,195 @@ const formatPercentage = (value) => {
   return `${value.toFixed(1)}%`;
 };
 
+const DateFilterContainer = styled.div`
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const DateFilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  
+  label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 80px;
+  }
+  
+  input {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9rem;
+    
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+  }
+`;
+
+const FilterButton = styled.button`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const QuickDateButtons = styled.div`
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+`;
+
+const QuickDateButton = styled.button`
+  background: ${props => props.active ? '#3b82f6' : 'transparent'};
+  color: ${props => props.active ? 'white' : '#3b82f6'};
+  border: 1px solid #3b82f6;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #3b82f6;
+    color: white;
+  }
+`;
+
+// Add helper function to safely display values
+const safeDisplayValue = (value, fallback = 'N/A', formatter = null) => {
+  if (value === null || value === undefined || value === '' || (typeof value === 'number' && isNaN(value))) {
+    return fallback;
+  }
+  if (formatter && typeof formatter === 'function') {
+    return formatter(value);
+  }
+  return value;
+};
+
+// Add helper function to safely format currency
+const safeCurrencyFormat = (value, fallback = 'N/A') => {
+  if (value === null || value === undefined || value === '' || (typeof value === 'number' && isNaN(value))) {
+    return fallback;
+  }
+  return `₹${parseInt(value).toLocaleString()}`;
+};
+
+// Add helper function to safely format percentage
+const safePercentageFormat = (value, fallback = 'N/A') => {
+  if (value === null || value === undefined || value === '' || (typeof value === 'number' && isNaN(value))) {
+    return fallback;
+  }
+  return `${parseFloat(value).toFixed(2)}%`;
+};
+
+// Add helper function to safely format numbers
+const safeNumberFormat = (value, fallback = 'N/A') => {
+  if (value === null || value === undefined || value === '' || (typeof value === 'number' && isNaN(value))) {
+    return fallback;
+  }
+  return parseInt(value).toLocaleString();
+};
+
 const ProductDetailsPage = () => {
   const { productId } = useParams();
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Date filter state
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30); // Default to last 30 days
+    return date.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  const [activeQuickFilter, setActiveQuickFilter] = useState('30d');
+
+  const quickDateFilters = [
+    { label: '7D', value: '7d', days: 7 },
+    { label: '30D', value: '30d', days: 30 },
+    { label: '3M', value: '3m', days: 90 },
+    { label: '6M', value: '6m', days: 180 },
+    { label: '1Y', value: '1y', days: 365 }
+  ];
+
+  const handleQuickDateFilter = (filterValue, days) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
+    
+    setEndDate(end.toISOString().split('T')[0]);
+    setStartDate(start.toISOString().split('T')[0]);
+    setActiveQuickFilter(filterValue);
+  };
+
+  const fetchProductData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch(
+        `http://localhost:8080/api/v1/products/get-product-metrics-by-id/${productId}?startDate=${startDate}&endDate=${endDate}`
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      setData(result.data);
+    } catch (error) {
+      console.error('Error fetching product data:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchProductData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const response = await fetch(`http://localhost:8080/api/v1/products/get-product-metrics-by-id/${productId}`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        setData(result.data);
-      } catch (error) {
-        console.error('Error fetching product data:', error);
-        setError(error.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProductData();
   }, [productId]);
+
+  const handleApplyFilter = () => {
+    setActiveQuickFilter(''); // Clear quick filter selection when using custom dates
+    fetchProductData();
+  };
 
   if (isLoading) {
     return (
@@ -269,63 +561,148 @@ const ProductDetailsPage = () => {
           <h1>{data.product.name}</h1>
           <p>SKU: {data.product.sku}</p>
           <p>{data.product.description}</p>
+          <div className="product-meta">
+            <div className="meta-item">
+              <div className="label">Price</div>
+              <div className="value">{safeCurrencyFormat(data.product.price)}</div>
+            </div>
+            <div className="meta-item">
+              <div className="label">Cost Price</div>
+              <div className="value">{safeCurrencyFormat(data.product.costPrice)}</div>
+            </div>
+            <div className="meta-item">
+              <div className="label">Profit Margin</div>
+              <div className="value">{safePercentageFormat(data.overview.profitMargin)}</div>
+            </div>
+          </div>
         </ProductInfo>
       </PageHeader>
+
+      {/* Date Filter Section */}
+      <DateFilterContainer>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <FiCalendar style={{ color: '#3b82f6' }} />
+          <span style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Date Range:</span>
+        </div>
+        
+        <DateFilterGroup>
+          <label htmlFor="startDate">From:</label>
+          <input
+            type="date"
+            id="startDate"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            max={endDate}
+          />
+        </DateFilterGroup>
+        
+        <DateFilterGroup>
+          <label htmlFor="endDate">To:</label>
+          <input
+            type="date"
+            id="endDate"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            min={startDate}
+            max={new Date().toISOString().split('T')[0]}
+          />
+        </DateFilterGroup>
+        
+        <FilterButton onClick={handleApplyFilter} disabled={isLoading}>
+          <FiFilter />
+          {isLoading ? 'Loading...' : 'Apply Filter'}
+        </FilterButton>
+        
+        <div style={{ borderLeft: '1px solid var(--border-color)', paddingLeft: 'var(--spacing-md)', marginLeft: 'var(--spacing-md)' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginRight: 'var(--spacing-sm)' }}>
+            Quick filters:
+          </span>
+          <QuickDateButtons>
+            {quickDateFilters.map((filter) => (
+              <QuickDateButton
+                key={filter.value}
+                active={activeQuickFilter === filter.value}
+                onClick={() => handleQuickDateFilter(filter.value, filter.days)}
+              >
+                {filter.label}
+              </QuickDateButton>
+            ))}
+          </QuickDateButtons>
+        </div>
+      </DateFilterContainer>
+
+      {/* Applied Date Range Display */}
+      {data && data.dateFilter && (
+        <div style={{ 
+          background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+          padding: 'var(--spacing-md)',
+          borderRadius: 'var(--border-radius-md)',
+          marginBottom: 'var(--spacing-lg)',
+          border: '1px solid var(--border-color)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-sm)'
+        }}>
+          <FiCalendar style={{ color: '#6c757d' }} />
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            Showing data from <strong>{new Date(data.dateFilter.startDate).toLocaleDateString()}</strong> to <strong>{new Date(data.dateFilter.endDate).toLocaleDateString()}</strong>
+          </span>
+        </div>
+      )}
 
       {/* Overview Section */}
       <Section>
         <h2>Overview</h2>
         <StatsGrid>
-          <StatCard>
-            <h3>Total Orders</h3>
-            <div className="value">{data.overview.totalOrders}</div>
-            <div className="trend positive">
-              <FiTrendingUp /> {formatPercentage(data.overview.orderTrend || 0)}
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Total Sales</h3>
-            <div className="value">{formatCurrency(data.overview.totalSales)}</div>
-            <div className="trend positive">
-              <FiTrendingUp /> {formatPercentage(data.overview.salesTrend || 0)}
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>AOV</h3>
-            <div className="value">{formatCurrency(data.overview.aov)}</div>
-            <div className="trend positive">
-              <FiTrendingUp /> {formatPercentage(data.overview.aovTrend || 0)}
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Quantity Sold</h3>
-            <div className="value">{data.overview.quantitySold}</div>
-            <div className="trend positive">
-              <FiTrendingUp /> {formatPercentage(data.overview.quantityTrend || 0)}
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Gross Profit</h3>
-            <div className="value">{formatCurrency(data.overview.grossProfit)}</div>
-            <div className="trend positive">
-              <FiTrendingUp /> {formatPercentage(data.overview.profitTrend || 0)}
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Profit Margin</h3>
-            <div className="value">{formatPercentage(data.overview.profitMargin)}</div>
-            <div className="trend positive">
-              <FiTrendingUp /> {formatPercentage(data.overview.marginTrend || 0)}
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Refund Rate</h3>
-            <div className="value">{formatPercentage(data.overview.refundRate)}</div>
-            <div className={`trend ${data.overview.refundTrend > 0 ? 'negative' : 'positive'}`}>
-              {data.overview.refundTrend > 0 ? <FiTrendingDown /> : <FiTrendingUp />} 
-              {formatPercentage(Math.abs(data.overview.refundTrend || 0))}
-            </div>
-          </StatCard>
+          <StatCard
+            title="Total Orders"
+            value={safeNumberFormat(data.overview.totalOrders)}
+            icon={FiShoppingCart}
+            color="#3b82f6"
+            change={data.overview.orderTrend}
+          />
+          <StatCard
+            title="Total Sales"
+            value={safeCurrencyFormat(data.overview.totalSales)}
+            icon={FiDollarSign}
+            color="#10b981"
+            change={data.overview.salesTrend}
+          />
+          <StatCard
+            title="AOV"
+            value={safeCurrencyFormat(data.overview.aov)}
+            icon={FiCreditCard}
+            color="#8b5cf6"
+            change={data.overview.aovTrend}
+          />
+          <StatCard
+            title="Quantity Sold"
+            value={safeNumberFormat(data.overview.quantitySold)}
+            icon={FiPackage}
+            color="#f59e0b"
+            change={data.overview.quantityTrend}
+          />
+          <StatCard
+            title="Gross Profit"
+            value={safeCurrencyFormat(data.overview.grossProfit)}
+            icon={FiTrendingUp}
+            color="#059669"
+            change={data.overview.profitTrend}
+          />
+          <StatCard
+            title="Profit Margin"
+            value={safePercentageFormat(data.overview.profitMargin)}
+            icon={FiPercent}
+            color="#dc2626"
+            change={data.overview.marginTrend}
+          />
+          <StatCard
+            title="Refund Rate"
+            value={safePercentageFormat(data.overview.refundRate)}
+            icon={FiRefreshCw}
+            color="#ef4444"
+            change={data.overview.refundTrend > 0 ? -Math.abs(data.overview.refundTrend) : Math.abs(data.overview.refundTrend)}
+          />
         </StatsGrid>
       </Section>
 
@@ -333,74 +710,382 @@ const ProductDetailsPage = () => {
       <Section>
         <h2>Sales & Profit Analytics</h2>
         <StatsGrid>
-          <StatCard>
-            <h3>Total Revenue</h3>
-            <div className="value">{formatCurrency(data.salesAndProfit.totalRevenue)}</div>
-          </StatCard>
-          <StatCard>
-            <h3>Marketing Cost</h3>
-            <div className="value">{formatCurrency(data.salesAndProfit.marketingCost)}</div>
-          </StatCard>
-          <StatCard>
-            <h3>Profit After Marketing</h3>
-            <div className="value">{formatCurrency(data.salesAndProfit.profitAfterMarketing)}</div>
-          </StatCard>
-          <StatCard>
-            <h3>Profit per Unit</h3>
-            <div className="value">{formatCurrency(data.salesAndProfit.profitPerUnit)}</div>
-          </StatCard>
-          <StatCard>
-            <h3>Cost Price per Unit</h3>
-            <div className="value">{formatCurrency(data.salesAndProfit.costPricePerUnit)}</div>
-          </StatCard>
-          <StatCard>
-            <h3>Return Rate</h3>
-            <div className="value">{formatPercentage(data.salesAndProfit.returnRate)}</div>
-          </StatCard>
+          <StatCard
+            title="Total Revenue"
+            value={safeCurrencyFormat(data.salesAndProfit.totalRevenue)}
+            icon={FiDollarSign}
+            color="#10b981"
+          />
+          <StatCard
+            title="Marketing Cost"
+            value={safeCurrencyFormat(data.salesAndProfit.marketingCost)}
+            icon={FiTarget}
+            color="#ef4444"
+          />
+          <StatCard
+            title="Profit After Marketing"
+            value={safeCurrencyFormat(data.salesAndProfit.profitAfterMarketing)}
+            icon={FiTrendingUp}
+            color="#059669"
+          />
+          <StatCard
+            title="Profit per Unit"
+            value={safeCurrencyFormat(data.salesAndProfit.profitPerUnit)}
+            icon={FiDollarSign}
+            color="#8b5cf6"
+          />
+          <StatCard
+            title="Cost Price per Unit"
+            value={safeCurrencyFormat(data.salesAndProfit.costPricePerUnit)}
+            icon={FiPackage}
+            color="#f59e0b"
+          />
+          <StatCard
+            title="Return Rate"
+            value={safePercentageFormat(data.salesAndProfit.returnRate)}
+            icon={FiRefreshCw}
+            color="#dc2626"
+          />
         </StatsGrid>
       </Section>
 
+      {/* Meta Ads Marketing Analytics */}
+      {data.marketing && (
+        <BackgroundSection>
+          <h2>Meta Ads Marketing Analytics</h2>
+          
+          {/* Marketing Overview */}
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ 
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              marginBottom: '1.5rem'
+            }}>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>
+                Targeting Keyword: <span style={{ fontWeight: 'bold', color: '#ffd700' }}>"{data.marketing.keyword || 'N/A'}"</span>
+              </h3>
+              <p style={{ margin: '0 0 0.5rem 0', opacity: '0.9' }}>
+                Found {data.marketing.campaignCount} active campaigns for this product
+              </p>
+              <p style={{ margin: '0', opacity: '0.8', fontSize: '0.9rem' }}>
+                📅 Marketing data for: {new Date(data.dateFilter.startDate).toLocaleDateString()} - {new Date(data.dateFilter.endDate).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+
+          {/* Marketing Metrics */}
+          <StatsGrid>
+            <StatCard
+              title="Total Ad Spend"
+              value={safeCurrencyFormat(data.marketing.totalSpend)}
+              icon={FiDollarSign}
+              color="#ef4444"
+            />
+            <StatCard
+              title="Total Impressions"
+              value={safeNumberFormat(data.marketing.totalImpressions)}
+              icon={FiEye}
+              color="#3b82f6"
+            />
+            <StatCard
+              title="Total Clicks"
+              value={safeNumberFormat(data.marketing.totalClicks)}
+              icon={FiMousePointer}
+              color="#10b981"
+            />
+            <StatCard
+              title="Total Purchases"
+              value={safeNumberFormat(data.marketing.totalPurchases)}
+              icon={FiShoppingCart}
+              color="#8b5cf6"
+            />
+            <StatCard
+              title="Purchase Value"
+              value={safeCurrencyFormat(data.marketing.totalPurchaseValue)}
+              icon={FiDollarSign}
+              color="#059669"
+            />
+            <StatCard
+              title="ROAS"
+              value={safePercentageFormat(data.marketing.averageRoas)}
+              icon={FiTrendingUp}
+              color="#10b981"
+            />
+            <StatCard
+              title="Cost Per Click"
+              value={safeCurrencyFormat(data.marketing.averageCpc)}
+              icon={FiTarget}
+              color="#f59e0b"
+            />
+            <StatCard
+              title="Click-Through Rate"
+              value={safePercentageFormat(data.marketing.averageCtr)}
+              icon={FiActivity}
+              color="#6366f1"
+            />
+          </StatsGrid>
+
+          {/* Performance Metrics */}
+          <div style={{ marginTop: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem' }}>Performance Insights</h3>
+            <StatsGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+              <StatCard
+                title="Cost Per Purchase"
+                value={safeCurrencyFormat(data.marketing.performanceMetrics.costPerPurchase)}
+                icon={FiTarget}
+                color="#ef4444"
+              />
+              <StatCard
+                title="Conversion Rate"
+                value={safePercentageFormat(data.marketing.performanceMetrics.conversionRate)}
+                icon={FiPercent}
+                color="#10b981"
+              />
+              <StatCard
+                title="Profit from Ads"
+                value={safeCurrencyFormat(data.marketing.performanceMetrics.profitFromAds)}
+                icon={FiTrendingUp}
+                color={data.marketing.performanceMetrics.profitFromAds > 0 ? "#059669" : "#dc2626"}
+              />
+            </StatsGrid>
+          </div>
+
+          {/* Campaign Performance Charts */}
+          {data.marketing.campaigns && data.marketing.campaigns.length > 0 && (
+            <>
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Campaign Performance Overview</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                  {/* Campaign Spend Distribution */}
+                  <div>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                      Ad Spend by Campaign
+                    </h4>
+                    <div style={{ height: '300px' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={data.marketing.campaigns.map(campaign => ({
+                              name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
+                              value: campaign.spend,
+                              fullName: campaign.name
+                            }))}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ value, percent }) => `₹${value.toFixed(0)} (${(percent * 100).toFixed(1)}%)`}
+                          >
+                            {data.marketing.campaigns.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value, name, props) => [
+                            `₹${value.toFixed(2)}`,
+                            props.payload.fullName
+                          ]} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Campaign Performance Metrics */}
+                  <div>
+                    <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                      ROAS by Campaign
+                    </h4>
+                    <div style={{ height: '300px' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={data.marketing.campaigns.map(campaign => ({
+                            name: campaign.name.length > 15 ? campaign.name.substring(0, 15) + '...' : campaign.name,
+                            roas: campaign.roas,
+                            spend: campaign.spend,
+                            revenue: campaign.purchaseValue,
+                            fullName: campaign.name
+                          }))}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip formatter={(value, name, props) => {
+                            if (name === 'roas') return [`${value.toFixed(2)}x`, 'ROAS'];
+                            if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
+                            if (name === 'revenue') return [`₹${value.toFixed(2)}`, 'Revenue'];
+                            return [value, name];
+                          }} 
+                          labelFormatter={(label, payload) => 
+                            payload && payload[0] ? payload[0].payload.fullName : label
+                          } />
+                          <Legend />
+                          <Bar dataKey="roas" fill="#10b981" name="ROAS" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Comparison Chart */}
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Campaign Comparison: Spend vs Performance</h3>
+                <ChartContainer>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={data.marketing.campaigns.map(campaign => ({
+                        name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
+                        spend: campaign.spend,
+                        clicks: campaign.clicks,
+                        purchases: campaign.purchases,
+                        impressions: campaign.impressions / 1000, // Scale down for better visualization
+                        fullName: campaign.name
+                      }))}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis yAxisId="left" />
+                      <YAxis yAxisId="right" orientation="right" />
+                      <Tooltip formatter={(value, name, props) => {
+                        if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
+                        if (name === 'clicks') return [value, 'Clicks'];
+                        if (name === 'purchases') return [value, 'Purchases'];
+                        if (name === 'impressions') return [`${(value * 1000).toLocaleString()}`, 'Impressions'];
+                        return [value, name];
+                      }}
+                      labelFormatter={(label, payload) => 
+                        payload && payload[0] ? payload[0].payload.fullName : label
+                      } />
+                      <Legend />
+                      <Bar yAxisId="left" dataKey="spend" fill="#ef4444" name="Ad Spend" />
+                      <Bar yAxisId="left" dataKey="clicks" fill="#3b82f6" name="Clicks" />
+                      <Bar yAxisId="right" dataKey="purchases" fill="#10b981" name="Purchases" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </div>
+
+              {/* Detailed Campaign Table */}
+              <div style={{ marginTop: '2rem' }}>
+                <h3 style={{ marginBottom: '1rem' }}>Detailed Campaign Analysis</h3>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ 
+                    width: '100%', 
+                    borderCollapse: 'collapse',
+                    background: 'white',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                  }}>
+                    <thead>
+                      <tr style={{ background: '#f8f9fa' }}>
+                        <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '2px solid #e9ecef' }}>Campaign Name</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Spend</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Impressions</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Clicks</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CTR</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CPC</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Purchases</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Revenue</th>
+                        <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>ROAS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.marketing.campaigns.map((campaign, index) => (
+                        <tr key={index} style={{ borderBottom: '1px solid #e9ecef' }}>
+                          <td style={{ padding: '1rem', maxWidth: '200px' }}>
+                            <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{campaign.name}</div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>ID: {campaign.id}</div>
+                          </td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.spend.toFixed(2)}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.impressions.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.clicks.toLocaleString()}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.ctr.toFixed(2)}%</td>
+                          <td style={{ padding: '1rem', textAlign: 'right' }}>₹{campaign.cpc.toFixed(2)}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>{campaign.purchases}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.purchaseValue.toFixed(2)}</td>
+                          <td style={{ padding: '1rem', textAlign: 'right' }}>
+                            <span style={{ 
+                              padding: '0.25rem 0.5rem', 
+                              borderRadius: '12px', 
+                              fontSize: '0.8rem',
+                              fontWeight: '500',
+                              backgroundColor: campaign.roas > 2 ? '#d4edda' : campaign.roas > 1 ? '#fff3cd' : '#f8d7da',
+                              color: campaign.roas > 2 ? '#155724' : campaign.roas > 1 ? '#856404' : '#721c24'
+                            }}>
+                              {campaign.roas.toFixed(2)}x
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* No Campaigns Found Message */}
+          {(!data.marketing.campaigns || data.marketing.campaigns.length === 0) && (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '3rem 2rem',
+              background: '#f8f9fa',
+              borderRadius: '8px',
+              marginTop: '2rem'
+            }}>
+              <FiBarChart2 size={48} style={{ color: '#6c757d', marginBottom: '1rem' }} />
+              <h3 style={{ color: '#6c757d', marginBottom: '0.5rem' }}>No Campaign Data Available</h3>
+              <p style={{ color: '#6c757d', margin: '0' }}>
+                No Meta Ads campaigns found for the keyword "{data.marketing.keyword}" or the keyword is not configured for marketing campaigns.
+              </p>
+            </div>
+          )}
+        </BackgroundSection>
+      )}
+
       {/* Customer Insights */}
-      <Section>
+      <BackgroundSection>
         <h2>Customer Insights</h2>
         
         {/* Customer Overview Stats */}
         <StatsGrid>
-          <StatCard>
-            <h3>Total Customers</h3>
-            <div className="value">{data.customerInsights.totalCustomers}</div> 
-            <div className="trend positive">
-              <FiTrendingUp /> 12.5%
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Repeat Customers</h3>
-            <div className="value">{data.customerInsights.repeatCustomers}</div> 
-            <div className="trend positive">
-              <FiTrendingUp /> 8.3%
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Repeat Customer Rate</h3>
-            <div className="value">{data.customerInsights.repeatCustomerRate}%</div> 
-            <div className="trend negative">
-              <FiTrendingDown /> 1.2%
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Avg. Orders per Customer</h3>
-            <div className="value">{data.customerInsights.avgOrdersPerCustomer}</div> 
-            <div className="trend positive">
-              <FiTrendingUp /> 5.1%
-            </div>
-          </StatCard>
-          <StatCard>
-            <h3>Customer Acquisition Cost</h3>
-            <div className="value">{data.customerInsights.customerAcquisitionCost}</div> 
-            <div className="trend negative">
-              <FiTrendingDown /> 3.2%
-            </div>
-          </StatCard>
+          <StatCard
+            title="Total Customers"
+            value={safeNumberFormat(data.customerInsights.totalCustomers)}
+            icon={FiUsers}
+            color="#3b82f6"
+            change={12.5}
+          />
+          <StatCard
+            title="Repeat Customers"
+            value={safeNumberFormat(data.customerInsights.repeatCustomers)}
+            icon={FiUsers}
+            color="#3b82f6"
+            change={8.3}
+          />
+          <StatCard
+            title="Repeat Customer Rate"
+            value={safePercentageFormat(data.customerInsights.repeatCustomerRate)}
+            icon={FiPercent}
+            color="#dc2626"
+            change={1.2}
+          />
+          <StatCard
+            title="Avg. Orders per Customer"
+            value={safeNumberFormat(data.customerInsights.avgOrdersPerCustomer)}
+            icon={FiUsers}
+            color="#3b82f6"
+            change={5.1}
+          />
+          <StatCard
+            title="Customer Acquisition Cost"
+            value={safeCurrencyFormat(data.customerInsights.customerAcquisitionCost)}
+            icon={FiCreditCard}
+            color="#ef4444"
+          />
         </StatsGrid>
 
         {/* Customer Breakdown Charts */}
@@ -510,21 +1195,21 @@ const ProductDetailsPage = () => {
             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
               <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-                  {formatCurrency(data.overview.aov)}
+                  {safeCurrencyFormat(data.overview.aov)}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Average Order Value</div>
               </div>
               
               <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-                  {((data.customerInsights.firstTimeCustomers / data.customerInsights.totalCustomers) * 100).toFixed(1)}%
+                  {safePercentageFormat(data.customerInsights.firstTimeCustomers / data.customerInsights.totalCustomers * 100)}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>First-time Buyers</div>
               </div>
               
               <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
                 <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#45B7D1' }}>
-                  {formatCurrency(Math.round(data.overview.totalSales / data.overview.totalOrders))}
+                  {safeCurrencyFormat(Math.round(data.overview.totalSales / data.overview.totalOrders))}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Revenue per Order</div>
               </div>
@@ -570,19 +1255,19 @@ const ProductDetailsPage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '1rem' }}>
             <div style={{ textAlign: 'center', padding: '0.5rem', background: '#e8f4fd', borderRadius: '6px' }}>
               <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#2196F3' }}>
-                {Math.round((data.customerInsights.repeatCustomers / data.customerInsights.totalCustomers) * data.customerInsights.avgOrdersPerCustomer * 100)}%
+                {safeNumberFormat(Math.round((data.customerInsights.repeatCustomers / data.customerInsights.totalCustomers) * data.customerInsights.avgOrdersPerCustomer * 100))}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Loyalty Index</div>
             </div>
             <div style={{ textAlign: 'center', padding: '0.5rem', background: '#fff3e0', borderRadius: '6px' }}>
               <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#FF9800' }}>
-                {formatCurrency(Math.round(data.customerInsights.customerAcquisitionCost / (data.overview.aov / 1000)))}
+                {safeCurrencyFormat(Math.round(data.customerInsights.customerAcquisitionCost / (data.overview.aov / 1000)))}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>CAC to AOV Ratio</div>
             </div>
             <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f3e5f5', borderRadius: '6px' }}>
               <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#9C27B0' }}>
-                {data.customerInsights.avgOrdersPerCustomer}
+                {safeNumberFormat(data.customerInsights.avgOrdersPerCustomer)}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Orders per Customer</div>
             </div>
@@ -619,35 +1304,35 @@ const ProductDetailsPage = () => {
             </div>
           </div>
         </div>
-      </Section>
+      </BackgroundSection>
 
       {/* Variants Summary */}
-      <Section>
+      <BackgroundSection>
         <h2>Variants Performance Analysis</h2>
         
         {/* Variants Overview Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
           <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-              {data.variantInsights.length}
+              {safeNumberFormat(data.variantInsights.length)}
             </div>
             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Total Variants</div>
           </div>
           <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-              {data.variantInsights[0]?.VARIANT_TITLE || 'N/A'}
+              {safeDisplayValue(data.variantInsights[0]?.VARIANT_TITLE)}
             </div>
             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Top Performing</div>
           </div>
           <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#45B7D1' }}>
-              {formatCurrency(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseFloat(variant.total_sales_amount), 0) / data.variantInsights.length))}
+              {safeCurrencyFormat(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseFloat(variant.total_sales_amount), 0) / data.variantInsights.length))}
             </div>
             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Revenue/Variant</div>
           </div>
           <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#96CEB4' }}>
-              {Math.round(data.variantInsights.reduce((sum, variant) => sum + parseInt(variant.total_units_sold), 0) / data.variantInsights.length).toLocaleString()}
+              {safeNumberFormat(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseInt(variant.total_units_sold), 0) / data.variantInsights.length))}
             </div>
             <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Units/Variant</div>
           </div>
@@ -700,7 +1385,7 @@ const ProductDetailsPage = () => {
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip formatter={(value, name) => [
-                    name === 'revenue' ? formatCurrency(value) : value.toLocaleString(),
+                    name === 'revenue' ? safeCurrencyFormat(value) : value.toLocaleString(),
                     name === 'revenue' ? 'Revenue' : 'Units'
                   ]} />
                   <Legend />
@@ -730,8 +1415,8 @@ const ProductDetailsPage = () => {
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip formatter={(value, name) => {
                   if (name === 'units') return [value.toLocaleString(), 'Units Sold'];
-                  if (name === 'revenue') return [formatCurrency(value), 'Revenue'];
-                  if (name === 'avgPrice') return [formatCurrency(value), 'Avg Price per Unit'];
+                  if (name === 'revenue') return [safeCurrencyFormat(value), 'Revenue'];
+                  if (name === 'avgPrice') return [safeCurrencyFormat(value), 'Avg Price per Unit'];
                   return [value, name];
                 }} />
                 <Legend />
@@ -774,10 +1459,10 @@ const ProductDetailsPage = () => {
                             backgroundColor: COLORS[index % COLORS.length] 
                           }}
                         ></div>
-                        <strong>{variant.VARIANT_TITLE}</strong>
+                        <strong>{safeDisplayValue(variant.VARIANT_TITLE)}</strong>
                       </div>
                     </td>
-                    <td>{parseInt(variant.total_units_sold).toLocaleString()}</td>
+                    <td>{safeNumberFormat(parseInt(variant.total_units_sold))}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{ 
@@ -788,17 +1473,17 @@ const ProductDetailsPage = () => {
                           overflow: 'hidden'
                         }}>
                           <div style={{ 
-                            width: `${variant.units_sold_percentage}%`, 
+                            width: `${performance}%`, 
                             height: '100%', 
                             backgroundColor: COLORS[index % COLORS.length],
                             borderRadius: '4px'
                           }}></div>
                         </div>
-                        <span>{parseFloat(variant.units_sold_percentage).toFixed(1)}%</span>
+                        <span>{safePercentageFormat(performance)}</span>
                       </div>
                     </td>
-                    <td>{formatCurrency(parseFloat(variant.total_sales_amount))}</td>
-                    <td>{formatCurrency(avgPrice)}</td>
+                    <td>{safeCurrencyFormat(parseFloat(variant.total_sales_amount))}</td>
+                    <td>{safeCurrencyFormat(avgPrice)}</td>
                     <td>
                       <span style={{ 
                         padding: '0.25rem 0.5rem', 
@@ -816,10 +1501,10 @@ const ProductDetailsPage = () => {
             </tbody>
           </VariantsTable>
         </div>
-      </Section>
+      </BackgroundSection>
 
       {/* Charts */}
-      <Section>
+      <BackgroundSection>
         <h2>Sales Trend</h2>
         <ChartContainer>
           <ResponsiveContainer width="100%" height="100%">
@@ -833,9 +1518,9 @@ const ProductDetailsPage = () => {
             </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
-      </Section>
+      </BackgroundSection>
 
-      <Section>
+      <BackgroundSection>
         <h2>Refunds Over Time</h2>
         <ChartContainer>
           <ResponsiveContainer width="100%" height="100%">
@@ -849,9 +1534,9 @@ const ProductDetailsPage = () => {
             </BarChart>
           </ResponsiveContainer>
         </ChartContainer>
-      </Section>
+      </BackgroundSection>
 
-      <Section>
+      <BackgroundSection>
         <h2>Profit vs Marketing Spend</h2>
         <ChartContainer>
           <ResponsiveContainer width="100%" height="100%">
@@ -866,9 +1551,7 @@ const ProductDetailsPage = () => {
             </AreaChart>
           </ResponsiveContainer>
         </ChartContainer>
-      </Section>
-
-      
+      </BackgroundSection>
     </PageContainer>
   );
 };

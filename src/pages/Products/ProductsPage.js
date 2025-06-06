@@ -703,79 +703,7 @@ const ProductsPage = () => {
           </div>
         </div>
 
-        {/* Categories */}
-        <div className="chart-card">
-          <div className="chart-header">
-            <h2>Top 5 Categories (Overall)</h2>
-            <div className="chart-actions">
-              <button className="chart-action-button">
-                <FiDownload size={16} />
-              </button>
-              <button className="chart-action-button">
-                <FiMoreVertical size={16} />
-              </button>
-            </div>
-          </div>
-          <div className="chart-container">
-            <Pie data={categoriesData} options={categoriesOptions} />
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-header">
-            <h2>Top 5 Categories (Last 24h)</h2>
-            <div className="chart-actions">
-              <button className="chart-action-button">
-                <FiDownload size={16} />
-              </button>
-              <button className="chart-action-button">
-                <FiMoreVertical size={16} />
-              </button>
-            </div>
-          </div>
-          <div className="chart-container">
-            <Pie 
-              data={{
-                ...categoriesData,
-                labels: data.topCategories24h.map(item => item.name),
-                datasets: [{
-                  ...categoriesData.datasets[0],
-                  data: data.topCategories24h.map(item => item.value),
-                }]
-              }} 
-              options={categoriesOptions} 
-            />
-          </div>
-        </div>
-
-        {/* Least Selling Products */}
-        <div className="chart-card">
-          <h2>Least Selling Products (Overall)</h2>
-          <div className="list-container">
-            {data.leastSellingProducts.map((product, index) => (
-              <div key={index} className="list-item">
-                <span className="product-name">{product.name}</span>
-                <span className="product-value">
-                  {product.sales} units ({formatCurrency(product.revenue)})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <h2>Least Selling Products (Last 24h)</h2>
-          <div className="list-container">
-            {data.leastSellingProducts24h.map((product, index) => (
-              <div key={index} className="list-item">
-                <span className="product-name">{product.name}</span>
-                <span className="product-value">
-                  {product.sales} units ({formatCurrency(product.revenue)})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+      
 
         {/* Most Returned Products */}
         <div className="chart-card">
@@ -792,6 +720,85 @@ const ProductsPage = () => {
           </div>
         </div>
       </div>
+
+       {/* Replace the SalesContainer section */}
+       <SalesContainer>
+        <SalesCard>
+          <div className="card-header">
+            <h2>
+              <FiTrendingUp style={{ color: '#4CAF50' }} />
+              Top Selling Products
+            </h2>
+            <div className="trend-indicator positive">
+              <FiTrendingUp />
+              <span>+12% from last period</span>
+            </div>
+          </div>
+          <div className="product-list">
+            {data.topSellingProducts.map((product, index) => (
+              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
+                <div className="product-rank">#{index + 1}</div>
+                <img
+                  src={product.image || 'https://via.placeholder.com/48'}
+                  alt={product.name}
+                  className="product-image"
+                />
+                <div className="product-info">
+                  <div className="product-name">{product.name}</div>
+                  <div className="product-metrics">
+                    <div className="metric sales">
+                      <FiTrendingUp />
+                      {product.sales} units
+                    </div>
+                    <div className="metric revenue">
+                      <FaRupeeSign />
+                      {formatCurrency(product.revenue)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SalesCard>
+
+        <SalesCard>
+          <div className="card-header">
+            <h2>
+              <FiTrendingDown style={{ color: '#F44336' }} />
+              Least Selling Products
+            </h2>
+            <div className="trend-indicator negative">
+              <FiTrendingDown />
+              <span>-8% from last period</span>
+            </div>
+          </div>
+          <div className="product-list">
+            {data.leastSellingProducts.map((product, index) => (
+              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
+                <div className="product-rank">#{index + 1}</div>
+                <img
+                  src={product.image || 'https://via.placeholder.com/48'}
+                  alt={product.name}
+                  className="product-image"
+                />
+                <div className="product-info">
+                  <div className="product-name">{product.name}</div>
+                  <div className="product-metrics">
+                    <div className="metric sales">
+                      <FiTrendingDown />
+                      {product.sales} units
+                    </div>
+                    <div className="metric revenue">
+                      <FaRupeeSign />
+                      {formatCurrency(product.revenue)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SalesCard>
+      </SalesContainer>
 
       {/* Product List Section */}
       <div className="product-list-section">
@@ -876,84 +883,7 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {/* Replace the SalesContainer section */}
-      <SalesContainer>
-        <SalesCard>
-          <div className="card-header">
-            <h2>
-              <FiTrendingUp style={{ color: '#4CAF50' }} />
-              Top Selling Products
-            </h2>
-            <div className="trend-indicator positive">
-              <FiTrendingUp />
-              <span>+12% from last period</span>
-            </div>
-          </div>
-          <div className="product-list">
-            {data.topSellingProducts.map((product, index) => (
-              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
-                <div className="product-rank">#{index + 1}</div>
-                <img
-                  src={product.image || 'https://via.placeholder.com/48'}
-                  alt={product.name}
-                  className="product-image"
-                />
-                <div className="product-info">
-                  <div className="product-name">{product.name}</div>
-                  <div className="product-metrics">
-                    <div className="metric sales">
-                      <FiTrendingUp />
-                      {product.sales} units
-                    </div>
-                    <div className="metric revenue">
-                      <FaRupeeSign />
-                      {formatCurrency(product.revenue)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SalesCard>
-
-        <SalesCard>
-          <div className="card-header">
-            <h2>
-              <FiTrendingDown style={{ color: '#F44336' }} />
-              Least Selling Products
-            </h2>
-            <div className="trend-indicator negative">
-              <FiTrendingDown />
-              <span>-8% from last period</span>
-            </div>
-          </div>
-          <div className="product-list">
-            {data.leastSellingProducts.map((product, index) => (
-              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
-                <div className="product-rank">#{index + 1}</div>
-                <img
-                  src={product.image || 'https://via.placeholder.com/48'}
-                  alt={product.name}
-                  className="product-image"
-                />
-                <div className="product-info">
-                  <div className="product-name">{product.name}</div>
-                  <div className="product-metrics">
-                    <div className="metric sales">
-                      <FiTrendingDown />
-                      {product.sales} units
-                    </div>
-                    <div className="metric revenue">
-                      <FaRupeeSign />
-                      {formatCurrency(product.revenue)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SalesCard>
-      </SalesContainer>
+     
     </div>
   );
 };
