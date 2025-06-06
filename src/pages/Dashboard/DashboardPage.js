@@ -502,28 +502,32 @@ const DashboardPage = () => {
       value: formatNumber(ordersOverview?.total_orders || 0),
       icon: FiShoppingCart,
       change: ordersOverview?.order_change_percentage ? `${ordersOverview.order_change_percentage}%` : '0%',
-      changeType: ordersOverview?.order_change_percentage > 0 ? 'increase' : 'decrease'
+      changeType: ordersOverview?.order_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#3b82f6' // Blue
     },
     {
       title: 'Total Revenue',
       value: formatCurrency(ordersOverview?.total_revenue || 0),
       icon: FaRupeeSign,
       change: ordersOverview?.revenue_change_percentage ? `${ordersOverview.revenue_change_percentage}%` : '0%',
-      changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease'
+      changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#10b981' // Green
     },
     {
       title: 'Average Order Value',
       value: formatCurrency(ordersOverview?.average_order_value || 0),
       icon: FaRupeeSign,
       change: ordersOverview?.aov_change_percentage ? `${ordersOverview.aov_change_percentage}%` : '0%',
-      changeType: ordersOverview?.aov_change_percentage > 0 ? 'increase' : 'decrease'
+      changeType: ordersOverview?.aov_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#f59e0b' // Orange
     },
     {
       title: 'Refund Rate',
       value: `${((ordersOverview?.total_refunds / ordersOverview?.total_orders) * 100 || 0).toFixed(1)}%`,
       icon: FiRefreshCw,
       change: ordersOverview?.refund_rate_change_percentage ? `${ordersOverview.refund_rate_change_percentage}%` : '0%',
-      changeType: ordersOverview?.refund_rate_change_percentage < 0 ? 'decrease' : 'increase'
+      changeType: ordersOverview?.refund_rate_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#ef4444' // Red
     }
   ];
 
@@ -534,28 +538,32 @@ const DashboardPage = () => {
       value: formatNumber(refundMetrics?.total_refunds || 0),
       icon: FiRefreshCw,
       change: refundMetrics?.refund_change_percentage ? `${refundMetrics.refund_change_percentage}%` : '0%',
-      changeType: refundMetrics?.refund_change_percentage < 0 ? 'decrease' : 'increase'
+      changeType: refundMetrics?.refund_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#8b5cf6' // Purple
     },
     {
       title: 'Refunded Amount',
       value: formatCurrency(refundMetrics?.total_refunded_amount || 0),
       icon: FaRupeeSign,
       change: refundMetrics?.refund_amount_change_percentage ? `${refundMetrics.refund_amount_change_percentage}%` : '0%',
-      changeType: refundMetrics?.refund_amount_change_percentage < 0 ? 'decrease' : 'increase'
+      changeType: refundMetrics?.refund_amount_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#ec4899' // Pink
     },
     {
       title: 'Average Refund',
       value: formatCurrency(refundMetrics?.average_refund_amount || 0),
       icon: FaRupeeSign,
       change: refundMetrics?.avg_refund_change_percentage ? `${refundMetrics.avg_refund_change_percentage}%` : '0%',
-      changeType: refundMetrics?.avg_refund_change_percentage < 0 ? 'decrease' : 'increase'
+      changeType: refundMetrics?.avg_refund_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#06b6d4' // Cyan
     },
     {
       title: '24h Refunds',
       value: formatNumber(refundMetrics?.refunds_last_24h || 0),
       icon: FiRefreshCw,
       change: refundMetrics?.refund_24h_change_percentage ? `${refundMetrics.refund_24h_change_percentage}%` : '0%',
-      changeType: refundMetrics?.refund_24h_change_percentage < 0 ? 'decrease' : 'increase'
+      changeType: refundMetrics?.refund_24h_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#84cc16' // Lime
     }
   ];
 
@@ -631,142 +639,122 @@ const DashboardPage = () => {
     <div className="p-6">
       <div className="space-y-6">
         {/* Header */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
+        <div className="">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <FiBarChart2 className="w-8 h-8 text-blue-600" />
+         
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-                <p className="text-gray-600">Monitor your store's performance and key metrics</p>
+                
               </div>
             </div>
             <div className="flex space-x-3">
               <button
                 onClick={() => refetchAllData(getCurrentDateRange())}
                 disabled={ordersOverviewLoading || refundMetricsLoading}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="flex items-center px-2 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                <FiRefreshCw className={`w-4 h-4 mr-2 ${(ordersOverviewLoading || refundMetricsLoading) ? 'animate-spin' : ''}`} />
-                Refresh
+                <FiRefreshCw className={`w-4 h-4 ${(ordersOverviewLoading || refundMetricsLoading) ? 'animate-spin' : ''}`} />
+                
               </button>
               <button
                 onClick={() => {/* Add export functionality */}}
                 disabled={ordersOverviewLoading}
-                className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                className="flex items-center px-2 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
               >
-                <FiDownload className="w-4 h-4 mr-2" />
-                Export
+                <FiDownload className="w-4 h-4" />
+                
               </button>
             </div>
           </div>
 
           {/* Date Range Controls */}
-          <div className="flex flex-wrap items-center space-x-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-            <DatePicker
-              selected={dateRange[0]}
-              onChange={handleDateRangeChange}
-              startDate={dateRange[0]}
-              endDate={dateRange[1]}
-              selectsRange
-              dateFormat="dd/MM/yyyy"
-              showTimeSelect={false}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholderText="Select date range"
-              maxDate={new Date()}
-              calendarClassName="custom-datepicker"
-              isClearable={true}
-            />
-          </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Quick Select</label>
-              <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleTimeframeChange('day')}
-                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                timeframe === 'day' && !isCustomDateRange
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Day
-            </button>
-            <button
-              onClick={() => handleTimeframeChange('week')}
-                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                timeframe === 'week' && !isCustomDateRange
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Week
-            </button>
-            <button
-              onClick={() => handleTimeframeChange('month')}
-                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                timeframe === 'month' && !isCustomDateRange
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Month
-            </button>
-            <button
-              onClick={() => handleTimeframeChange('year')}
-                  className={`px-3 py-2 rounded-md text-sm transition-colors ${
-                timeframe === 'year' && !isCustomDateRange
-                      ? 'bg-blue-600 text-white'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              Year
-            </button>
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <FiBarChart2 className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-800 mb-1">Select Date Range</label>
+                  <p className="text-xs text-gray-500">Choose a custom date range for analysis</p>
+                </div>
               </div>
+              <div className="flex items-center space-x-3">
+                <DatePicker
+                  selected={dateRange[0]}
+                  onChange={handleDateRangeChange}
+                  startDate={dateRange[0]}
+                  endDate={dateRange[1]}
+                  selectsRange
+                  dateFormat="MMM dd, yyyy"
+                  showTimeSelect={false}
+                  className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm min-w-[250px]"
+                  placeholderText="Select date range"
+                  maxDate={new Date()}
+                  calendarClassName="custom-datepicker"
+                  
+                />
+                {isCustomDateRange && (
+                  <button
+                    onClick={() => {
+                      setIsCustomDateRange(false);
+                      setTimeframe('week');
+                      const dateRange = getDateRange('week');
+                      refetchAllData(dateRange);
+                    }}
+                    className="px-3 py-2 text-sm text-blue-600 hover:text-blue-800 transition-colors flex items-center space-x-1"
+                  >
+                    <span>Reset</span>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Orders Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {orderStats.map((stat, index) => (
-          <StatCard
-            key={index}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            change={stat.change}
-            changeType={stat.changeType}
-            loading={ordersOverviewLoading}
-          />
-        ))}
-      </div>
-
-      {/* Refund Metrics Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {refundStats.map((stat, index) => (
-          <StatCard
-            key={index}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            change={stat.change}
-            changeType={stat.changeType}
-            loading={refundMetricsLoading}
-          />
-        ))}
-      </div>
-
-        {/* Marketing Widgets */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="lg:col-span-1">
-            <CombinedMarketingWidget 
-              dateRange={timeframe}
-              customDateRange={dateRange}
-              isCustomDateRange={isCustomDateRange}
+        {/* Orders Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {orderStats.map((stat, index) => (
+            <StatCard
+              key={index}
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              change={stat.change}
+              changeType={stat.changeType}
+              loading={ordersOverviewLoading}
+              color={stat.color}
             />
-          </div>
-          <div className="lg:col-span-1">
+          ))}
+        </div>
+
+        {/* Refund Metrics Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {refundStats.map((stat, index) => (
+            <StatCard
+              key={index}
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              change={stat.change}
+              changeType={stat.changeType}
+              loading={refundMetricsLoading}
+              color={stat.color}
+            />
+          ))}
+        </div>
+
+        {/* Marketing Overview - Full Width */}
+        <CombinedMarketingWidget 
+          dateRange={timeframe}
+          customDateRange={dateRange}
+          isCustomDateRange={isCustomDateRange}
+          ordersOverview={ordersOverview}
+          ordersOverviewLoading={ordersOverviewLoading}
+        />
+        
+        {/* Revenue Overview - Full Width */}
         <ChartCard 
           title="Revenue Overview" 
           subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
@@ -784,142 +772,144 @@ const DashboardPage = () => {
             </div>
           )}
         </ChartCard>
-          </div>
-        </div>
         
+        {/* Charts Grid - 2 Column */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard 
-          title="Customer Acquisition" 
-          subtitle="Source breakdown"
+          <ChartCard 
+            title="Customer Acquisition" 
+            subtitle="Source breakdown"
+            legends={[
+              { label: 'Direct', color: 'rgba(0, 115, 182, 0.8)' },
+              { label: 'Search', color: 'rgba(3, 169, 244, 0.8)' },
+              { label: 'Social', color: 'rgba(76, 175, 80, 0.8)' },
+              { label: 'Email', color: 'rgba(255, 193, 7, 0.8)' },
+              { label: 'Referral', color: 'rgba(244, 67, 54, 0.8)' },
+              { label: 'Other', color: 'rgba(156, 39, 176, 0.8)' },
+            ]}
+            timeframes={[]}
+          >
+            <div style={{ width: '100%', height: '300px' }}>
+              <Pie data={customerAcquisitionData} options={customerAcquisitionOptions} />
+            </div>
+          </ChartCard>
+          
+          <ChartCard 
+            title="Orders Trend" 
+            subtitle={`Total Orders: ${formatNumber(ordersByTimeRange?.reduce((total, item) => total + item.order_count, 0) || 0)}`}
+            legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
+            timeframes={['Day', 'Week', 'Month', 'Year']}
+            activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
+            onTimeframeChange={handleTimeframeChange}
+          >
+            {!ordersByTimeRangeLoading && ordersByTimeRange && (
+              <div style={{ width: '100%', height: '300px' }}>
+                <Bar data={ordersChartData} options={ordersChartOptions} />
+              </div>
+            )}
+          </ChartCard>
+        </div>
+
+        {/* Orders Over Time Chart - Full Width */}
+        <ChartCard
+          title="Orders and Refunds Over Time"
+          subtitle={`Showing ${timeframe} trends`}
           legends={[
-            { label: 'Direct', color: 'rgba(0, 115, 182, 0.8)' },
-            { label: 'Search', color: 'rgba(3, 169, 244, 0.8)' },
-            { label: 'Social', color: 'rgba(76, 175, 80, 0.8)' },
-            { label: 'Email', color: 'rgba(255, 193, 7, 0.8)' },
-            { label: 'Referral', color: 'rgba(244, 67, 54, 0.8)' },
-            { label: 'Other', color: 'rgba(156, 39, 176, 0.8)' },
+            { label: 'Orders', color: 'rgba(59, 130, 246, 1)' },
+            { label: 'Refunds', color: 'rgba(239, 68, 68, 1)' }
           ]}
-          timeframes={[]}
-        >
-          <div style={{ width: '100%', height: '300px' }}>
-            <Pie data={customerAcquisitionData} options={customerAcquisitionOptions} />
-          </div>
-        </ChartCard>
-        
-        <ChartCard 
-          title="Orders Trend" 
-          subtitle={`Total Orders: ${formatNumber(ordersByTimeRange?.reduce((total, item) => total + item.order_count, 0) || 0)}`}
-          legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
           timeframes={['Day', 'Week', 'Month', 'Year']}
           activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
           onTimeframeChange={handleTimeframeChange}
+          loading={ordersByTimeRangeLoading}
         >
-          {!ordersByTimeRangeLoading && ordersByTimeRange && (
+          {ordersByTimeRangeLoading ? (
+            <div>Loading chart...</div>
+          ) : (
             <div style={{ width: '100%', height: '300px' }}>
-              <Bar data={ordersChartData} options={ordersChartOptions} />
+              <Line
+                data={ordersOverTimeData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  interaction: {
+                    intersect: false,
+                    mode: 'index',
+                  },
+                  plugins: {
+                    legend: {
+                      display: false
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      titleColor: '#fff',
+                      bodyColor: '#fff',
+                      borderColor: 'rgba(59, 130, 246, 1)',
+                      borderWidth: 1,
+                      cornerRadius: 8,
+                      displayColors: true,
+                      usePointStyle: true,
+                      callbacks: {
+                        title: (context) => `${context[0].label}`,
+                        label: (context) => {
+                          const label = context.dataset.label || '';
+                          const value = formatNumber(context.raw);
+                          return `${label}: ${value}`;
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false,
+                      },
+                      border: {
+                        display: false,
+                      },
+                      ticks: {
+                        color: 'rgba(0, 0, 0, 0.6)',
+                        font: {
+                          size: 12,
+                        },
+                        padding: 8,
+                        callback: (value) => formatNumber(value),
+                      }
+                    },
+                    x: {
+                      grid: {
+                        display: false,
+                        drawBorder: false,
+                      },
+                      border: {
+                        display: false,
+                      },
+                      ticks: {
+                        color: 'rgba(0, 0, 0, 0.6)',
+                        font: {
+                          size: 12,
+                        },
+                        padding: 8,
+                        maxRotation: 45,
+                      }
+                    }
+                  },
+                  elements: {
+                    line: {
+                      borderJoinStyle: 'round',
+                      borderCapStyle: 'round',
+                    }
+                  },
+                  animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart',
+                  }
+                }}
+              />
             </div>
           )}
         </ChartCard>
-      </div>
-
-      {/* Orders Over Time Chart */}
-      <ChartCard
-        title="Orders and Refunds Over Time"
-        subtitle={`Showing ${timeframe} trends`}
-        loading={ordersByTimeRangeLoading}
-      >
-        <Line
-          data={ordersOverTimeData}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-              intersect: false,
-              mode: 'index',
-            },
-            plugins: {
-              legend: {
-                position: 'top',
-                labels: {
-                  usePointStyle: true,
-                  pointStyle: 'circle',
-                  padding: 20,
-                  font: {
-                    size: 13,
-                    weight: '500',
-                  },
-                  color: 'rgba(0, 0, 0, 0.7)',
-                }
-              },
-              tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: '#fff',
-                bodyColor: '#fff',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                borderWidth: 1,
-                cornerRadius: 8,
-                displayColors: true,
-                usePointStyle: true,
-                callbacks: {
-                  title: (context) => `${context[0].label}`,
-                  label: (context) => {
-                    const label = context.dataset.label || '';
-                    const value = formatNumber(context.raw);
-                    return `${label}: ${value}`;
-                  }
-                }
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: {
-                  color: 'rgba(0, 0, 0, 0.05)',
-                  drawBorder: false,
-                },
-                border: {
-                  display: false,
-                },
-                ticks: {
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  font: {
-                    size: 12,
-                  },
-                  padding: 8,
-                  callback: (value) => formatNumber(value),
-                }
-              },
-              x: {
-                grid: {
-                  display: false,
-                  drawBorder: false,
-                },
-                border: {
-                  display: false,
-                },
-                ticks: {
-                  color: 'rgba(0, 0, 0, 0.6)',
-                  font: {
-                    size: 12,
-                  },
-                  padding: 8,
-                  maxRotation: 45,
-                }
-              }
-            },
-            elements: {
-              line: {
-                borderJoinStyle: 'round',
-                borderCapStyle: 'round',
-              }
-            },
-            animation: {
-              duration: 1200,
-              easing: 'easeInOutQuart',
-            }
-          }}
-        />
-      </ChartCard>
 
         <DataTable 
           title="Recent Orders"

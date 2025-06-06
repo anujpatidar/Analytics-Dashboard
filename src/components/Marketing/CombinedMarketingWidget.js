@@ -13,7 +13,13 @@ import * as metaAdsAPI from '../../api/metaAdsAPI';
 import * as googleAdsAPI from '../../api/googleAdsAPI';
 import { getOrdersOverview } from '../../api/ordersAPI';
 
-const CombinedMarketingWidget = ({ dateRange = 'last_7_days', customDateRange = null, isCustomDateRange = false }) => {
+const CombinedMarketingWidget = ({ 
+  dateRange = 'last_7_days', 
+  customDateRange = null, 
+  isCustomDateRange = false,
+  ordersOverview = null, // Add ordersOverview as a prop from dashboard
+  ordersOverviewLoading = false // Add loading state
+}) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -64,11 +70,33 @@ const CombinedMarketingWidget = ({ dateRange = 'last_7_days', customDateRange = 
     };
   };
 
+  useEffect(() => {
+    console.log('=== MARKETING WIDGET useEffect TRIGGERED ===');
+    console.log('dateRange prop:', dateRange);
+    console.log('customDateRange prop:', customDateRange);
+    console.log('isCustomDateRange prop:', isCustomDateRange);
+    console.log('ordersOverview prop:', ordersOverview);
+    console.log('============================================');
+    fetchData();
+  }, [dateRange, customDateRange, isCustomDateRange, ordersOverview]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       setDebug(null);
+
+      console.log('=== MARKETING WIDGET FETCH DATA START ===');
+      console.log('ordersOverview received:', ordersOverview);
+      console.log('ordersOverviewLoading:', ordersOverviewLoading);
+      
+      // Check if ordersOverview is available
+      if (!ordersOverview || ordersOverviewLoading) {
+        console.log('No ordersOverview data available yet or still loading, will retry when available');
+        setLoading(false);
+        // Don't set error - just wait for data to be available
+        return;
+      }
 
       // Use the same date range calculation as dashboard
       const currentDateRange = getDateRange(dateRange);
@@ -88,37 +116,43 @@ const CombinedMarketingWidget = ({ dateRange = 'last_7_days', customDateRange = 
           'month': 'last_30_days',
           'year': 'last_30_days' // Marketing APIs don't usually support a full year
         };
-        marketingDateRange = { dateRange: timeframeMap[dateRange] || 'last_7_days' };
+        
+        // Use date range instead of predefined periods for more accurate results
+        const calculatedRange = getDateRange(dateRange);
+        marketingDateRange = {
+          since: new Date(calculatedRange.startDate).toISOString().split('T')[0],
+          until: new Date(calculatedRange.endDate).toISOString().split('T')[0]
+        };
       }
 
-      console.log('=== USING DASHBOARD APPROACH ===');
+      console.log('=== MARKETING WIDGET DATA FETCH ===');
       console.log('Dashboard timeframe:', dateRange);
+      console.log('isCustomDateRange:', isCustomDateRange);
       console.log('Calculated date range for orders:', currentDateRange);
       console.log('Marketing API params:', marketingDateRange);
-      console.log('=================================');
+      console.log('===================================');
 
-      // Fetch data - use EXACT same approach as dashboard
+      // Fetch data - use ordersOverview from dashboard instead of fetching separately
       const results = await Promise.allSettled([
         metaAdsAPI.getSummary(marketingDateRange),
-        googleAdsAPI.getSummary(marketingDateRange),
-        getOrdersOverview(currentDateRange) // Use exact same function as dashboard
+        googleAdsAPI.getSummary(marketingDateRange)
       ]);
 
-      console.log('API Results:');
+      console.log('=== MARKETING WIDGET API RESULTS ===');
       console.log('Meta Ads:', results[0]);
       console.log('Google Ads:', results[1]);
-      console.log('Orders:', results[2]);
+      console.log('Orders (from dashboard prop):', ordersOverview);
+      console.log('===================================');
 
       // Process results
       const debugInfo = {
         metaAds: { status: results[0].status, data: null, error: null },
         googleAds: { status: results[1].status, data: null, error: null },
-        orders: { status: results[2].status, data: null, error: null }
+        orders: { status: 'fulfilled', data: ordersOverview, error: null }
       };
 
       let metaAdsData = null;
       let googleAdsData = null;
-      let ordersData = null;
 
       if (results[0].status === 'fulfilled') {
         metaAdsData = results[0].value?.data;
@@ -134,41 +168,35 @@ const CombinedMarketingWidget = ({ dateRange = 'last_7_days', customDateRange = 
         debugInfo.googleAds.error = results[1].reason?.message || 'Unknown error';
       }
 
-      if (results[2].status === 'fulfilled') {
-        ordersData = results[2].value; // Orders API returns data directly, not in .data
-        debugInfo.orders.data = ordersData;
-      } else {
-        debugInfo.orders.error = results[2].reason?.message || 'Unknown error';
-      }
-
       setDebug(debugInfo);
 
-      console.log('=== EXTRACTED DATA ===');
+      console.log('=== MARKETING WIDGET EXTRACTED DATA ===');
       console.log('Meta Ads Data:', metaAdsData);
       console.log('Google Ads Data:', googleAdsData);
-      console.log('Orders Data:', ordersData);
-      console.log('======================');
+      console.log('Orders Data (from dashboard):', ordersOverview);
+      console.log('======================================');
 
-      // Calculate metrics using SAME data as dashboard
+      // Calculate metrics using EXACT SAME data as dashboard
       const metaCost = metaAdsData?.spend || metaAdsData?.cost || 0;
       const googleCost = googleAdsData?.cost || 0;
       const totalMarketingCost = metaCost + googleCost;
       
-      // Use the SAME revenue field as dashboard: ordersOverview?.total_revenue
-      const totalRevenue = ordersData?.total_revenue || 0;
+      // Use the EXACT SAME revenue data as dashboard
+      const totalRevenue = ordersOverview?.total_revenue || 0;
       
       const blendedRoas = totalMarketingCost > 0 ? totalRevenue / totalMarketingCost : 0;
       const marketingPercentage = totalRevenue > 0 ? (totalMarketingCost / totalRevenue) * 100 : 0;
       const contributionMargin = totalRevenue - totalMarketingCost;
       const cm2Percentage = totalRevenue > 0 ? (contributionMargin / totalRevenue) * 100 : 0;
 
-      console.log('=== FINAL CALCULATION ===');
+      console.log('=== MARKETING WIDGET FINAL CALCULATION ===');
+      console.log('Date Range Used:', marketingDateRange);
       console.log('Meta Cost:', metaCost);
       console.log('Google Cost:', googleCost);
       console.log('Total Marketing Cost:', totalMarketingCost);
       console.log('Total Revenue (from orders):', totalRevenue);
       console.log('Marketing %:', marketingPercentage.toFixed(2) + '%');
-      console.log('========================');
+      console.log('==========================================');
 
       setData({
         totalMarketingCost,
@@ -192,10 +220,6 @@ const CombinedMarketingWidget = ({ dateRange = 'last_7_days', customDateRange = 
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, [dateRange, customDateRange, isCustomDateRange]);
 
   const getDateRangeLabel = () => {
     if (isCustomDateRange && customDateRange && customDateRange[0] && customDateRange[1]) {
@@ -238,13 +262,18 @@ const CombinedMarketingWidget = ({ dateRange = 'last_7_days', customDateRange = 
     };
   };
 
-  if (loading) {
+  if (loading || ordersOverviewLoading || (!ordersOverview && !error)) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <FiBarChart className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Marketing Overview</h3>
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-8 border border-blue-200">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+              <FiBarChart className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">Marketing Overview</h3>
+              <p className="text-sm text-gray-600">Loading...</p>
+            </div>
           </div>
         </div>
         <div className="flex justify-center items-center h-40">
@@ -308,120 +337,239 @@ const CombinedMarketingWidget = ({ dateRange = 'last_7_days', customDateRange = 
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl shadow-lg p-8 border border-blue-200">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-2">
-          <FiBarChart className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Marketing Overview</h3>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-md">
+            <FiBarChart className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-gray-900">Marketing Overview</h3>
+            <p className="text-sm text-gray-600">{getDateRangeLabel()}</p>
+          </div>
         </div>
         <Link 
           to="/combined-marketing"
-          className="text-blue-600 hover:text-blue-800 transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-blue-50 transition-all duration-200 shadow-sm border border-blue-200"
         >
+          <span className="text-sm font-medium">View Details</span>
           <FiExternalLink className="w-4 h-4" />
         </Link>
       </div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="text-center">
-          <p className="text-xs text-gray-500 mb-1">Total Marketing Cost</p>
-          <p className="text-lg font-bold text-red-600">₹{formatNumber(data.totalMarketingCost)}</p>
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Total Marketing Cost */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-red-200 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <FiDollarSign className="w-5 h-5 text-red-600" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Marketing Cost</p>
+              <p className="text-2xl font-bold text-red-600">₹{formatNumber(data.totalMarketingCost)}</p>
+            </div>
+          </div>
         </div>
-        <div className="text-center">
-          <p className="text-xs text-gray-500 mb-1">Blended ROAS</p>
-          <p className={`text-lg font-bold ${
-            data.blendedRoas >= 2 ? 'text-green-600' : 
-            data.blendedRoas >= 1 ? 'text-yellow-600' : 'text-red-600'
-          }`}>
-            {data.blendedRoas.toFixed(2)}x
-          </p>
+
+        {/* Blended ROAS */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-green-200 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <FiTrendingUp className="w-5 h-5 text-green-600" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Blended ROAS</p>
+              <p className={`text-2xl font-bold ${
+                data.blendedRoas >= 2 ? 'text-green-600' : 
+                data.blendedRoas >= 1 ? 'text-yellow-600' : 'text-red-600'
+              }`}>
+                {data.blendedRoas.toFixed(2)}x
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="text-center">
-          <p className="text-xs text-gray-500 mb-1">Marketing %</p>
-          <p className="text-lg font-bold text-orange-600">{data.marketingPercentage.toFixed(1)}%</p>
+
+        {/* Marketing Percentage */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-orange-200 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <FiBarChart className="w-5 h-5 text-orange-600" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Marketing %</p>
+              <p className="text-2xl font-bold text-orange-600">{data.marketingPercentage.toFixed(1)}%</p>
+            </div>
+          </div>
         </div>
-        <div className="text-center">
-          <p className="text-xs text-gray-500 mb-1">CM2%</p>
-          <p className={`text-lg font-bold ${
-            data.cm2Percentage >= 50 ? 'text-green-600' : 
-            data.cm2Percentage >= 30 ? 'text-yellow-600' : 'text-red-600'
-          }`}>
-            {data.cm2Percentage.toFixed(1)}%
-          </p>
+
+        {/* CM2 Percentage */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-purple-200 hover:shadow-lg transition-shadow duration-200">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <FiTrendingUp className="w-5 h-5 text-purple-600" />
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">CM2%</p>
+              <p className={`text-2xl font-bold ${
+                data.cm2Percentage >= 50 ? 'text-green-600' : 
+                data.cm2Percentage >= 30 ? 'text-yellow-600' : 'text-red-600'
+              }`}>
+                {data.cm2Percentage.toFixed(1)}%
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Channel Breakdown Chart */}
-      {prepareChartData() && (
-        <div className="mb-6">
-          <p className="text-sm font-medium text-gray-700 mb-3 text-center">
-            Spend by Channel ({getDateRangeLabel()})
-          </p>
-          <div className="h-32 flex justify-center">
-            <Pie 
-              data={prepareChartData()} 
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    display: false
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: function(context) {
-                        const percentage = ((context.raw / data.totalMarketingCost) * 100).toFixed(1);
-                        return `${context.label}: ₹${formatNumber(context.raw)} (${percentage}%)`;
+      {/* Channel Performance and Chart Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Channel Performance Cards */}
+        <div className="space-y-4">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">Channel Performance</h4>
+          
+          {/* Meta Ads Card */}
+          <div className="bg-white rounded-xl p-6 shadow-md border border-blue-200 hover:shadow-lg transition-shadow duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <FaFacebook className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h5 className="font-semibold text-gray-900">Meta Ads</h5>
+                  <p className="text-sm text-gray-500">Facebook & Instagram</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xl font-bold text-gray-900">₹{formatNumber(data.metaCost)}</p>
+                <p className="text-sm text-gray-500">
+                  {data.totalMarketingCost > 0 ? ((data.metaCost / data.totalMarketingCost) * 100).toFixed(1) : 0}% of spend
+                </p>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${data.totalMarketingCost > 0 ? (data.metaCost / data.totalMarketingCost) * 100 : 0}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Google Ads Card */}
+          <div className="bg-white rounded-xl p-6 shadow-md border border-green-200 hover:shadow-lg transition-shadow duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-green-100 rounded-lg">
+                  <FaGoogle className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <h5 className="font-semibold text-gray-900">Google Ads</h5>
+                  <p className="text-sm text-gray-500">Search & Display</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xl font-bold text-gray-900">₹{formatNumber(data.googleCost)}</p>
+                <p className="text-sm text-gray-500">
+                  {data.totalMarketingCost > 0 ? ((data.googleCost / data.totalMarketingCost) * 100).toFixed(1) : 0}% of spend
+                </p>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-green-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${data.totalMarketingCost > 0 ? (data.googleCost / data.totalMarketingCost) * 100 : 0}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Chart Section */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">Spend Distribution</h4>
+          {prepareChartData() ? (
+            <div className="h-48 flex justify-center items-center">
+              <Pie 
+                data={prepareChartData()} 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 20,
+                        font: {
+                          size: 12,
+                          weight: '500'
+                        }
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                      titleColor: '#fff',
+                      bodyColor: '#fff',
+                      borderColor: 'rgba(59, 130, 246, 1)',
+                      borderWidth: 1,
+                      cornerRadius: 8,
+                      callbacks: {
+                        label: function(context) {
+                          const percentage = ((context.raw / data.totalMarketingCost) * 100).toFixed(1);
+                          return `${context.label}: ₹${formatNumber(context.raw)} (${percentage}%)`;
+                        }
                       }
                     }
                   }
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Channel Summary */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <FaFacebook className="w-4 h-4 text-blue-600" />
-            <span className="text-sm text-gray-700">Meta Ads</span>
-          </div>
-          <span className="text-sm font-medium text-gray-900">₹{formatNumber(data.metaCost)}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <FaGoogle className="w-4 h-4 text-green-600" />
-            <span className="text-sm text-gray-700">Google Ads</span>
-          </div>
-          <span className="text-sm font-medium text-gray-900">₹{formatNumber(data.googleCost)}</span>
+                }}
+              />
+            </div>
+          ) : (
+            <div className="h-48 flex items-center justify-center text-gray-500">
+              <p>No data available</p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Contribution Margin */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <FiTrendingUp className="w-4 h-4 text-green-600" />
-            <span className="text-sm text-gray-700">Contribution Margin</span>
+      {/* Bottom Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        {/* Contribution Margin */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className={`p-3 rounded-lg ${data.contributionMargin >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                <FiTrendingUp className={`w-5 h-5 ${data.contributionMargin >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+              </div>
+              <div>
+                <h5 className="font-semibold text-gray-900">Contribution Margin</h5>
+                <p className="text-sm text-gray-500">Revenue - Marketing Cost</p>
+              </div>
+            </div>
+            <p className={`text-xl font-bold ${
+              data.contributionMargin >= 0 ? 'text-green-600' : 'text-red-600'
+            }`}>
+              ₹{formatNumber(data.contributionMargin)}
+            </p>
           </div>
-          <span className={`text-sm font-medium ${
-            data.contributionMargin >= 0 ? 'text-green-600' : 'text-red-600'
-          }`}>
-            ₹{formatNumber(data.contributionMargin)}
-          </span>
         </div>
-      </div>
 
-      {/* Quick Stats */}
-      <div className="mt-4 pt-3 border-t border-gray-100 text-center">
-        <p className="text-xs text-gray-500">
-          Revenue: ₹{formatNumber(data.totalRevenue)} | {getDateRangeLabel()}
-        </p>
+        {/* Total Revenue */}
+        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-3 bg-indigo-100 rounded-lg">
+                <FiDollarSign className="w-5 h-5 text-indigo-600" />
+              </div>
+              <div>
+                <h5 className="font-semibold text-gray-900">Total Revenue</h5>
+                <p className="text-sm text-gray-500">For selected period</p>
+              </div>
+            </div>
+            <p className="text-xl font-bold text-indigo-600">₹{formatNumber(data.totalRevenue)}</p>
+          </div>
+        </div>
       </div>
     </div>
   );

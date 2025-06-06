@@ -1,5 +1,4 @@
 import React from 'react';
-import styled from 'styled-components';
 import { 
   FiBell, 
   FiMail, 
@@ -8,175 +7,64 @@ import {
   FiChevronDown 
 } from 'react-icons/fi';
 
-const NavbarContainer = styled.header`
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--spacing-lg);
-  background-color: var(--background-light);
-  border-bottom: 1px solid var(--border-color);
-`;
-
-const SearchBar = styled.div`
-  position: relative;
-  width: 350px;
-  
-  input {
-    width: 100%;
-    height: 40px;
-    border-radius: 20px;
-    border: 1px solid var(--border-color);
-    padding: 0 var(--spacing-md) 0 var(--spacing-xl);
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    
-    &:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px rgba(0, 115, 182, 0.2);
-    }
-  }
-  
-  svg {
-    position: absolute;
-    left: var(--spacing-md);
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-  }
-`;
-
-const NavActions = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const DateDisplay = styled.div`
-  display: flex;
-  align-items: center;
-  margin-right: var(--spacing-xl);
-  padding-right: var(--spacing-xl);
-  border-right: 1px solid var(--border-color);
-  
-  svg {
-    margin-right: var(--spacing-sm);
-    color: var(--text-secondary);
-  }
-  
-  span {
-    font-size: 0.9rem;
-    color: var(--text-primary);
-  }
-`;
-
-const IconButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background-color: transparent;
-  color: var(--text-secondary);
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: var(--spacing-sm);
-  position: relative;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    color: var(--primary-color);
-  }
-  
-  .notification-indicator {
-    position: absolute;
-    top: 7px;
-    right: 7px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: var(--danger-color);
-  }
-`;
-
-const UserProfile = styled.div`
-  display: flex;
-  align-items: center;
-  margin-left: var(--spacing-xl);
-  cursor: pointer;
-  
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: var(--primary-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    margin-right: var(--spacing-sm);
-  }
-  
-  .user-info {
-    margin-right: var(--spacing-sm);
-    
-    h4 {
-      font-size: 0.9rem;
-      margin-bottom: 0;
-    }
-    
-    p {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      margin-bottom: 0;
-    }
-  }
-`;
-
 const Navbar = () => {
   // Get current date
   const currentDate = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
+    weekday: 'short',
+    month: 'short',
     day: 'numeric'
   });
   
   return (
-    <NavbarContainer>
-      <SearchBar>
-        <FiSearch />
-        <input type="text" placeholder="Search for products, customers, orders..." />
-      </SearchBar>
+    <header className="h-[70px] bg-gradient-to-r from-white via-gray-50 to-white border-b border-gray-200 shadow-sm flex items-center justify-between px-4 lg:px-6 relative z-5">
+      {/* Search Bar */}
+      <div className="relative flex-1 max-w-sm lg:max-w-md xl:max-w-lg">
+        <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+          <FiSearch className="w-4 h-4 text-gray-400" />
+        </div>
+        <input 
+          type="text" 
+          placeholder="Search..." 
+          className="w-full h-9 pl-10 pr-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-sm placeholder-gray-400 shadow-sm hover:shadow-md"
+        />
+      </div>
       
-      <NavActions>
-        <DateDisplay>
-          <FiCalendar />
-          <span>{currentDate}</span>
-        </DateDisplay>
+      {/* Right Actions */}
+      <div className="flex items-center space-x-2 lg:space-x-4 ml-4">
         
-        <IconButton>
-          <FiMail />
-        </IconButton>
-        
-        <IconButton>
-          <FiBell />
-          <div className="notification-indicator"></div>
-        </IconButton>
-        
-        <UserProfile>
-          <div className="avatar">AP</div>
-          <div className="user-info">
-            <h4>Anuj Patidar</h4>
-            <p>Store Owner</p>
+        {/* Date Display */}
+        <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200 shadow-sm">
+          <div className="p-1 bg-white rounded-md shadow-sm">
+            <FiCalendar className="w-3 h-3 text-blue-600" />
           </div>
-          <FiChevronDown />
-        </UserProfile>
-      </NavActions>
-    </NavbarContainer>
+          <span className="text-xs font-medium text-gray-700 whitespace-nowrap">{currentDate}</span>
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="flex items-center space-x-1">
+          <button className="relative w-8 h-8 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 flex items-center justify-center group">
+            <FiMail className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
+          </button>
+          
+          <button className="relative w-8 h-8 rounded-lg bg-white border border-gray-200 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all duration-200 flex items-center justify-center group">
+            <FiBell className="w-4 h-4 text-gray-600 group-hover:text-blue-600" />
+            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border border-white animate-pulse"></div>
+          </button>
+        </div>
+        
+        {/* User Profile */}
+        <div className="flex items-center space-x-2 cursor-pointer group bg-white rounded-lg px-2 py-1.5 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white font-semibold text-xs shadow-lg">
+            AP
+          </div>
+          <div className="hidden">
+            <h4 className="text-xs font-semibold text-gray-900 leading-tight">Anuj</h4>
+            <p className="text-xs text-gray-500 leading-tight">Owner</p>
+          </div>
+          <FiChevronDown className="w-3 h-3 text-gray-400 group-hover:text-gray-600 transition-colors duration-200" />
+        </div>
+      </div>
+    </header>
   );
 };
 
