@@ -8,35 +8,24 @@ const {fetchTotalProductsCount,calculateAverageProductPrice,getTopSellingProduct
 const {fetchAllProducts} = require('../utils/fetchDataFromShopify');
 const {fetchListingImageAndDescriptionById} = require('../utils/fetchDataFromShopify');
 const queryForBigQuery = require('../config/bigquery');
+const { getDatasetName } = require('../utils/bigquery');
 const marketingKeywords = require('./marketingKeywords.json');
 const MetaAdsAnalytics = require('../utils/MetaAdsAnalytics');
 const productsController = {
   getAllProductsList: async (req, res, next) => {
     try {
-      // const cacheKey = 'get_all_products';
-      // // Try to get data from cache first
-      // const cachedData = await valkeyClient.get(cacheKey);
-      // if (cachedData) {
-      //  console.log(chalk.bgGreen('Cache hit for all products'));
-      //   return res.status(200).json({
-      //     success: true,
-      //     data: JSON.parse(cachedData),
-      //     fromCache: true
-      //   });
-      // }
-      // // If not in cache, fetch from DynamoDB
-      // console.log(chalk.bgYellow('Cache miss for all products, fetching from DynamoDB'));
-      // const command = new ScanCommand({
-      //   TableName: "ShopifyProducts-dev",
-      // });
-      // const response = await docClient.send(command);
-      // // Store in cache permanently (no expiration)
-      // await valkeyClient.set(cacheKey, JSON.stringify(response.Items));
-      // res.status(200).json({ success: true, data: response.Items });
+      logger.info('Getting all products list');
+      
+      // Fetch from Shopify
       const products = await fetchAllProducts();
-      res.status(200).json({ success: true, data: products });
+      
+      res.status(200).json({
+        success: true,
+        data: products,
+        total: products.length
+      });
     } catch (error) {
-      logger.error('Error fetching all products:', error);
+      logger.error('Error fetching products list:', error);
       next(error);
     }
   },
@@ -202,210 +191,65 @@ const productsController = {
         });
       }
 
-      // Query 1: Overview data with error handling
-      const query = `SELECT 
-        COUNT(DISTINCT(li.ORDER_ID)) AS total_orders,
-        SUM(li.CURRENT_QUANTITY) AS net_quantity_sold,
-        SUM(li.QUANTITY) AS total_quantity_sold,
-        SUM(li.CURRENT_QUANTITY * li.PRICE) - SUM(COALESCE(li.DISCOUNT_ALLOCATION_AMOUNT, 0)) AS total_sales,
-        COUNT(DISTINCT(CASE 
-        WHEN UPPER(COALESCE(li.ORDER_NAME, '')) LIKE '%EX%' 
-             OR UPPER(COALESCE(o.TAGS, '')) LIKE '%EXCHANGE%' 
-        THEN li.ORDER_ID 
-        ELSE NULL
-    END)) AS exchange_orders_count
-    FROM \`analytics-dashboard-459607.analytics.line_items\` li
-    LEFT JOIN \`analytics-dashboard-459607.analytics.orders\` o
-    ON li.ORDER_ID = o.ID
-    WHERE li.SKU IN ('${variantSkus.join("','")}')
-        AND li.QUANTITY IS NOT NULL
-        AND li.PRICE IS NOT NULL
+      // Updated query for nested line_items structure
+      const query1 = `SELECT 
+        COUNT(DISTINCT line_item.VARIANT_ID) as total_variants_sold,
+        SUM(line_item.QUANTITY) as total_units_sold,
+        ROUND(SUM(line_item.PRICE * line_item.QUANTITY), 2) as total_sales_amount,
+        ROUND(AVG(line_item.PRICE), 2) as average_price,
+        COUNT(DISTINCT o.NAME) as total_orders
+      FROM \`${getDatasetName()}\` o,
+      UNNEST(o.line_items) as line_item
+      WHERE line_item.SKU IN ('${variantSkus.join("','")}') 
         AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
         AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'`;
-       
-      // console.log('Overview query:', query);
-      
-      let fetchOverviewData = [];
+
+      let overviewData = {};
       try {
-        fetchOverviewData = await queryForBigQuery(query);
+        const result = await queryForBigQuery(query1);
+        overviewData = result[0] || {};
       } catch (error) {
         console.error('Error fetching overview data:', error.message);
-        fetchOverviewData = [{
-          total_orders: 0,
-          total_quantity_sold: 0,
-          net_quantity_sold: 0,
-          total_sales: 0,
-          exchange_orders_count: 0
-        }];
+        overviewData = {};
       }
-
-      // Validate overview data
-      const overviewData = fetchOverviewData && fetchOverviewData.length > 0 ? fetchOverviewData[0] : {
-        total_orders: 0,
-        total_quantity_sold: 0,
-        net_quantity_sold: 0,
-        total_sales: 0,
-        exchange_orders_count: 0
-      };
 
       // Query 2: Customer insights with error handling
-      const query2 = `WITH product_orders AS (
-      SELECT DISTINCT
-      o.CUSTOMER_ID,
-      o.NAME as order_name,
-      o.PROCESSED_AT,
-      o.CURRENT_TOTAL_PRICE
-      FROM \`analytics-dashboard-459607.analytics.orders\` o
-      INNER JOIN \`analytics-dashboard-459607.analytics.line_items\` li ON CAST(o.ID AS STRING) = CAST(li.ORDER_ID AS STRING)
-      WHERE o.CUSTOMER_ID IS NOT NULL
-      AND li.SKU IN ('${variantSkus.join("','")}')
-      AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
-      AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
-      ),
+      const query2 = `SELECT 
+        COUNT(DISTINCT CUSTOMER_ID) as unique_customers,
+        COUNT(DISTINCT o.NAME) as total_orders,
+        ROUND(SUM(line_item.QUANTITY) / COUNT(DISTINCT o.NAME), 2) as avg_quantity_per_order,
+        ROUND(SUM(line_item.PRICE * line_item.QUANTITY) / COUNT(DISTINCT o.NAME), 2) as avg_order_value,
+        COUNT(DISTINCT CASE WHEN o.FINANCIAL_STATUS = 'refunded' THEN o.NAME END) as refunded_orders
+      FROM \`${getDatasetName()}\` o,
+      UNNEST(o.line_items) as line_item
+      WHERE line_item.SKU IN ('${variantSkus.join("','")}') 
+        AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
+        AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'`;
 
-      customer_order_counts AS (
-      SELECT 
-      CUSTOMER_ID,
-      COUNT(DISTINCT order_name) as total_orders,
-      SUM(CURRENT_TOTAL_PRICE) as total_spent
-      FROM product_orders
-      GROUP BY CUSTOMER_ID
-      ),
-
-      customer_segments AS (
-      SELECT 
-      CUSTOMER_ID,
-      total_orders,
-      total_spent,
-      CASE 
-        WHEN total_spent >= 5000 THEN 'High Value'
-        WHEN total_spent >= 3000 THEN 'Medium Value'
-        ELSE 'Low Value'
-      END as value_segment,
-      CASE 
-        WHEN total_orders = 1 THEN '1 Order'
-        WHEN total_orders = 2 THEN '2 Orders'
-        WHEN total_orders = 3 THEN '3 Orders'
-        WHEN total_orders >= 4 THEN '4+ Orders'
-      END as order_frequency_segment
-      FROM customer_order_counts
-      )
-
-      -- Main metrics
-      SELECT 
-      'MAIN_METRICS' as metric_type,
-      COUNT(DISTINCT CUSTOMER_ID) as total_customers,
-      COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) as repeat_customers,
-      ROUND(
-      (COUNT(DISTINCT CASE WHEN total_orders >= 2 THEN CUSTOMER_ID END) * 100.0) / 
-      NULLIF(COUNT(DISTINCT CUSTOMER_ID), 0), 2
-      ) as repeat_customer_rate_percentage,
-      ROUND(AVG(total_orders), 2) as avg_orders_per_customer,
-      COUNT(DISTINCT CASE WHEN total_orders = 1 THEN CUSTOMER_ID END) as first_time_customers,
-      NULL as segment_name,
-      NULL as segment_count,
-      NULL as segment_percentage
-      FROM customer_segments
-
-      UNION ALL
-
-      -- Value segment breakdown
-      SELECT 
-      'VALUE_SEGMENTS' as metric_type,
-      NULL as total_customers,
-      NULL as repeat_customers,
-      NULL as repeat_customer_rate_percentage,
-      NULL as avg_orders_per_customer,
-      NULL as first_time_customers,
-      value_segment as segment_name,
-      COUNT(DISTINCT CUSTOMER_ID) as segment_count,
-      ROUND(
-      (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
-      NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
-      ) as segment_percentage
-      FROM customer_segments
-      GROUP BY value_segment
-
-      UNION ALL
-
-      -- Purchase frequency distribution
-      SELECT 
-      'FREQUENCY_DISTRIBUTION' as metric_type,
-      NULL as total_customers,
-      NULL as repeat_customers,
-      NULL as repeat_customer_rate_percentage,
-      NULL as avg_orders_per_customer,
-      NULL as first_time_customers,
-      order_frequency_segment as segment_name,
-      COUNT(DISTINCT CUSTOMER_ID) as segment_count,
-      ROUND(
-      (COUNT(DISTINCT CUSTOMER_ID) * 100.0) / 
-      NULLIF((SELECT COUNT(DISTINCT CUSTOMER_ID) FROM customer_segments), 0), 2
-      ) as segment_percentage
-      FROM customer_segments
-      GROUP BY order_frequency_segment
-
-      ORDER BY 
-      CASE 
-      WHEN metric_type = 'MAIN_METRICS' THEN 1
-      WHEN metric_type = 'VALUE_SEGMENTS' THEN 2
-      WHEN metric_type = 'FREQUENCY_DISTRIBUTION' THEN 3
-      END,
-      segment_name;`;
-
-      let fetchCustomerInsights = [];
+      let customerInsights = {};
       try {
-        fetchCustomerInsights = await queryForBigQuery(query2);
+        const result2 = await queryForBigQuery(query2);
+        customerInsights = result2[0] || {};
       } catch (error) {
         console.error('Error fetching customer insights:', error.message);
-        // Default customer insights structure
-        fetchCustomerInsights = [
-          { metric_type: 'MAIN_METRICS', total_customers: 0, repeat_customers: 0, repeat_customer_rate_percentage: 0, avg_orders_per_customer: 0, first_time_customers: 0 },
-          { metric_type: 'VALUE_SEGMENTS', segment_name: 'High Value', segment_count: 0, segment_percentage: 0 },
-          { metric_type: 'VALUE_SEGMENTS', segment_name: 'Medium Value', segment_count: 0, segment_percentage: 0 },
-          { metric_type: 'VALUE_SEGMENTS', segment_name: 'Low Value', segment_count: 0, segment_percentage: 0 },
-          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '1 Order', segment_count: 0, segment_percentage: 0 },
-          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '2 Orders', segment_count: 0, segment_percentage: 0 },
-          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '3 Orders', segment_count: 0, segment_percentage: 0 },
-          { metric_type: 'FREQUENCY_DISTRIBUTION', segment_name: '4+ Orders', segment_count: 0, segment_percentage: 0 }
-        ];
+        customerInsights = {};
       }
 
-      // Helper function to safely get customer insight value
-      const getCustomerInsightValue = (metricType, segmentName = null, field) => {
-        try {
-          const item = fetchCustomerInsights.find(item => 
-            item.metric_type === metricType && 
-            (segmentName ? item.segment_name === segmentName : true)
-          );
-          return item ? (item[field] || 0) : 0;
-        } catch (error) {
-          console.log(`Error getting customer insight for ${metricType}:${segmentName}:${field}`, error.message);
-          return 0;
-        }
-      };
-
-      // Query 3: Variant insights with error handling
+      // Query 3: Variant insights with updated structure for nested line_items
       const query3 = `SELECT 
-      VARIANT_TITLE,
-      
-      -- Core metrics you requested
-      SUM(CURRENT_QUANTITY) as total_units_sold,
-      ROUND(SUM((QUANTITY * PRICE) - COALESCE(DISCOUNT_ALLOCATION_AMOUNT, 0)), 2) as total_sales_amount,
-      
-      -- Performance share
-      ROUND(
-        (SUM(QUANTITY) * 100.0) / NULLIF(SUM(SUM(QUANTITY)) OVER(), 0), 2
-      ) as units_sold_percentage
-      
-
-    FROM \`analytics-dashboard-459607.analytics.line_items\` li
-    LEFT JOIN \`analytics-dashboard-459607.analytics.orders\` o ON li.ORDER_ID = o.ID
-    WHERE li.SKU IN ('${variantSkus.join("','")}') 
-      AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
-      AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
-    GROUP BY VARIANT_TITLE
-    ORDER BY total_sales_amount DESC;`;
+        line_item.VARIANT_TITLE,
+        SUM(line_item.QUANTITY) as total_units_sold,
+        ROUND(SUM(line_item.PRICE * line_item.QUANTITY - COALESCE(line_item.TOTAL_DISCOUNT, 0)), 2) as total_sales_amount,
+        ROUND(
+          (SUM(line_item.QUANTITY) * 100.0) / NULLIF(SUM(SUM(line_item.QUANTITY)) OVER(), 0), 2
+        ) as units_sold_percentage
+      FROM \`${getDatasetName()}\` o,
+      UNNEST(o.line_items) as line_item
+      WHERE line_item.SKU IN ('${variantSkus.join("','")}') 
+        AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
+        AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
+      GROUP BY line_item.VARIANT_TITLE
+      ORDER BY total_sales_amount DESC`;
 
       let fetchVariantInsights = [];
       try {
@@ -418,9 +262,9 @@ const productsController = {
       // Safe calculations with null checks
       const totalRevenue = parseFloat(overviewData.total_sales) || 0;
       const totalOrders = parseInt(overviewData.total_orders) || 0;
-      const totalQuantitySold = parseInt(overviewData.total_quantity_sold) || 0;
-      const netQuantitySold = parseInt(overviewData.net_quantity_sold) || 0;
-      const exchangeOrdersCount = parseInt(overviewData.exchange_orders_count) || 0;
+      const totalQuantitySold = parseInt(overviewData.total_units_sold) || 0;
+      const netQuantitySold = parseInt(overviewData.total_variants_sold) || 0;
+      const exchangeOrdersCount = parseInt(customerInsights.refunded_orders) || 0;
       
       const totalMarketingCost = marketingData ? (marketingData.totalSpend || 0) : 0;
       const grossProfit = totalRevenue * 0.4; // Assuming 40% gross margin
@@ -494,46 +338,46 @@ const productsController = {
           }
         } : null,
         customerInsights: {
-          totalCustomers: getCustomerInsightValue('MAIN_METRICS', null, 'total_customers'),
-          repeatCustomers: getCustomerInsightValue('MAIN_METRICS', null, 'repeat_customers'),
-          repeatCustomerRate: getCustomerInsightValue('MAIN_METRICS', null, 'repeat_customer_rate_percentage'),
-          avgOrdersPerCustomer: getCustomerInsightValue('MAIN_METRICS', null, 'avg_orders_per_customer'),
-          firstTimeCustomers: getCustomerInsightValue('MAIN_METRICS', null, 'first_time_customers'),
+          totalCustomers: customerInsights.unique_customers || 0,
+          repeatCustomers: 0,
+          repeatCustomerRate: 0,
+          avgOrdersPerCustomer: customerInsights.avg_quantity_per_order || 0,
+          firstTimeCustomers: 0,
           customerAcquisitionCost: 0,
           highValueCustomers: {
-            customerCount: getCustomerInsightValue('VALUE_SEGMENTS', 'High Value', 'segment_count'),
-            customerPercentage: getCustomerInsightValue('VALUE_SEGMENTS', 'High Value', 'segment_percentage'),
+            customerCount: 0,
+            customerPercentage: 0,
           },
           mediumValueCustomers: {
-            customerCount: getCustomerInsightValue('VALUE_SEGMENTS', 'Medium Value', 'segment_count'),
-            customerPercentage: getCustomerInsightValue('VALUE_SEGMENTS', 'Medium Value', 'segment_percentage'),
+            customerCount: 0,
+            customerPercentage: 0,
           },
           lowValueCustomers: {
-            customerCount: getCustomerInsightValue('VALUE_SEGMENTS', 'Low Value', 'segment_count'),
-            customerPercentage: getCustomerInsightValue('VALUE_SEGMENTS', 'Low Value', 'segment_percentage'),
+            customerCount: 0,
+            customerPercentage: 0,
           },
           frequencyDistribution: {
             oneOrderCustomers: {
-              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '1 Order', 'segment_count'),
-              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '1 Order', 'segment_percentage'),
+              customerCount: 0,
+              customerPercentage: 0,
             },
             twoOrdersCustomers: {
-              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '2 Orders', 'segment_count'),
-              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '2 Orders', 'segment_percentage'),
+              customerCount: 0,
+              customerPercentage: 0,
             },
             threeOrdersCustomers: {
-              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '3 Orders', 'segment_count'),
-              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '3 Orders', 'segment_percentage'),
+              customerCount: 0,
+              customerPercentage: 0,
             },
             fourOrdersCustomers: {
-              customerCount: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '4+ Orders', 'segment_count'),
-              customerPercentage: getCustomerInsightValue('FREQUENCY_DISTRIBUTION', '4+ Orders', 'segment_percentage'),
+              customerCount: 0,
+              customerPercentage: 0,
             }
           }
         },
         variants: fetchVariantInsights && Array.isArray(fetchVariantInsights) ? fetchVariantInsights.map(variant => ({
           name: variant.VARIANT_TITLE || 'Unknown Variant',
-          soldCount: parseInt(variant.net_quantity_sold) || 0,
+          soldCount: parseInt(variant.total_units_sold) || 0,
           profit: parseFloat(variant.total_sales_amount) * 0.4 || 0 // Assuming 40% profit margin
         })) : [],
         salesTrend: [

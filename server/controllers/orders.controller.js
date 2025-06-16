@@ -30,55 +30,50 @@ const ordersController = {
       const formattedStartDate = startDate ? new Date(startDate).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const formattedEndDate = endDate ? new Date(endDate).toISOString() : new Date().toISOString();
 
-      // Query to get orders overview with date range
+      // Updated query for new table structure with nested data
       const query = `
-        WITH current_period AS (
+        WITH order_metrics AS (
           SELECT 
-            COUNT(DISTINCT o.NAME) as total_orders,
-            SUM(o.TOTAL_PRICE) as total_revenue,
-            AVG(o.TOTAL_PRICE) as average_order_value,
-            COUNT(DISTINCT CASE WHEN r.ORDER_ID IS NOT NULL THEN o.NAME END) as total_refunds,
-            SUM(CASE WHEN r.ORDER_ID IS NOT NULL THEN o.TOTAL_PRICE ELSE 0 END) as refunded_amount
-          FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\` o
-          LEFT JOIN \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.refunds\` r ON o.NAME = r.ORDER_NAME
-          WHERE o.CREATED_AT >= TIMESTAMP('${formattedStartDate}')
-            AND o.CREATED_AT <= TIMESTAMP('${formattedEndDate}')
+            COUNT(DISTINCT NAME) as total_orders,
+            SUM(CAST(TOTAL_PRICE AS NUMERIC)) as total_sales,
+            AVG(CAST(TOTAL_PRICE AS NUMERIC)) as average_order_value,
+            SUM(ARRAY_LENGTH(line_items)) as total_items_sold,
+            COUNT(DISTINCT CASE WHEN ARRAY_LENGTH(refunds) > 0 THEN NAME END) as orders_with_refunds
+          FROM \`${getDatasetName()}\`
+          WHERE CREATED_AT >= TIMESTAMP('${formattedStartDate}')
+            AND CREATED_AT <= TIMESTAMP('${formattedEndDate}')
         ),
         previous_period AS (
           SELECT 
-            COUNT(DISTINCT o.NAME) as prev_total_orders,
-            SUM(o.TOTAL_PRICE) as prev_total_revenue,
-            AVG(o.TOTAL_PRICE) as prev_average_order_value,
-            COUNT(DISTINCT CASE WHEN r.ORDER_ID IS NOT NULL THEN o.NAME END) as prev_total_refunds
-          FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\` o
-          LEFT JOIN \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.refunds\` r ON o.NAME = r.ORDER_NAME
-          WHERE o.CREATED_AT >= TIMESTAMP_SUB(TIMESTAMP('${formattedStartDate}'), INTERVAL 30 DAY)
-            AND o.CREATED_AT < TIMESTAMP('${formattedStartDate}')
+            COUNT(DISTINCT NAME) as prev_total_orders,
+            SUM(CAST(TOTAL_PRICE AS NUMERIC)) as prev_total_sales,
+            AVG(CAST(TOTAL_PRICE AS NUMERIC)) as prev_average_order_value
+          FROM \`${getDatasetName()}\`
+          WHERE CREATED_AT >= TIMESTAMP_SUB(TIMESTAMP('${formattedStartDate}'), INTERVAL 30 DAY)
+            AND CREATED_AT < TIMESTAMP('${formattedStartDate}')
         )
         SELECT 
-          cp.*,
+          om.*,
           pp.prev_total_orders,
-          pp.prev_total_revenue,
+          pp.prev_total_sales,
           pp.prev_average_order_value,
-          pp.prev_total_refunds,
-          ROUND(((cp.total_orders - pp.prev_total_orders) / pp.prev_total_orders) * 100, 1) as order_change_percentage,
-          ROUND(((cp.total_revenue - pp.prev_total_revenue) / pp.prev_total_revenue) * 100, 1) as revenue_change_percentage,
-          ROUND(((cp.average_order_value - pp.prev_average_order_value) / pp.prev_average_order_value) * 100, 1) as aov_change_percentage,
-          ROUND(((cp.total_refunds / cp.total_orders) - (pp.prev_total_refunds / pp.prev_total_orders)) * 100, 1) as refund_rate_change_percentage
-        FROM current_period cp
-        CROSS JOIN previous_period pp
+          ROUND(SAFE_DIVIDE((om.total_orders - pp.prev_total_orders) * 100.0, pp.prev_total_orders), 2) as orders_growth,
+          ROUND(SAFE_DIVIDE((om.total_sales - pp.prev_total_sales) * 100.0, pp.prev_total_sales), 2) as sales_growth,
+          ROUND(SAFE_DIVIDE((om.average_order_value - pp.prev_average_order_value) * 100.0, pp.prev_average_order_value), 2) as aov_growth
+        FROM order_metrics om, previous_period pp
       `;
 
       const rows = await executeQuery(query);
+      const result = rows[0] || {};
       
       // Store in cache for 1 hour
       try {
-        await valkeyClient.set(cacheKey, JSON.stringify(rows[0]), 3600);
+        await valkeyClient.set(cacheKey, JSON.stringify(result), 3600);
       } catch (cacheError) {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: rows[0] });
+      res.status(200).json({ success: true, data: result });
     } catch (error) {
       logger.error('Error fetching orders overview:', error);
       next(error);
@@ -121,26 +116,23 @@ const ordersController = {
           MAX(CREATED_AT) as latest_date,
           COUNT(DISTINCT NAME) as unique_orders,
           SUM(TOTAL_PRICE) as total_revenue
-        FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\`
+        FROM \`${getDatasetName()}\`
       `;
 
       console.log('Executing check query...');
       const checkResults = await executeQuery(checkQuery);
       console.log('Check query results:', checkResults);
 
-      // Now let's try to get the data for the specific date range
+      // Updated query for time range data with nested structure
       const query = `
         SELECT 
           FORMAT_DATE('%Y-%m-%d', DATE(CREATED_AT)) as date,
-          COUNT(DISTINCT o.NAME) as total_orders,
-          SUM(o.TOTAL_PRICE) as total_revenue,
-          AVG(o.TOTAL_PRICE) as average_order_value,
-          COUNT(DISTINCT NAME) as order_count,
-          SUM(TOTAL_PRICE) as daily_revenue,
-          COUNT(DISTINCT CASE WHEN r.ORDER_ID IS NOT NULL THEN NAME END) as refund_count
-        FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\` o
-        LEFT JOIN \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.refunds\` r 
-          ON o.NAME = r.ORDER_NAME
+          COUNT(DISTINCT NAME) as total_orders,
+          SUM(CAST(TOTAL_PRICE AS NUMERIC)) as total_revenue,
+          AVG(CAST(TOTAL_PRICE AS NUMERIC)) as average_order_value,
+          SUM(ARRAY_LENGTH(line_items)) as total_items_sold,
+          COUNT(DISTINCT CASE WHEN ARRAY_LENGTH(refunds) > 0 THEN NAME END) as refund_count
+        FROM \`${getDatasetName()}\`
         WHERE CREATED_AT >= TIMESTAMP('${formattedStartDate}')
           AND CREATED_AT <= TIMESTAMP('${formattedEndDate}')
         GROUP BY date
@@ -171,8 +163,9 @@ const ordersController = {
 
   getTopSellingProducts: async (req, res, next) => {
     try {
-      const { limit = 5 } = req.query;
-      const cacheKey = `get_top_selling_products:${limit}`;
+      const { startDate, endDate, limit = 10 } = req.query;
+      
+      const cacheKey = `get_top_selling_products:${startDate}:${endDate}:${limit}`;
       let cachedData = null;
 
       try {
@@ -190,21 +183,26 @@ const ordersController = {
         });
       }
 
+      // Format dates for BigQuery
+      const formattedStartDate = startDate ? new Date(startDate).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const formattedEndDate = endDate ? new Date(endDate).toISOString() : new Date().toISOString();
+
+      // Updated query for nested line_items
       const query = `
         SELECT 
-          TITLE as product_name,
-          SUM(CURRENT_QUANTITY) as total_quantity_sold,
-          COUNT(DISTINCT SKU) as number_of_variants
-        FROM 
-          \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.line_items\`
-        WHERE 
-          TITLE IS NOT NULL 
-          AND CURRENT_QUANTITY IS NOT NULL
-          AND CURRENT_QUANTITY > 0
-        GROUP BY 
-          TITLE
-        ORDER BY 
-          total_quantity_sold DESC
+          line_item.PRODUCT_ID,
+          line_item.NAME as product_name,
+          line_item.VARIANT_TITLE,
+          SUM(CAST(line_item.QUANTITY AS NUMERIC)) as total_quantity_sold,
+          SUM(CAST(line_item.PRICE AS NUMERIC) * CAST(line_item.QUANTITY AS NUMERIC)) as total_revenue,
+          AVG(CAST(line_item.PRICE AS NUMERIC)) as average_price,
+          COUNT(DISTINCT o.NAME) as orders_count
+        FROM \`${getDatasetName()}\` o,
+        UNNEST(o.line_items) as line_item
+        WHERE o.CREATED_AT >= TIMESTAMP('${formattedStartDate}')
+          AND o.CREATED_AT <= TIMESTAMP('${formattedEndDate}')
+        GROUP BY line_item.PRODUCT_ID, line_item.NAME, line_item.VARIANT_TITLE
+        ORDER BY total_quantity_sold DESC
         LIMIT ${parseInt(limit)}
       `;
 
@@ -227,6 +225,7 @@ const ordersController = {
   getRefundMetrics: async (req, res, next) => {
     try {
       const { startDate, endDate } = req.query;
+      
       const cacheKey = `get_refund_metrics:${startDate}:${endDate}`;
       let cachedData = null;
 
@@ -245,59 +244,76 @@ const ordersController = {
         });
       }
 
-      // Format dates for BigQuery
       const formattedStartDate = startDate ? new Date(startDate).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const formattedEndDate = endDate ? new Date(endDate).toISOString() : new Date().toISOString();
 
+      // First, let's check the structure of the refunds
+      const structureQuery = `
+        SELECT refund.*
+        FROM \`${getDatasetName()}\` o,
+        UNNEST(o.refunds) as refund
+        LIMIT 1
+      `;
+
+      const structureResult = await executeQuery(structureQuery);
+      console.log('Refund structure:', structureResult[0]);
+
+      // Updated query for nested refunds using the correct field names
       const query = `
         WITH current_period AS (
           SELECT 
-            COUNT(DISTINCT r.REFUND_ID) as total_refunds,
-            SUM(r.TRANSACTION_AMOUNT) as total_refunded_amount,
-            COUNT(DISTINCT r.ORDER_ID) as orders_with_refunds,
-            AVG(r.TRANSACTION_AMOUNT) as average_refund_amount,
+            COUNT(DISTINCT refund.id) as total_refunds,
+            SUM(CAST(transaction.amount AS NUMERIC)) as total_refunded_amount,
+            COUNT(DISTINCT o.NAME) as orders_with_refunds,
+            AVG(CAST(transaction.amount AS NUMERIC)) as average_refund_amount,
             COUNT(DISTINCT CASE 
-              WHEN r.REFUND_CREATED_AT >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) 
-              THEN r.REFUND_ID 
+              WHEN refund.created_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR) 
+              THEN refund.id 
             END) as refunds_last_24h
-          FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.refunds\` r
-          WHERE r.REFUND_CREATED_AT >= TIMESTAMP('${formattedStartDate}')
-            AND r.REFUND_CREATED_AT <= TIMESTAMP('${formattedEndDate}')
+          FROM \`${getDatasetName()}\` o,
+          UNNEST(o.refunds) as refund,
+          UNNEST(refund.transactions) as transaction
+          WHERE o.CREATED_AT >= TIMESTAMP('${formattedStartDate}')
+            AND o.CREATED_AT <= TIMESTAMP('${formattedEndDate}')
         ),
         previous_period AS (
           SELECT 
-            COUNT(DISTINCT r.REFUND_ID) as prev_total_refunds,
-            SUM(r.TRANSACTION_AMOUNT) as prev_total_refunded_amount,
-            AVG(r.TRANSACTION_AMOUNT) as prev_average_refund_amount,
+            COUNT(DISTINCT refund.id) as prev_total_refunds,
+            SUM(CAST(transaction.amount AS NUMERIC)) as prev_total_refunded_amount,
+            AVG(CAST(transaction.amount AS NUMERIC)) as prev_average_refund_amount,
             COUNT(DISTINCT CASE 
-              WHEN r.REFUND_CREATED_AT >= TIMESTAMP_SUB(TIMESTAMP('${formattedStartDate}'), INTERVAL 24 HOUR)
-              AND r.REFUND_CREATED_AT < TIMESTAMP('${formattedStartDate}')
-              THEN r.REFUND_ID 
+              WHEN refund.created_at >= TIMESTAMP_SUB(TIMESTAMP('${formattedStartDate}'), INTERVAL 24 HOUR)
+              AND refund.created_at < TIMESTAMP('${formattedStartDate}')
+              THEN refund.id 
             END) as prev_refunds_last_24h
-          FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.refunds\` r
-          WHERE r.REFUND_CREATED_AT >= TIMESTAMP_SUB(TIMESTAMP('${formattedStartDate}'), INTERVAL 30 DAY)
-            AND r.REFUND_CREATED_AT < TIMESTAMP('${formattedStartDate}')
+          FROM \`${getDatasetName()}\` o,
+          UNNEST(o.refunds) as refund,
+          UNNEST(refund.transactions) as transaction
+          WHERE o.CREATED_AT >= TIMESTAMP_SUB(TIMESTAMP('${formattedStartDate}'), INTERVAL 30 DAY)
+            AND o.CREATED_AT < TIMESTAMP('${formattedStartDate}')
         )
         SELECT 
           cp.*,
-          ROUND(((cp.total_refunds - pp.prev_total_refunds) / pp.prev_total_refunds) * 100, 1) as refund_change_percentage,
-          ROUND(((cp.total_refunded_amount - pp.prev_total_refunded_amount) / pp.prev_total_refunded_amount) * 100, 1) as refund_amount_change_percentage,
-          ROUND(((cp.average_refund_amount - pp.prev_average_refund_amount) / pp.prev_average_refund_amount) * 100, 1) as avg_refund_change_percentage,
-          ROUND(((cp.refunds_last_24h - pp.prev_refunds_last_24h) / pp.prev_refunds_last_24h) * 100, 1) as refund_24h_change_percentage
-        FROM current_period cp
-        CROSS JOIN previous_period pp
+          pp.prev_total_refunds,
+          pp.prev_total_refunded_amount,
+          pp.prev_average_refund_amount,
+          pp.prev_refunds_last_24h,
+          ROUND(SAFE_DIVIDE((cp.total_refunds - pp.prev_total_refunds) * 100.0, NULLIF(pp.prev_total_refunds, 0)), 2) as refunds_growth,
+          ROUND(SAFE_DIVIDE((cp.total_refunded_amount - pp.prev_total_refunded_amount) * 100.0, NULLIF(pp.prev_total_refunded_amount, 0)), 2) as refund_amount_growth
+        FROM current_period cp, previous_period pp
       `;
 
       const rows = await executeQuery(query);
+      const result = rows[0] || {};
       
       // Store in cache for 1 hour
       try {
-        await valkeyClient.set(cacheKey, JSON.stringify(rows[0]), 3600);
+        await valkeyClient.set(cacheKey, JSON.stringify(result), 3600);
       } catch (cacheError) {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: rows[0] });
+      res.status(200).json({ success: true, data: result });
     } catch (error) {
       logger.error('Error fetching refund metrics:', error);
       next(error);
@@ -332,7 +348,7 @@ const ordersController = {
       // Get total count for pagination
       const countQuery = `
         SELECT COUNT(DISTINCT NAME) as total
-        FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\`
+        FROM \`${getDatasetName()}\`
       `;
       const countResult = await executeQuery(countQuery);
       const total = countResult[0].total;
@@ -342,13 +358,13 @@ const ordersController = {
         SELECT 
           NAME as id,
           FORMAT_TIMESTAMP('%Y-%m-%dT%H:%M:%S', CREATED_AT) as date,
-          CURRENT_TOTAL_PRICE as total,
+          CAST(CURRENT_TOTAL_PRICE AS NUMERIC) as total,
           COALESCE(FINANCIAL_STATUS, 'pending') as status,
           COALESCE(FULFILLMENT_STATUS, 'unfulfilled') as fulfillment_status,
-          CURRENT_SUBTOTAL_PRICE as subtotal,
-          CURRENT_TOTAL_DISCOUNTS as discounts,
-          CURRENT_TOTAL_TAX as tax
-        FROM \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.orders\`
+          CAST(CURRENT_SUBTOTAL_PRICE AS NUMERIC) as subtotal,
+          CAST(CURRENT_TOTAL_DISCOUNTS AS NUMERIC) as discounts,
+          CAST(CURRENT_TOTAL_TAX AS NUMERIC) as tax
+        FROM \`${getDatasetName()}\`
         ORDER BY CREATED_AT DESC
         LIMIT ${pageSize}
         OFFSET ${offset}
@@ -364,9 +380,9 @@ const ordersController = {
         totalPages: Math.ceil(total / pageSize)
       };
       
-      // Store in cache for 5 minutes
+      // Store in cache for 1 hour
       try {
-        await valkeyClient.set(cacheKey, JSON.stringify(response), 300);
+        await valkeyClient.set(cacheKey, JSON.stringify(response), 3600);
       } catch (cacheError) {
         logger.warn('Cache error:', cacheError);
       }

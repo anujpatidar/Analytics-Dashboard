@@ -2,10 +2,10 @@ const { BigQuery } = require('@google-cloud/bigquery');
 const path = require('path');
 const logger = require('./logger');
 
-// Initialize BigQuery client
+// Initialize BigQuery client with new project configuration
 const bigquery = new BigQuery({
   keyFilename: path.join(__dirname, '../service-account.json'),
-  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || 'analytics-dashboard-459607'
+  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID || 'frido-429506'
 });
 
 /**
@@ -52,12 +52,11 @@ const executeQuery = async (query, params = {}) => {
  * @returns {string} - Full dataset path (project.dataset.table)
  */
 const getDatasetName = () => {
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || 'analytics-dashboard-459607';
-  const dataset = process.env.BIGQUERY_DATASET || 'analytics-dashboard-459607';
-  const table = process.env.BIGQUERY_TABLE;
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID || 'frido-429506';
+  const dataset = process.env.BIGQUERY_DATASET || 'frido_analytics';
+  const table = process.env.BIGQUERY_TABLE || 'Frido_Shopify_orders';
   
-  
-  return `${dataset}.${table}`;
+  return `${projectId}.${dataset}.${table}`;
 };
 
 /**
