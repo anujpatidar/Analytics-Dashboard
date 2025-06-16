@@ -6,9 +6,19 @@ const { executeQuery, getDatasetName, formatDateForBigQuery } = require('../util
 const ordersController = {
   getOrdersOverview: async (req, res, next) => {
     try {
-      const { startDate, endDate } = req.query;
-      const cacheKey = `get_orders_overview:${startDate}:${endDate}`;
+      const { startDate, endDate, store = 'myfrido' } = req.query;
+      const cacheKey = `get_orders_overview:${startDate}:${endDate}:${store}`;
       let cachedData = null;
+      
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
       
       // Try to get data from cache first
       try {
@@ -73,7 +83,7 @@ const ordersController = {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json({ success: true, data: rows[0], store: store });
     } catch (error) {
       logger.error('Error fetching orders overview:', error);
       next(error);
@@ -82,11 +92,21 @@ const ordersController = {
 
   getOrdersByTimeRange: async (req, res, next) => {
     try {
-      const { startDate, endDate, timeframe = 'day' } = req.query;
-      console.log('Received parameters:', { startDate, endDate, timeframe });
+      const { startDate, endDate, timeframe = 'day', store = 'myfrido' } = req.query;
+      console.log('Received parameters:', { startDate, endDate, timeframe, store });
       
-      const cacheKey = `get_orders_by_time_range:${startDate}:${endDate}:${timeframe}`;
+      const cacheKey = `get_orders_by_time_range:${startDate}:${endDate}:${timeframe}:${store}`;
       let cachedData = null;
+
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
 
       try {
         cachedData = await valkeyClient.get(cacheKey);
@@ -154,7 +174,7 @@ const ordersController = {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: rows });
+      res.status(200).json({ success: true, data: rows, store: store });
     } catch (error) {
       logger.error('Error fetching orders by time range:', error);
       next(error);
@@ -163,10 +183,20 @@ const ordersController = {
 
   getTopSellingProducts: async (req, res, next) => {
     try {
-      const { startDate, endDate, limit = 10 } = req.query;
+      const { startDate, endDate, limit = 10, store = 'myfrido' } = req.query;
       
-      const cacheKey = `get_top_selling_products:${startDate}:${endDate}:${limit}`;
+      const cacheKey = `get_top_selling_products:${startDate}:${endDate}:${limit}:${store}`;
       let cachedData = null;
+
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
 
       try {
         cachedData = await valkeyClient.get(cacheKey);
@@ -215,7 +245,7 @@ const ordersController = {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: rows });
+      res.status(200).json({ success: true, data: rows, store: store });
     } catch (error) {
       logger.error('Error fetching top selling products:', error);
       next(error);
@@ -224,10 +254,19 @@ const ordersController = {
 
   getRefundMetrics: async (req, res, next) => {
     try {
-      const { startDate, endDate } = req.query;
-      
-      const cacheKey = `get_refund_metrics:${startDate}:${endDate}`;
+      const { startDate, endDate, store = 'myfrido' } = req.query;
+      const cacheKey = `get_refund_metrics:${startDate}:${endDate}:${store}`;
       let cachedData = null;
+
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
 
       try {
         cachedData = await valkeyClient.get(cacheKey);
@@ -313,7 +352,7 @@ const ordersController = {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: result });
+      res.status(200).json({ success: true, data: rows[0], store: store });
     } catch (error) {
       logger.error('Error fetching refund metrics:', error);
       next(error);
@@ -325,10 +364,21 @@ const ordersController = {
       // Ensure page and pageSize are valid numbers
       const page = Math.max(1, parseInt(req.query.page) || 1);
       const pageSize = Math.max(1, Math.min(100, parseInt(req.query.pageSize) || 10));
+      const store = req.query.store || 'myfrido';
       const offset = (page - 1) * pageSize;
       
-      const cacheKey = `get_recent_orders:${page}:${pageSize}`;
+      const cacheKey = `get_recent_orders:${page}:${pageSize}:${store}`;
       let cachedData = null;
+
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
 
       try {
         cachedData = await valkeyClient.get(cacheKey);
@@ -387,7 +437,7 @@ const ordersController = {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: response });
+      res.status(200).json({ success: true, data: response, store: store });
     } catch (error) {
       logger.error('Error fetching recent orders:', error);
       next(error);

@@ -30,11 +30,13 @@ const Navbar = () => {
   // Fetch all products for search functionality
   const fetchAllProducts = async () => {
     try {
+      console.log('Fetching products for search...'); // Debug log
       const response = await fetch('http://localhost:8080/api/v1/products/get-all-products');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const result = await response.json();
+      console.log('Products fetched successfully:', result.data?.length || 0); // Debug log
       setAllProducts(result.data || []);
     } catch (error) {
       console.error('Error fetching products for search:', error);
@@ -46,20 +48,33 @@ const Navbar = () => {
     const value = e.target.value;
     setSearchTerm(value);
     
+    console.log('Search term:', value); // Debug log
+    console.log('All products available:', allProducts.length); // Debug log
+    
     if (value.trim().length > 0) {
       setIsSearchLoading(true);
       
       // Filter products based on search term with proper null checks
       const filtered = allProducts
         .filter(product => {
-          // Safely check product name
-          const productName = product?.name || '';
-          const productSku = product?.sku || '';
+          // Safely check product title (API returns 'title', not 'name')
+          const productTitle = product?.title || '';
+          const productHandle = product?.handle || '';
           
-          return productName.toLowerCase().includes(value.toLowerCase()) ||
-                 productSku.toLowerCase().includes(value.toLowerCase());
+          // Check if any variant has a matching SKU
+          const hasMatchingSku = product?.variants?.some(variant => {
+            const variantSku = variant?.sku || '';
+            return variantSku.toLowerCase().includes(value.toLowerCase());
+          }) || false;
+          
+          const titleMatch = productTitle.toLowerCase().includes(value.toLowerCase());
+          const handleMatch = productHandle.toLowerCase().includes(value.toLowerCase());
+          
+          return titleMatch || handleMatch || hasMatchingSku;
         })
         .slice(0, 6); // Limit to 6 suggestions for navbar
+      
+      console.log('Filtered products:', filtered.length); // Debug log
       
       setSearchSuggestions(filtered);
       setShowSuggestions(true);
@@ -73,14 +88,16 @@ const Navbar = () => {
 
   // Handle suggestion click
   const handleSuggestionClick = (product) => {
-    // Check if product has a valid ID before navigating
-    if (product?.id) {
-      // Navigate to the selected product's details page
-      navigate(`/products/details/${product.id}`);
+    // Check if product has a valid title before navigating
+    if (product?.title) {
+      // Convert product title to slug format (lowercase with hyphens)
+      const slug = product.title.toLowerCase().replace(/ /g, '-');
+      // Navigate to the product details page using slug format
+      navigate(`/products/${slug}`);
       setSearchTerm('');
       setShowSuggestions(false);
     } else {
-      console.warn('Product ID is missing, cannot navigate:', product);
+      console.warn('Product title is missing, cannot navigate:', product);
     }
   };
 
@@ -169,7 +186,7 @@ const Navbar = () => {
                   >
                     <img
                       src={product?.image || 'https://via.placeholder.com/40'}
-                      alt={product?.name || 'Product'}
+                      alt={product?.title || 'Product'}
                       className="w-10 h-10 rounded-lg object-cover border border-gray-200 flex-shrink-0"
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/40';
@@ -177,10 +194,10 @@ const Navbar = () => {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-gray-900 text-sm truncate">
-                        {product?.name || 'Unnamed Product'}
+                        {product?.title || 'Unnamed Product'}
                       </div>
                       <div className="text-gray-500 text-xs">
-                        SKU: {product?.sku || 'N/A'}
+                        SKU: {product?.variants?.[0]?.sku || 'N/A'}
                       </div>
                     </div>
                   </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import GlobalStyles from './styles/GlobalStyles';
 import { Layout } from './components/Layout';
+import { StoreProvider } from './context/StoreContext';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import ProductsPage from './pages/Products/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage/ProductDetailsPage';
@@ -22,27 +23,29 @@ const SettingsPage = () => <div>Settings Page - Coming Soon</div>;
 function App() {
   return (
     <PasswordProtection>
-      <Router>
-        <GlobalStyles />
-        <Layout>
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/sales" element={<SalesPage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/products/:productId" element={<ProductDetailsPage />} />
-            <Route path="/marketplace-prices" element={<MarketPlacePrices />} />
-            <Route path="/meta-ads" element={<MetaAdsAnalytics />} />
-            <Route path="/google-ads" element={<GoogleAdsAnalytics />} />
-            <Route path="/combined-marketing" element={<CombinedMarketingAnalytics />} />
-            <Route path="/customers" element={<CustomersPage />} />
-            <Route path="/performance" element={<PerformancePage />} />
-            <Route path="/trends" element={<TrendsPage />} />
-            <Route path="/inventory" element={<InventoryPage />} />
-            <Route path="/orders" element={<OrdersPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
-          </Routes>
-        </Layout>
-      </Router>
+      <StoreProvider>
+        <Router>
+          <GlobalStyles />
+          <Layout>
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/sales" element={<SalesPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:productId" element={<ProductDetailsPage />} />
+              <Route path="/marketplace-prices" element={<MarketPlacePrices />} />
+              <Route path="/meta-ads" element={<MetaAdsAnalytics />} />
+              <Route path="/google-ads" element={<GoogleAdsAnalytics />} />
+              <Route path="/combined-marketing" element={<CombinedMarketingAnalytics />} />
+              <Route path="/customers" element={<CustomersPage />} />
+              <Route path="/performance" element={<PerformancePage />} />
+              <Route path="/trends" element={<TrendsPage />} />
+              <Route path="/inventory" element={<InventoryPage />} />
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </StoreProvider>
     </PasswordProtection>
   );
 }

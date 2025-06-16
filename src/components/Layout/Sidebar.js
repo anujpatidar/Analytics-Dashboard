@@ -13,9 +13,12 @@ import {
   FiActivity
 } from 'react-icons/fi';
 import { FaFacebook, FaGoogle } from 'react-icons/fa';
+import StoreSelector from './StoreSelector';
+import { useStore } from '../../context/StoreContext';
 
 const Sidebar = () => {
   const location = useLocation();
+  const { currentStore } = useStore();
   
   const isActive = (path) => {
     return location.pathname === path;
@@ -61,20 +64,28 @@ const Sidebar = () => {
 
   return (
     <aside className="h-screen fixed left-0 top-0 bg-gradient-to-b from-gray-50 to-white border-r border-gray-200 flex flex-col shadow-xl z-10" style={{width: '272px'}}>
-      {/* Logo Section */}
+      {/* Store Selector */}
       <div className="p-6 border-b border-gray-200">
+        <StoreSelector />
+      </div>
+
+      {/* Logo Section */}
+      {/* <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
-          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-            <FiActivity className="w-6 h-6 text-white" />
+          <div 
+            className="p-3 rounded-xl shadow-lg text-white text-lg"
+            style={{ backgroundColor: currentStore.color }}
+          >
+            <FiActivity className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               Analytics Pro
             </h1>
-            <p className="text-sm text-gray-500">Shopify Dashboard</p>
+            <p className="text-sm text-gray-500">{currentStore.name} Dashboard</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-2">

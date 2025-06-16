@@ -17,9 +17,12 @@ import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import styled from 'styled-components';
-import { FiPackage, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical, FiTrendingUp, FiTrendingDown, FiSearch, FiFilter } from 'react-icons/fi';
+import { FiPackage, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical, FiTrendingUp, FiTrendingDown, FiSearch, FiFilter, FiCalendar } from 'react-icons/fi';
 import { FaRupeeSign } from 'react-icons/fa';
 import StatCard from '../../components/Dashboard/StatCard';
+import StoreIndicator from '../../components/Dashboard/StoreIndicator';
+import { useStore } from '../../context/StoreContext';
+import { getAllProductsList, getOverallProductMetrics } from '../../api/productsAPI';
 import './ProductsPage.css';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -36,6 +39,171 @@ ChartJS.register(
   Legend,
   Filler
 );
+
+// Add styled components for tabs and date filters
+const DateFilterContainer = styled.div`
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
+
+const DateFilterGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  
+  label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 80px;
+  }
+  
+  input {
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9rem;
+    
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+  }
+`;
+
+const FilterButton = styled.button`
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const QuickDateButtons = styled.div`
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+`;
+
+const QuickDateButton = styled.button`
+  background: ${props => props.active ? '#3b82f6' : 'transparent'};
+  color: ${props => props.active ? 'white' : '#3b82f6'};
+  border: 1px solid #3b82f6;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #3b82f6;
+    color: white;
+  }
+`;
+
+const TabContainer = styled.div`
+  background: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-xl);
+  overflow: hidden;
+`;
+
+const TabHeader = styled.div`
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background: #f8f9fa;
+`;
+
+const TabButton = styled.button`
+  flex: 1;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: ${props => props.active ? 'white' : 'transparent'};
+  color: ${props => props.active ? '#3b82f6' : 'var(--text-secondary)'};
+  border: none;
+  font-weight: ${props => props.active ? '600' : '500'};
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border-bottom: ${props => props.active ? '3px solid #3b82f6' : '3px solid transparent'};
+  
+  &:hover {
+    background: ${props => props.active ? 'white' : '#f0f2f5'};
+    color: #3b82f6;
+  }
+  
+  &:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+  }
+  
+  .tab-badge {
+    background: ${props => props.active ? '#3b82f6' : '#6b7280'};
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    font-weight: 500;
+  }
+`;
+
+const TabContent = styled.div`
+  padding: var(--spacing-lg);
+  min-height: 60px;
+  
+  .tab-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-lg);
+    
+    .tab-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .tab-description {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+  }
+`;
 
 // Mock data - Replace with actual API calls
 const mockData = {
@@ -341,6 +509,7 @@ const SalesCard = styled.div`
 `;
 
 const ProductsPage = () => {
+  const { currentStore } = useStore();
   const [data, setData] = useState({
     totalProducts: 0,
     averageProductPrice: 0,
@@ -358,11 +527,74 @@ const ProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
-  const [endDate, setEndDate] = useState(new Date());
+  
+  // Updated date filter state to match ProductDetailsPage
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30); // Default to last 30 days
+    return date.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return new Date().toISOString().split('T')[0];
+  });
+  const [activeQuickFilter, setActiveQuickFilter] = useState('30d');
+
+  // Add marketplace tab state
+  const [activeTab, setActiveTab] = useState('all');
+
   const navigate = useNavigate();
 
   const PRODUCTS_PER_PAGE = 10;
+
+  // Add quick date filters
+  const quickDateFilters = [
+    { label: '7D', value: '7d', days: 7 },
+    { label: '30D', value: '30d', days: 30 },
+    { label: '3M', value: '3m', days: 90 },
+    { label: '6M', value: '6m', days: 180 },
+    { label: '1Y', value: '1y', days: 365 }
+  ];
+
+  // Tab configuration
+  const tabs = [
+    { 
+      id: 'all', 
+      label: 'Overall', 
+      icon: '🌐',
+      description: 'Aggregate data from all marketplaces and sales channels combined'
+    },
+    { 
+      id: 'website', 
+      label: 'Myfrido', 
+      icon: '🏪',
+      description: 'Performance data specifically from your website/direct sales'
+    },
+    { 
+      id: 'amazon', 
+      label: 'Amazon', 
+      icon: '📦',
+      description: 'Sales and performance metrics from Amazon marketplace'
+    }
+  ];
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    // Here you would typically refetch data for the specific marketplace
+    console.log(`Switched to tab: ${tabId}`);
+    // For now, we'll keep the current data but you can modify this to fetch different data
+  };
+
+  const handleQuickDateFilter = (filterValue, days) => {
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
+    
+    setEndDate(end.toISOString().split('T')[0]);
+    setStartDate(start.toISOString().split('T')[0]);
+    setActiveQuickFilter(filterValue);
+    // Refetch data with new date range
+    fetchData();
+  };
 
   // Filter products based on search term
   const filteredProducts = productList.filter(product =>
@@ -386,6 +618,7 @@ const ProductsPage = () => {
   };
 
   const handleDateRangeChange = () => {
+    setActiveQuickFilter(''); // Clear quick filter selection when using custom dates
     fetchData();
   };
 
@@ -407,40 +640,56 @@ const ProductsPage = () => {
     try {
       setIsLoading(true);
       
-      // Format dates for API
-      const formatDate = (date) => {
-        return date.toISOString().split('T')[0];
-      };
+      const storeParams = { store: currentStore.id };
 
       // Fetch products list
-      const productsResponse = await fetch('http://localhost:8080/api/v1/products/get-all-products');
-      const productsData = await productsResponse.json();
-      console.log('Products Data:', productsData.data);
-      setProductList(productsData.data.map(product => ({
-        id: product.id,
-        name: product.title,
-        sku: product.variants?.[0]?.sku || "N/A",
-        totalSold: product.totalSold || 0,
-        image: product?.image})));
-
-
-      // Fetch analytics data with date range
-      const analyticsResponse = await fetch(`http://localhost:8080/api/v1/products/get-overall-product-metrics`);
-      const analyticsData = await analyticsResponse.json();
+      const productsData = await getAllProductsList(storeParams);
       
-      setData({
-        totalProducts: productsData.data.length || 0,
-        averageProductPrice: analyticsData.data.averageProductPrice || 0,
-        totalCategories: analyticsData.data.totalCategories || 0,
-        averageReturnRate: analyticsData.data.averageReturnRate || 0,
-        topSellingProducts: analyticsData.data.topSellingProducts || [],
-        topSellingProducts24h: analyticsData.data.topSellingProducts24h || [],
-        topCategories: analyticsData.data.topCategories || [],
-        topCategories24h: analyticsData.data.topCategories24h || [],
-        leastSellingProducts: analyticsData.data.leastSellingProducts || [],
-        leastSellingProducts24h: analyticsData.data.leastSellingProducts24h || [],
-        mostReturnedProducts: analyticsData.data.mostReturnedProducts || []
-      });
+      if (productsData) {
+        setProductList(productsData.map(product => ({
+          id: product.id,
+          name: product.title || product.name,
+          sku: product.variants?.[0]?.sku || product.sku || "N/A",
+          totalSold: product.totalSold || 0,
+          image: product?.image || product?.image_url
+        })));
+      } else {
+        setProductList([]);
+      }
+
+      // Fetch analytics data
+      const analyticsData = await getOverallProductMetrics(storeParams);
+      
+      if (analyticsData) {
+        setData({
+          totalProducts: analyticsData.totalProducts || 0,
+          averageProductPrice: analyticsData.averageProductPrice || 0,
+          totalCategories: analyticsData.totalCategories || 0,
+          averageReturnRate: analyticsData.averageReturnRate || 0,
+          topSellingProducts: analyticsData.topSellingProducts || [],
+          topSellingProducts24h: analyticsData.topSellingProducts24h || [],
+          topCategories: analyticsData.topCategories || [],
+          topCategories24h: analyticsData.topCategories24h || [],
+          leastSellingProducts: analyticsData.leastSellingProducts || [],
+          leastSellingProducts24h: analyticsData.leastSellingProducts24h || [],
+          mostReturnedProducts: analyticsData.mostReturnedProducts || []
+        });
+      } else {
+        // Reset data for demo stores without full data
+        setData({
+          totalProducts: 0,
+          averageProductPrice: 0,
+          totalCategories: 0,
+          averageReturnRate: 0,
+          topSellingProducts: [],
+          topSellingProducts24h: [],
+          topCategories: [],
+          topCategories24h: [],
+          leastSellingProducts: [],
+          leastSellingProducts24h: [],
+          mostReturnedProducts: []
+        });
+      }
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -449,6 +698,12 @@ const ProductsPage = () => {
     }
   };
 
+  // Refetch data when store changes
+  useEffect(() => {
+    fetchData();
+  }, [currentStore.id]);
+
+  // Initial data fetch
   useEffect(() => {
     fetchData();
   }, []);
@@ -554,328 +809,342 @@ const ProductsPage = () => {
 
   return (
     <div className="products-page">
-      <h1 className="page-title">Products Analytics</h1>
-
-      {/* Date Range Filter */}
-      <DateRangeFilter>
-        <div className="date-picker-container">
-          <span className="date-picker-label">From:</span>
-          <DatePicker
-            selected={startDate}
-            onChange={date => setStartDate(date)}
-            selectsStart
-            startDate={startDate}
-            endDate={endDate}
-            maxDate={endDate}
-            className="date-picker"
-            dateFormat="dd/MM/yyyy"
-            placeholderText="DD/MM/YYYY"
-            showYearDropdown
-            scrollableYearDropdown
-            yearDropdownItemNumber={10}
-            showMonthDropdown
-            scrollableMonthDropdown
-          />
-        </div>
-        <div className="date-picker-container">
-          <span className="date-picker-label">To:</span>
-          <DatePicker
-            selected={endDate}
-            onChange={date => setEndDate(date)}
-            selectsEnd
-            startDate={startDate}
-            endDate={endDate}
-            minDate={startDate}
-            maxDate={new Date()}
-            className="date-picker"
-            dateFormat="dd/MM/yyyy"
-            placeholderText="DD/MM/YYYY"
-            showYearDropdown
-            scrollableYearDropdown
-            yearDropdownItemNumber={10}
-            showMonthDropdown
-            scrollableMonthDropdown
-          />
-        </div>
-        <button 
-          className="apply-button"
-          onClick={handleDateRangeChange}
-          disabled={isLoading}
-        >
-          Apply Filter
-        </button>
-      </DateRangeFilter>
-
-      {/* Stats Grid */}
-      <div className="stats-grid">
-        <StatCard
-          title="Total Products"
-          value={data.totalProducts}
-          icon={FiPackage}
-          change="12%"
-          changeType="increase"
-          loading={isLoading}
-        />
-        <StatCard
-          title="Average Product Price"
-          value={formatCurrency(data.averageProductPrice)}
-          icon={FaRupeeSign}
-          change="+5%"
-          changeType="increase"
-          loading={isLoading}
-        />
-        <StatCard
-          title="Total Categories"
-          value={data.totalCategories}
-          icon={FiGrid}
-          change="5%"
-          changeType="increase"
-          loading={isLoading}
-        />
-        <StatCard
-          title="Average Return Rate"
-          value={`${data.averageReturnRate}%`}
-          icon={FiRefreshCw}
-          change="2%"
-          changeType="decrease"
-          loading={isLoading}
-        />
-      </div>
-
-      {/* Charts Grid */}
-      <div className="charts-grid">
-        {/* Top Selling Products */}
-        <div className="chart-card">
-          <div className="chart-header">
-            <h2>Top 5 Selling Products (Overall)</h2>
-            <div className="chart-actions">
-              <button className="chart-action-button">
-                <FiDownload size={16} />
-              </button>
-              <button className="chart-action-button">
-                <FiMoreVertical size={16} />
-              </button>
-            </div>
-          </div>
-          <div className="chart-container">
-            <Bar data={topSellingProductsData} options={topSellingProductsOptions} />
-          </div>
-        </div>
-
-        <div className="chart-card">
-          <div className="chart-header">
-            <h2>Top 5 Selling Products (Last 24h)</h2>
-            <div className="chart-actions">
-              <button className="chart-action-button">
-                <FiDownload size={16} />
-              </button>
-              <button className="chart-action-button">
-                <FiMoreVertical size={16} />
-              </button>
-            </div>
-          </div>
-          <div className="chart-container">
-            <Bar 
-              data={{
-                ...topSellingProductsData,
-                labels: data.topSellingProducts24h.map(item => item.name),
-                datasets: [
-                  {
-                    ...topSellingProductsData.datasets[0],
-                    data: data.topSellingProducts24h.map(item => item.quantitySold),
-                  },
-                  {
-                    ...topSellingProductsData.datasets[1],
-                    data: data.topSellingProducts24h.map(item => item.revenue),
-                  }
-                ]
-              }} 
-              options={topSellingProductsOptions} 
-            />
-          </div>
-        </div>
-
+      <StoreIndicator />
       
-
-        {/* Most Returned Products */}
-        <div className="chart-card">
-          <h2>Most Returned Products</h2>
-          <div className="list-container">
-            {data.mostReturnedProducts.map((product, index) => (
-              <div key={index} className="list-item">
-                <span className="product-name">{product.name}</span>
-                <span className="product-value">
-                  {product.returns} returns ({product.returnRate})
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="products-header">
+        <h1>Products Analytics</h1>
       </div>
 
-       {/* Replace the SalesContainer section */}
-       <SalesContainer>
-        <SalesCard>
-          <div className="card-header">
-            <h2>
-              <FiTrendingUp style={{ color: '#4CAF50' }} />
-              Top Selling Products
-            </h2>
-            <div className="trend-indicator positive">
-              <FiTrendingUp />
-              <span>+12% from last period</span>
-            </div>
-          </div>
-          <div className="product-list">
-            {data.topSellingProducts.map((product, index) => (
-              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
-                <div className="product-rank">#{index + 1}</div>
-                <img
-                  src={product.image || 'https://via.placeholder.com/48'}
-                  alt={product.name}
-                  className="product-image"
-                />
-                <div className="product-info">
-                  <div className="product-name">{product.name}</div>
-                  <div className="product-metrics">
-                    <div className="metric sales">
-                      <FiTrendingUp />
-                      {product.sales} units
-                    </div>
-                    <div className="metric revenue">
-                      <FaRupeeSign />
-                      {formatCurrency(product.revenue)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SalesCard>
-
-        <SalesCard>
-          <div className="card-header">
-            <h2>
-              <FiTrendingDown style={{ color: '#F44336' }} />
-              Least Selling Products
-            </h2>
-            <div className="trend-indicator negative">
-              <FiTrendingDown />
-              <span>-8% from last period</span>
-            </div>
-          </div>
-          <div className="product-list">
-            {data.leastSellingProducts.map((product, index) => (
-              <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
-                <div className="product-rank">#{index + 1}</div>
-                <img
-                  src={product.image || 'https://via.placeholder.com/48'}
-                  alt={product.name}
-                  className="product-image"
-                />
-                <div className="product-info">
-                  <div className="product-name">{product.name}</div>
-                  <div className="product-metrics">
-                    <div className="metric sales">
-                      <FiTrendingDown />
-                      {product.sales} units
-                    </div>
-                    <div className="metric revenue">
-                      <FaRupeeSign />
-                      {formatCurrency(product.revenue)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </SalesCard>
-      </SalesContainer>
-
-      {/* Product List Section */}
-      <div className="product-list-section">
-        <h2>Product List</h2>
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search products by name or SKU..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
-          />
-        </div>
-        <div className="table-container">
-          <table className="product-table">
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Name</th>
-                <th>SKU</th>
-                <th>Total Sold</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr>
-                  <td colSpan="4">
-                    <ProductSkeleton />
-                  </td>
-                </tr>
-              ) : (
-                currentProducts.map((product) => (
-                  <tr
-                    key={product.id}
-                    onClick={() => handleProductClick(product.name)}
-                    className="product-row"
-                  >
-                    <td>
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="product-image"
-                      />
-                    </td>
-                    <td>{product.name}</td>
-                    <td>{product.sku}</td>
-                    <td>{product.totalSold}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      {/* Enhanced Date Filter Section */}
+      <DateFilterContainer>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <FiCalendar style={{ color: '#3b82f6' }} />
+          <span style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Date Range:</span>
         </div>
         
-        {/* Pagination Controls */}
-        <div className="pagination-controls">
-          <button
-            className="pagination-button"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          <div className="page-numbers">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`page-number ${currentPage === page ? 'active' : ''}`}
-                onClick={() => handlePageChange(page)}
+        <DateFilterGroup>
+          <label htmlFor="startDate">From:</label>
+          <input
+            type="date"
+            id="startDate"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            max={endDate}
+          />
+        </DateFilterGroup>
+        
+        <DateFilterGroup>
+          <label htmlFor="endDate">To:</label>
+          <input
+            type="date"
+            id="endDate"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            min={startDate}
+            max={new Date().toISOString().split('T')[0]}
+          />
+        </DateFilterGroup>
+        
+        <FilterButton onClick={handleDateRangeChange} disabled={isLoading}>
+          <FiFilter />
+          {isLoading ? 'Loading...' : 'Apply Filter'}
+        </FilterButton>
+        
+        <div style={{ 
+          borderLeft: '1px solid var(--border-color)', 
+          paddingLeft: 'var(--spacing-md)', 
+          marginLeft: 'var(--spacing-md)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-sm)'
+        }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            Quick filters:
+          </span>
+          <QuickDateButtons>
+            {quickDateFilters.map((filter) => (
+              <QuickDateButton
+                key={filter.value}
+                active={activeQuickFilter === filter.value}
+                onClick={() => handleQuickDateFilter(filter.value, filter.days)}
               >
-                {page}
-              </button>
+                {filter.label}
+              </QuickDateButton>
             ))}
-          </div>
-          <button
-            className="pagination-button"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
+          </QuickDateButtons>
         </div>
-      </div>
+      </DateFilterContainer>
 
-     
+      {/* Add Marketplace Tab Components */}
+      <TabContainer>
+        <TabHeader>
+          {tabs.map((tab) => (
+            <TabButton
+              key={tab.id}
+              active={activeTab === tab.id}
+              onClick={() => handleTabChange(tab.id)}
+            >
+              <span>{tab.icon}</span> {tab.label}
+              {activeTab === tab.id && <span className="tab-badge">Active</span>}
+            </TabButton>
+          ))}
+        </TabHeader>
+        
+        <TabContent>
+          {tabs.map((tab) => (
+            activeTab === tab.id && (
+              <div key={tab.id}>
+                <div className="tab-info">
+                  <div className="tab-title">
+                    <span>{tab.icon}</span>
+                    {tab.label} Analytics
+                  </div>
+                  <div className="tab-description">
+                    {tab.description}
+                  </div>
+                </div>
+                
+                {/* Show placeholder for non-Myfrido tabs */}
+                {activeTab !== 'website' && activeTab !== 'all' && (
+                  <div style={{ 
+                    padding: '3rem 2rem', 
+                    background: '#f8f9fa', 
+                    borderRadius: '12px', 
+                    textAlign: 'center',
+                    border: '2px dashed #dee2e6',
+                    marginBottom: '2rem'
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{tab.icon}</div>
+                    <h3 style={{ color: '#6c757d', marginBottom: '1rem', fontSize: '1.5rem' }}>
+                      {tab.label} Analytics Coming Soon
+                    </h3>
+                    <p style={{ color: '#6c757d', fontSize: '1.1rem', margin: '0 0 1rem 0', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
+                      We're working on bringing you comprehensive {tab.label.toLowerCase()} analytics. This section will include marketplace-specific metrics, performance data, and insights.
+                    </p>
+                    <div style={{ 
+                      background: 'white', 
+                      padding: '1rem', 
+                      borderRadius: '8px', 
+                      display: 'inline-block',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}>
+                      <span style={{ color: '#6c757d', fontSize: '0.9rem' }}>
+                        📈 Sales Tracking • 📊 Performance Metrics • 🎯 ROI Analysis
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          ))}
+        </TabContent>
+      </TabContainer>
+
+      {/* Stats Grid - Only show when on active tab with data */}
+      {(activeTab === 'all' || activeTab === 'website') && (
+        <>
+          <div className="stats-grid">
+            <StatCard
+              title="Total Products"
+              value={data.totalProducts}
+              icon={FiPackage}
+              change="12%"
+              changeType="increase"
+              loading={isLoading}
+              tooltip="Total number of active products available in your inventory across all categories and variants"
+            />
+            <StatCard
+              title="Average Product Price"
+              value={formatCurrency(data.averageProductPrice)}
+              icon={FaRupeeSign}
+              change="+5%"
+              changeType="increase"
+              loading={isLoading}
+              tooltip="Average selling price calculated across all products, including variations and different pricing tiers"
+            />
+            <StatCard
+              title="Total Categories"
+              value={data.totalCategories}
+              icon={FiGrid}
+              change="5%"
+              changeType="increase"
+              loading={isLoading}
+              tooltip="Number of distinct product categories used to organize your inventory and improve customer navigation"
+            />
+            <StatCard
+              title="Average Return Rate"
+              value={`${data.averageReturnRate}%`}
+              icon={FiRefreshCw}
+              change="2%"
+              changeType="decrease"
+              loading={isLoading}
+              tooltip="Percentage of products returned by customers, calculated as (returned items / total sold items) × 100"
+            />
+          </div>
+
+          {/* Sales Container - Top and Least Selling Products */}
+          <SalesContainer>
+            <SalesCard>
+              <div className="card-header">
+                <h2>
+                  <FiTrendingUp style={{ color: '#4CAF50' }} />
+                  Top Selling Products
+                </h2>
+                <div className="trend-indicator positive">
+                  <FiTrendingUp />
+                  <span>+12% from last period</span>
+                </div>
+              </div>
+              <div className="product-list">
+                {data.topSellingProducts.map((product, index) => (
+                  <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
+                    <div className="product-rank">#{index + 1}</div>
+                    <img
+                      src={product.image || 'https://via.placeholder.com/48'}
+                      alt={product.name}
+                      className="product-image"
+                    />
+                    <div className="product-info">
+                      <div className="product-name">{product.name}</div>
+                      <div className="product-metrics">
+                        <div className="metric sales">
+                          <FiTrendingUp />
+                          {product.quantitySold} units
+                        </div>
+                        <div className="metric revenue">
+                          <FaRupeeSign />
+                          {formatCurrency(product.revenue)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SalesCard>
+
+            <SalesCard>
+              <div className="card-header">
+                <h2>
+                  <FiTrendingDown style={{ color: '#F44336' }} />
+                  Least Selling Products
+                </h2>
+                <div className="trend-indicator negative">
+                  <FiTrendingDown />
+                  <span>-8% from last period</span>
+                </div>
+              </div>
+              <div className="product-list">
+                {data.leastSellingProducts.map((product, index) => (
+                  <div key={index} className="product-item" onClick={() => handleProductClick(product.id)}>
+                    <div className="product-rank">#{index + 1}</div>
+                    <img
+                      src={product.image || 'https://via.placeholder.com/48'}
+                      alt={product.name}
+                      className="product-image"
+                    />
+                    <div className="product-info">
+                      <div className="product-name">{product.name}</div>
+                      <div className="product-metrics">
+                        <div className="metric sales">
+                          <FiTrendingDown />
+                          {product.quantitySold} units
+                        </div>
+                        <div className="metric revenue">
+                          <FaRupeeSign />
+                          {formatCurrency(product.revenue)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SalesCard>
+          </SalesContainer>
+
+          {/* Product List Section */}
+          <div className="product-list-section">
+            <h2>Product List</h2>
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search products by name or SKU..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
+            <div className="table-container">
+              <table className="product-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>SKU</th>
+                    <th>Total Sold</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="4">
+                        <ProductSkeleton />
+                      </td>
+                    </tr>
+                  ) : (
+                    currentProducts.map((product) => (
+                      <tr
+                        key={product.id}
+                        onClick={() => handleProductClick(product.name)}
+                        className="product-row"
+                      >
+                        <td>
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="product-image"
+                          />
+                        </td>
+                        <td>{product.name}</td>
+                        <td>{product.sku}</td>
+                        <td>{product.totalSold}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination Controls */}
+            <div className="pagination-controls">
+              <button
+                className="pagination-button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              <div className="page-numbers">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    className={`page-number ${currentPage === page ? 'active' : ''}`}
+                    onClick={() => handlePageChange(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              <button
+                className="pagination-button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

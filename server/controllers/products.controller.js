@@ -14,14 +14,43 @@ const MetaAdsAnalytics = require('../utils/MetaAdsAnalytics');
 const productsController = {
   getAllProductsList: async (req, res, next) => {
     try {
-      logger.info('Getting all products list');
+      const { store = 'myfrido' } = req.query;
       
-      // Fetch from Shopify
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
+
+      // const cacheKey = 'get_all_products';
+      // // Try to get data from cache first
+      // const cachedData = await valkeyClient.get(cacheKey);
+      // if (cachedData) {
+      //  console.log(chalk.bgGreen('Cache hit for all products'));
+      //   return res.status(200).json({
+      //     success: true,
+      //     data: JSON.parse(cachedData),
+      //     fromCache: true
+      //   });
+      // }
+      // // If not in cache, fetch from DynamoDB
+      // console.log(chalk.bgYellow('Cache miss for all products, fetching from DynamoDB'));
+      // const command = new ScanCommand({
+      //   TableName: "ShopifyProducts-dev",
+      // });
+      // const response = await docClient.send(command);
+      // // Store in cache permanently (no expiration)
+      // await valkeyClient.set(cacheKey, JSON.stringify(response.Items));
+      // res.status(200).json({ success: true, data: response.Items });
       const products = await fetchAllProducts();
       
       res.status(200).json({
         success: true,
-        data: products,
+        data: products, store: store,
         total: products.length
       });
     } catch (error) {
@@ -58,6 +87,18 @@ const productsController = {
   },
   getMarketplacePrices: async (req, res, next) => {
     try {
+      const { store = 'myfrido' } = req.query;
+      
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
+
       const cacheKey = `get_marketplace_prices`;
       // Try to get data from cache first
       const cachedData = await valkeyClient.get(cacheKey);
@@ -75,7 +116,7 @@ const productsController = {
       //store in cache
       await valkeyClient.set(cacheKey, JSON.stringify(products));
       console.log(chalk.bgGreen(`Fetched ${products.length} products with variants`));
-      res.status(200).json({ success: true, data: products });
+      res.status(200).json({ success: true, data: products, store: store });
     } catch (error) {
       logger.error('Error fetching marketplace prices:', error);
       next(error);
@@ -83,6 +124,18 @@ const productsController = {
   },
   getOverallProductMetrics: async (req, res, next) => {
     try {
+      const { store = 'myfrido' } = req.query;
+      
+      // For non-myfrido stores, return null to let client handle with demo data
+      if (store !== 'myfrido') {
+        return res.status(200).json({
+          success: true,
+          data: null,
+          store: store,
+          message: 'Using demo data for this store'
+        });
+      }
+
       const cacheKey = `get_overall_product_metrics`;
       // Try to get data from cache first
       const cachedData = await valkeyClient.get(cacheKey);
@@ -110,7 +163,7 @@ const productsController = {
       };
       //add cache
       await valkeyClient.set(cacheKey, JSON.stringify(mockData));
-      res.status(200).json({ success: true, data: mockData });
+      res.status(200).json({ success: true, data: mockData, store: store });
     } catch (error) {
       logger.error('Error fetching overall product metrics:', error);
       next(error);

@@ -2,19 +2,66 @@ const queryForBigQuery = require('../config/bigquery');
 const path = require('path');
 const { getDatasetName } = require('./bigquery');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
-
+const { fetchProductImageByProductTitle } = require('./fetchDataFromShopify');
+const { fetchProductImageByProductTitleREST } = require('./fetchDataFromShopify');
 const fetchTotalProductsCount = async () => {
     try {
-        // Updated query for nested line_items structure
-        const query = `
-            SELECT COUNT(DISTINCT line_item.PRODUCT_ID) as total_products
-            FROM \`${getDatasetName()}\` o,
-            UNNEST(o.line_items) as line_item
-            WHERE line_item.PRODUCT_ID IS NOT NULL
-        `;
-        
-        const result = await queryForBigQuery(query);
-        return result[0]?.total_products || 0;
+        let totalCount = 0;
+        let hasNextPage = true;
+        let cursor = null;
+
+        while (hasNextPage) {
+            const query = `
+                query($cursor: String) {
+                    products(first: 250, after: $cursor, query: "status:ACTIVE -tag:no-product") {
+                        pageInfo {
+                            hasNextPage
+                            endCursor
+                        }
+                        edges {
+                            node {
+                                id
+                                title
+                                status
+                                tags
+                            }
+                        }
+                    }
+                }
+            `;
+
+            const response = await fetch(`https://${process.env.SHOPIFY_APP_URL}/admin/api/2024-01/graphql.json`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN
+                },
+                body: JSON.stringify({ 
+                    query,
+                    variables: { cursor }
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.errors) {
+                throw new Error(data.errors[0].message);
+            }
+
+            const products = data.data.products;
+            totalCount += products.edges.length;
+            hasNextPage = products.pageInfo.hasNextPage;
+            cursor = products.pageInfo.endCursor;
+
+            // console.log(`Fetched ${products.edges.length} products, total so far: ${totalCount}`);
+        }
+
+        return totalCount;
     } catch (error) {
         console.error('Error fetching total products count:', error);
         return 0;
@@ -62,17 +109,47 @@ const getTopSellingProducts = async (startDate, endDate) => {
         `;
 
         const result = await queryForBigQuery(query);
-        
-        const data = result.map(item => ({
-            name: item.product_name,
-            quantitySold: item.total_quantity_sold,
-            revenue: item.total_revenue
-        }));
 
-        return data;
+        // Check if result is valid
+        if (!result || !Array.isArray(result) || result.length === 0) {
+            console.log('❌ No results from BigQuery, returning mock data');
+            const mockData = [
+                { name: 'Product A', sales: 1200, revenue: 24000, image: null },
+                { name: 'Product B', sales: 950, revenue: 19000, image: null },
+                { name: 'Product C', sales: 800, revenue: 16000, image: null },
+                { name: 'Product D', sales: 750, revenue: 15000, image: null },
+                { name: 'Product E', sales: 600, revenue: 12000, image: null },
+            ];
+            return mockData;
+        }
+
+        // Fetch images for all products in parallel using Promise.all
+        const dataWithImages = await Promise.all(
+            result.map(async (item) => {
+                console.log('🔍 Fetching image for product:', item.product_name);
+                const productImages = await fetchProductImageByProductTitleREST(item.product_name);
+                console.log('🖼️ Image result for', item.product_name, ':', productImages);
+                
+                return {
+                    name: item.product_name,
+                    quantitySold: item.total_quantity_sold,
+                    revenue: item.total_revenue,
+                    image: productImages.imageUrl || null
+                };
+            })
+        );
+
+        console.log('✅ Final data with images:', dataWithImages);
+        return dataWithImages;
+        
     } catch (error) {
-        console.error('Error fetching top selling products:', error);
-        throw error;
+        console.error('❌ Error fetching top selling products:', error);
+        // Return fallback data in case of error
+        const fallbackData = [
+            { name: 'Error fetching top selling products', sales: 0, revenue: 0, image: null },
+          
+        ];
+        return fallbackData;
     }
 }
 
@@ -126,17 +203,66 @@ const getTopCategories24h = async () => {
 
 const getLeastSellingProducts = async () => {
     try {
-        const mockData =  [
-            { name: 'Product X', sales: 10, revenue: 200 },
-            { name: 'Product Y', sales: 15, revenue: 300 },
-            { name: 'Product Z', sales: 20, revenue: 400 },
-            { name: 'Product W', sales: 25, revenue: 500 },
-            { name: 'Product V', sales: 30, revenue: 600 },
-        ];
-        return mockData;
+        const query = `
+            SELECT 
+            TITLE as product_name,
+            SUM(CURRENT_QUANTITY) as total_quantity_sold,
+            SUM((CURRENT_QUANTITY * PRICE) - DISCOUNT_ALLOCATION_AMOUNT) as total_revenue,
+            COUNT(DISTINCT SKU) as number_of_variants
+            FROM 
+            \`${process.env.BIGQUERY_DATASET}.${process.env.BIGQUERY_TABLE}.line_items\`
+            WHERE 
+            TITLE IS NOT NULL 
+            AND CURRENT_QUANTITY IS NOT NULL
+            AND CURRENT_QUANTITY > 0
+            GROUP BY 
+            TITLE
+            ORDER BY 
+            total_quantity_sold ASC
+            LIMIT 5;
+        `;
+
+        const result = await queryForBigQuery(query);
+
+        // Check if result is valid
+        if (!result || !Array.isArray(result) || result.length === 0) {
+            console.log('❌ No results from BigQuery for least selling products, returning mock data');
+            const mockData = [
+                { name: 'Product X', quantitySold: 10, revenue: 200, image: null },
+                { name: 'Product Y', quantitySold: 15, revenue: 300, image: null },
+                { name: 'Product Z', quantitySold: 20, revenue: 400, image: null },
+                { name: 'Product W', quantitySold: 25, revenue: 500, image: null },
+                { name: 'Product V', quantitySold: 30, revenue: 600, image: null },
+            ];
+            return mockData;
+        }
+
+        // Fetch images for all products in parallel using Promise.all
+        const dataWithImages = await Promise.all(
+            result.map(async (item) => {
+                console.log('🔍 Fetching image for least selling product:', item.product_name);
+                const productImages = await fetchProductImageByProductTitleREST(item.product_name);
+                console.log('🖼️ Image result for', item.product_name, ':', productImages);
+                
+                return {
+                    name: item.product_name,
+                    quantitySold: item.total_quantity_sold,
+                    revenue: item.total_revenue,
+                    image: productImages.imageUrl || null
+                };
+            })
+        );
+
+        console.log('✅ Final least selling products data with images:', dataWithImages);
+        return dataWithImages;
+        
     } catch (error) {
-        console.error('Error fetching least selling products:', error);
-        throw error;
+        console.error('❌ Error fetching least selling products:', error);
+        // Return fallback data in case of error
+        const fallbackData = [
+            { name: 'Error fetching least selling products', quantitySold: 0, revenue: 0, image: null },
+        ];
+        return fallbackData;
     }
 }
 

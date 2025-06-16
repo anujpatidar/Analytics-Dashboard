@@ -26,6 +26,7 @@ import {
 } from 'chart.js';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import StatCard from '../../components/Dashboard/StatCard';
+import StoreIndicator from '../../components/Dashboard/StoreIndicator';
 import { formatCurrency, formatNumber } from '../../utils/formatters';
 import { 
   FiPackage,
@@ -42,6 +43,7 @@ import MetaAdsDashboardWidget from '../../components/MetaAds/MetaAdsDashboardWid
 import GoogleAdsDashboardWidget from '../../components/GoogleAds/GoogleAdsDashboardWidget';
 import CombinedMarketingWidget from '../../components/Marketing/CombinedMarketingWidget';
 import useDataFetching from '../../hooks/useDataFetching';
+import { useStore } from '../../context/StoreContext';
 import {
   getOrdersOverview,
   getOrdersByTimeRange,
@@ -66,6 +68,7 @@ ChartJS.register(
 );
 
 const DashboardPage = () => {
+  const { currentStore } = useStore();
   const timeZone = 'Asia/Kolkata';
   
   // Helper function to convert to IST
@@ -101,7 +104,8 @@ const DashboardPage = () => {
     if (isCustomDateRange && dateRange[0] && dateRange[1]) {
       return {
         startDate: toUTC(startOfDay(dateRange[0])).toISOString(),
-        endDate: toUTC(endOfDay(dateRange[1])).toISOString()
+        endDate: toUTC(endOfDay(dateRange[1])).toISOString(),
+        store: currentStore.id
       };
     }
 
@@ -127,7 +131,8 @@ const DashboardPage = () => {
     
     return {
       startDate: toUTC(start).toISOString(),
-      endDate: toUTC(end).toISOString()
+      endDate: toUTC(end).toISOString(),
+      store: currentStore.id
     };
   };
 
@@ -165,7 +170,8 @@ const DashboardPage = () => {
   } = useDataFetching(getOrdersByTimeRange, [], {
     startDate: getCurrentDateRange().startDate,
     endDate: getCurrentDateRange().endDate,
-    timeframe
+    timeframe,
+    store: currentStore.id
   });
 
   // Fetch recent orders with date range
@@ -179,20 +185,28 @@ const DashboardPage = () => {
     ...getCurrentDateRange()
   });
 
+  // Refetch data when store changes
+  useEffect(() => {
+    const dateRangeWithStore = getCurrentDateRange();
+    refetchAllData(dateRangeWithStore);
+  }, [currentStore.id]);
+
   // Function to refetch all data
   const refetchAllData = (dateRange) => {
-    refetchOrdersOverview(dateRange);
-    refetchRefundMetrics(dateRange);
-    refetchTopProducts(dateRange);
+    const params = { ...dateRange, store: currentStore.id };
+    refetchOrdersOverview(params);
+    refetchRefundMetrics(params);
+    refetchTopProducts(params);
     refetchOrdersByTimeRange({
       startDate: dateRange.startDate,
       endDate: dateRange.endDate,
-      timeframe: isCustomDateRange ? 'custom' : timeframe
+      timeframe: isCustomDateRange ? 'custom' : timeframe,
+      store: currentStore.id
     });
     refetchRecentOrders({
       page: currentPage,
       pageSize,
-      ...dateRange
+      ...params
     });
   };
 
@@ -203,7 +217,8 @@ const DashboardPage = () => {
       setIsCustomDateRange(true);
       const dateRange = {
         startDate: toUTC(startOfDay(update[0])).toISOString(),
-        endDate: toUTC(endOfDay(update[1])).toISOString()
+        endDate: toUTC(endOfDay(update[1])).toISOString(),
+        store: currentStore.id
       };
       refetchAllData(dateRange);
     }
@@ -515,7 +530,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Total Revenue',
-      value: formatCurrency(ordersOverview?.total_revenue || 0),
+      value: formatCurrency(ordersOverview?.total_sales || 0),
       icon: FaRupeeSign,
       change: ordersOverview?.revenue_change_percentage ? `${ordersOverview.revenue_change_percentage}%` : '0%',
       changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease',
@@ -646,6 +661,9 @@ const DashboardPage = () => {
   return (
     <div className="p-6">
       <div className="space-y-6">
+        {/* Store Indicator */}
+       
+        
         {/* Header */}
         <div className="">
           <div className="flex items-center justify-between mb-4">
