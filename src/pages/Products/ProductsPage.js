@@ -205,6 +205,51 @@ const TabContent = styled.div`
   }
 `;
 
+const MetricSection = styled.div`
+  background: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--border-color);
+`;
+
+const MetricGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+`;
+
+// Add new styled component for compact cards
+const CompactStatCard = styled(StatCard)`
+  padding: var(--spacing-sm);
+  
+  .stat-title {
+    font-size: 0.8rem;
+  }
+  
+  .stat-value {
+    font-size: 1.1rem;
+  }
+  
+  .stat-change {
+    font-size: 0.7rem;
+  }
+  
+  .stat-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+`;
+
 // Mock data - Replace with actual API calls
 const mockData = {
   totalProducts: 78,
@@ -943,44 +988,329 @@ const ProductsPage = () => {
       {/* Stats Grid - Only show when on active tab with data */}
       {(activeTab === 'all' || activeTab === 'website') && (
         <>
-          <div className="stats-grid">
-            <StatCard
-              title="Total Products"
-              value={data.totalProducts}
-              icon={FiPackage}
-              change="12%"
-              changeType="increase"
-              loading={isLoading}
-              tooltip="Total number of active products available in your inventory across all categories and variants"
-            />
-            <StatCard
-              title="Average Product Price"
-              value={formatCurrency(data.averageProductPrice)}
-              icon={FaRupeeSign}
-              change="+5%"
-              changeType="increase"
-              loading={isLoading}
-              tooltip="Average selling price calculated across all products, including variations and different pricing tiers"
-            />
-            <StatCard
-              title="Total Categories"
-              value={data.totalCategories}
-              icon={FiGrid}
-              change="5%"
-              changeType="increase"
-              loading={isLoading}
-              tooltip="Number of distinct product categories used to organize your inventory and improve customer navigation"
-            />
-            <StatCard
-              title="Average Return Rate"
-              value={`${data.averageReturnRate}%`}
-              icon={FiRefreshCw}
-              change="2%"
-              changeType="decrease"
-              loading={isLoading}
-              tooltip="Percentage of products returned by customers, calculated as (returned items / total sold items) × 100"
-            />
-          </div>
+          {/* Sales Metrics Section */}
+          <MetricSection>
+            <SectionTitle>Sales Metrics</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="Total Sales"
+                value={formatCurrency(data.totalSales || 0)}
+                icon={FaRupeeSign}
+                change="12%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Total sales value including all transactions before any deductions"
+              />
+              <CompactStatCard
+                title="Gross Sales"
+                value={formatCurrency(data.grossSales || 0)}
+                icon={FaRupeeSign}
+                change="+5%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Gross sales value before returns and discounts"
+              />
+              <CompactStatCard
+                title="Net Sales"
+                value={formatCurrency(data.netSales || 0)}
+                icon={FaRupeeSign}
+                change="5%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Net sales after deducting returns and discounts"
+              />
+              <CompactStatCard
+                title="Gross Sales %"
+                value={`${data.grossSalesPercentage || 0}%`}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Gross sales as percentage of total sales"
+              />
+              <CompactStatCard
+                title="Net Sales %"
+                value={`${data.netSalesPercentage || 0}%`}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Net sales as percentage of total sales"
+              />
+            </MetricGrid>
+          </MetricSection>
+
+          {/* Returns Section */}
+          <MetricSection>
+            <SectionTitle>Returns</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="Total Returns"
+                value={formatCurrency(data.totalReturns || 0)}
+                icon={FiRefreshCw}
+                change="2%"
+                changeType="decrease"
+                loading={isLoading}
+                tooltip="Total value of returned products"
+              />
+              <CompactStatCard
+                title="Return Rate"
+                value={`${data.returnRate || 0}%`}
+                icon={FiRefreshCw}
+                change="2%"
+                changeType="decrease"
+                loading={isLoading}
+                tooltip="Percentage of total sales that were returned"
+              />
+            </MetricGrid>
+          </MetricSection>
+
+          {/* Tax Section */}
+          <MetricSection>
+            <SectionTitle>Tax</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="Total Tax"
+                value={formatCurrency(data.totalTax || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Total tax collected on sales"
+              />
+              <CompactStatCard
+                title="Tax Rate"
+                value={`${data.taxRate || 0}%`}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Tax as percentage of total sales"
+              />
+            </MetricGrid>
+          </MetricSection>
+
+          {/* Expenses Section */}
+          <MetricSection>
+            <SectionTitle>Expenses</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="COGS"
+                value={formatCurrency(data.cogs || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Cost of Goods Sold"
+              />
+              <CompactStatCard
+                title="COGS %"
+                value={`${data.cogsPercentage || 0}%`}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Cost of Goods Sold as percentage of total sales"
+              />
+              <CompactStatCard
+                title="S&D Cost"
+                value={formatCurrency(data.sdCost || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Shipping and Delivery Costs"
+              />
+              <CompactStatCard
+                title="S&D Cost %"
+                value={`${data.sdCostPercentage || 0}%`}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Shipping and Delivery Costs as percentage of total sales"
+              />
+            </MetricGrid>
+          </MetricSection>
+
+          {/* Marketing Section */}
+          <MetricSection>
+            <SectionTitle>Marketing</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="Total Marketing Cost"
+                value={formatCurrency(data.totalMarketingCost || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Total marketing expenditure across all channels"
+              />
+              <CompactStatCard
+                title="Marketing Cost %"
+                value={`${data.marketingCostPercentage || 0}%`}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Marketing costs as percentage of total sales"
+              />
+            </MetricGrid>
+            
+            {/* Marketing Channel Split Table */}
+            <div className="marketing-channels-table mt-2">
+              <h4 className="text-xs font-medium text-gray-600 mb-1">Marketing Channel Split</h4>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Channel</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (INR)</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {data.marketingChannels?.map((channel, index) => (
+                      <tr key={index}>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{channel.name}</td>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{formatCurrency(channel.cost)}</td>
+                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{channel.percentage}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </MetricSection>
+
+          {/* ROAS Section */}
+          <MetricSection>
+            <SectionTitle>ROAS</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="Gross ROAS"
+                value={data.grossRoas?.toFixed(2) || '0.00'}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Return on Ad Spend (Gross)"
+              />
+              <CompactStatCard
+                title="Gross MER"
+                value={`${data.grossMer || 0}%`}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Marketing Efficiency Ratio (Gross)"
+              />
+              <CompactStatCard
+                title="Net ROAS"
+                value={data.netRoas?.toFixed(2) || '0.00'}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Return on Ad Spend (Net)"
+              />
+              <CompactStatCard
+                title="Net MER"
+                value={`${data.netMer || 0}%`}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Marketing Efficiency Ratio (Net)"
+              />
+              <CompactStatCard
+                title="N-ROAS"
+                value={data.nRoas?.toFixed(2) || '0.00'}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Net Return on Ad Spend"
+              />
+              <CompactStatCard
+                title="N-MER"
+                value={`${data.nMer || 0}%`}
+                icon={FiTrendingUp}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Net Marketing Efficiency Ratio"
+              />
+            </MetricGrid>
+          </MetricSection>
+
+          {/* CAC Section */}
+          <MetricSection>
+            <SectionTitle>CAC</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="CAC"
+                value={formatCurrency(data.cac || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="decrease"
+                loading={isLoading}
+                tooltip="Customer Acquisition Cost"
+              />
+              <CompactStatCard
+                title="N-CAC"
+                value={formatCurrency(data.nCac || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="decrease"
+                loading={isLoading}
+                tooltip="Net Customer Acquisition Cost"
+              />
+            </MetricGrid>
+          </MetricSection>
+
+          {/* Contribution Margin Section */}
+          <MetricSection>
+            <SectionTitle>Contribution Margin</SectionTitle>
+            <MetricGrid>
+              <CompactStatCard
+                title="CM2"
+                value={formatCurrency(data.cm2 || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Contribution Margin Level 2"
+              />
+              <CompactStatCard
+                title="CM2 %"
+                value={`${data.cm2Percentage || 0}%`}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Contribution Margin Level 2 as percentage"
+              />
+              <CompactStatCard
+                title="CM3"
+                value={formatCurrency(data.cm3 || 0)}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Contribution Margin Level 3"
+              />
+              <CompactStatCard
+                title="CM3 %"
+                value={`${data.cm3Percentage || 0}%`}
+                icon={FaRupeeSign}
+                change="2%"
+                changeType="increase"
+                loading={isLoading}
+                tooltip="Contribution Margin Level 3 as percentage"
+              />
+            </MetricGrid>
+          </MetricSection>
 
           {/* Sales Container - Top and Least Selling Products */}
           <SalesContainer>

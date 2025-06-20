@@ -40,37 +40,29 @@ const ordersController = {
       const formattedStartDate = startDate ? new Date(startDate).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const formattedEndDate = endDate ? new Date(endDate).toISOString() : new Date().toISOString();
 
+      console.log('--------------------------------');
+      console.log('Formatted dates:', { formattedStartDate, formattedEndDate });
+      console.log("--------------------------------");
       // Updated query for new table structure with nested data
       const query = `
-        WITH order_metrics AS (
-          SELECT 
-            COUNT(DISTINCT NAME) as total_orders,
-            SUM(CAST(TOTAL_PRICE AS NUMERIC)) as total_sales,
-            AVG(CAST(TOTAL_PRICE AS NUMERIC)) as average_order_value,
-            SUM(ARRAY_LENGTH(line_items)) as total_items_sold,
-            COUNT(DISTINCT CASE WHEN ARRAY_LENGTH(refunds) > 0 THEN NAME END) as orders_with_refunds
-          FROM \`${getDatasetName()}\`
-          WHERE CREATED_AT >= TIMESTAMP('${formattedStartDate}')
-            AND CREATED_AT <= TIMESTAMP('${formattedEndDate}')
-        ),
-        previous_period AS (
-          SELECT 
-            COUNT(DISTINCT NAME) as prev_total_orders,
-            SUM(CAST(TOTAL_PRICE AS NUMERIC)) as prev_total_sales,
-            AVG(CAST(TOTAL_PRICE AS NUMERIC)) as prev_average_order_value
-          FROM \`${getDatasetName()}\`
-          WHERE CREATED_AT >= TIMESTAMP_SUB(TIMESTAMP('${formattedStartDate}'), INTERVAL 30 DAY)
-            AND CREATED_AT < TIMESTAMP('${formattedStartDate}')
-        )
-        SELECT 
-          om.*,
-          pp.prev_total_orders,
-          pp.prev_total_sales,
-          pp.prev_average_order_value,
-          ROUND(SAFE_DIVIDE((om.total_orders - pp.prev_total_orders) * 100.0, pp.prev_total_orders), 2) as orders_growth,
-          ROUND(SAFE_DIVIDE((om.total_sales - pp.prev_total_sales) * 100.0, pp.prev_total_sales), 2) as sales_growth,
-          ROUND(SAFE_DIVIDE((om.average_order_value - pp.prev_average_order_value) * 100.0, pp.prev_average_order_value), 2) as aov_growth
-        FROM order_metrics om, previous_period pp
+        WITH latest_orders AS (
+        SELECT *,
+          ROW_NUMBER() OVER (PARTITION BY name ORDER BY _daton_batch_runtime desc) as rn
+        FROM \`frido-429506.Frido_BigQuery.Frido_Shopify_orders\`
+        WHERE created_at >= TIMESTAMP('${formattedStartDate}')
+          AND created_at <= TIMESTAMP('${formattedEndDate}')
+      )
+      SELECT 
+        COUNT(DISTINCT name) as total_orders,
+        SUM(CAST(total_price AS NUMERIC)) as total_sales,
+         SUM(CAST (total_tax as Numeric)) as total_tax,
+         SUM(CAST(total_tax as Numeric))/SUM(CAST(total_price as Numeric)) as tax_rate, 
+        SUM(CAST(total_line_items_price AS NUMERIC)) as gross_sales, 
+        AVG(CAST(total_price AS NUMERIC)) as average_order_value,
+        SUM(ARRAY_LENGTH(line_items)) as total_items_sold,
+        COUNT(DISTINCT CASE WHEN ARRAY_LENGTH(refunds) > 0 THEN name END) as orders_with_refunds,
+      FROM latest_orders
+      WHERE rn = 1
       `;
 
       const rows = await executeQuery(query);

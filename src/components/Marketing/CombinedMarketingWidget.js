@@ -18,7 +18,8 @@ const CombinedMarketingWidget = ({
   customDateRange = null, 
   isCustomDateRange = false,
   ordersOverview = null, // Add ordersOverview as a prop from dashboard
-  ordersOverviewLoading = false // Add loading state
+  ordersOverviewLoading = false, // Add loading state
+  onMarketingDataUpdate = () => {} // Add callback prop
 }) => {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
@@ -211,6 +212,18 @@ const CombinedMarketingWidget = ({
           { name: 'Meta Ads', cost: metaCost, color: '#1877f2' },
           { name: 'Google Ads', cost: googleCost, color: '#34a853' }
         ]
+      });
+
+      // Pass data back to parent component
+      onMarketingDataUpdate({
+        totalMarketingCost,
+        totalRevenue,
+        blendedRoas,
+        marketingPercentage,
+        contributionMargin,
+        cm2Percentage,
+        metaCost,
+        googleCost
       });
 
     } catch (err) {

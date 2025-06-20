@@ -67,6 +67,115 @@ ChartJS.register(
   Filler
 );
 
+const MetricSection = styled.div`
+  background: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-md);
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 1px solid var(--border-color);
+`;
+
+const MetricGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-sm);
+`;
+
+const formatMetricValue = (value, formatter = formatCurrency) => {
+  if (value === undefined || value === null) return 'NA';
+  return formatter(value);
+};
+
+const formatPercentage = (value) => {
+  if (value === undefined || value === null) return 'NA';
+  return `${value}%`;
+};
+
+// Add styled components for tabs
+const TabContainer = styled.div`
+  background: white;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow);
+  margin-bottom: var(--spacing-xl);
+  overflow: hidden;
+`;
+
+const TabHeader = styled.div`
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background: #f8f9fa;
+`;
+
+const TabButton = styled.button`
+  flex: 1;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: ${props => props.active ? 'white' : 'transparent'};
+  color: ${props => props.active ? '#3b82f6' : 'var(--text-secondary)'};
+  border: none;
+  font-weight: ${props => props.active ? '600' : '500'};
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  border-bottom: ${props => props.active ? '3px solid #3b82f6' : '3px solid transparent'};
+  
+  &:hover {
+    background: ${props => props.active ? 'white' : '#f0f2f5'};
+    color: #3b82f6;
+  }
+  
+  &:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+  }
+  
+  .tab-badge {
+    background: ${props => props.active ? '#3b82f6' : '#6b7280'};
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+    font-weight: 500;
+  }
+`;
+
+const TabContent = styled.div`
+  padding: var(--spacing-lg);
+  min-height: 60px;
+  
+  .tab-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-lg);
+    
+    .tab-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .tab-description {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+  }
+`;
+
 const DashboardPage = () => {
   const { currentStore } = useStore();
   const timeZone = 'Asia/Kolkata';
@@ -98,6 +207,38 @@ const DashboardPage = () => {
   const [dateRange, setDateRange] = useState([initialDates.start, initialDates.end]);
   const [isCustomDateRange, setIsCustomDateRange] = useState(false);
   const pageSize = 10;
+  
+  // Add marketplace tab state
+  const [activeTab, setActiveTab] = useState('myfrido');
+
+  // Tab configuration
+  const tabs = [
+    { 
+      id: 'overall', 
+      label: 'Overall', 
+      icon: '🌐',
+      description: 'Aggregate data from all marketplaces and sales channels combined'
+    },
+    
+    { 
+      id: 'myfrido', 
+      label: 'Myfrido', 
+      icon: '🏪',
+      description: 'Performance data specifically from your website/direct sales'
+    },
+    { 
+      id: 'amazon', 
+      label: 'Amazon', 
+      icon: '📦',
+      description: 'Sales and performance metrics from Amazon marketplace'
+    }
+  ];
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    // Here you would typically refetch data for the specific marketplace
+    console.log(`Switched to tab: ${tabId}`);
+  };
   
   // Calculate date range based on timeframe
   const getDateRange = (timeframe) => {
@@ -187,6 +328,7 @@ const DashboardPage = () => {
 
   // Refetch data when store changes
   useEffect(() => {
+    console.log('ov',ordersOverview);
     const dateRangeWithStore = getCurrentDateRange();
     refetchAllData(dateRangeWithStore);
   }, [currentStore.id]);
@@ -524,17 +666,10 @@ const DashboardPage = () => {
       title: 'Total Orders',
       value: formatNumber(ordersOverview?.total_orders || 0),
       icon: FiShoppingCart,
-      change: ordersOverview?.order_change_percentage ? `${ordersOverview.order_change_percentage}%` : '0%',
-      changeType: ordersOverview?.order_change_percentage > 0 ? 'increase' : 'decrease',
-      color: '#3b82f6' // Blue
-    },
-    {
-      title: 'Total Revenue',
-      value: formatCurrency(ordersOverview?.total_sales || 0),
-      icon: FaRupeeSign,
-      change: ordersOverview?.revenue_change_percentage ? `${ordersOverview.revenue_change_percentage}%` : '0%',
-      changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease',
-      color: '#10b981' // Green
+      change: ordersOverview?.orders_change_percentage ? `${ordersOverview.orders_change_percentage}%` : '0%',
+      changeType: ordersOverview?.orders_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#3b82f6',
+      tooltip: 'Total number of orders placed'
     },
     {
       title: 'Average Order Value',
@@ -542,54 +677,284 @@ const DashboardPage = () => {
       icon: FaRupeeSign,
       change: ordersOverview?.aov_change_percentage ? `${ordersOverview.aov_change_percentage}%` : '0%',
       changeType: ordersOverview?.aov_change_percentage > 0 ? 'increase' : 'decrease',
-      color: '#f59e0b' // Orange
-    },
-    {
-      title: 'Refund Rate',
-      value: `${((ordersOverview?.total_refunds / ordersOverview?.total_orders) * 100 || 0).toFixed(1)}%`,
-      icon: FiRefreshCw,
-      change: ordersOverview?.refund_rate_change_percentage ? `${ordersOverview.refund_rate_change_percentage}%` : '0%',
-      changeType: ordersOverview?.refund_rate_change_percentage < 0 ? 'decrease' : 'increase',
-      color: '#ef4444' // Red
+      color: '#f59e0b',
+      tooltip: 'Average value per order'
     }
   ];
 
-  // Prepare the refund metrics stats with date range
-  const refundStats = [
+  // Add after the existing orderStats array
+  const salesMetrics = [
     {
-      title: 'Total Refunds',
-      value: formatNumber(refundMetrics?.total_refunds || 0),
-      icon: FiRefreshCw,
-      change: refundMetrics?.refund_change_percentage ? `${refundMetrics.refund_change_percentage}%` : '0%',
-      changeType: refundMetrics?.refund_change_percentage < 0 ? 'decrease' : 'increase',
-      color: '#8b5cf6' // Purple
-    },
-    {
-      title: 'Refunded Amount',
-      value: formatCurrency(refundMetrics?.total_refunded_amount || 0),
+      title: 'Total Sales',
+      value: formatMetricValue(ordersOverview?.total_sales),
       icon: FaRupeeSign,
-      change: refundMetrics?.refund_amount_change_percentage ? `${refundMetrics.refund_amount_change_percentage}%` : '0%',
-      changeType: refundMetrics?.refund_amount_change_percentage < 0 ? 'decrease' : 'increase',
-      color: '#ec4899' // Pink
+      change: ordersOverview?.revenue_change_percentage ? `${ordersOverview.revenue_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#10b981',
+      tooltip: 'Actual amount that user paid'
     },
     {
-      title: 'Average Refund',
-      value: formatCurrency(refundMetrics?.average_refund_amount || 0),
+      title: 'Gross Sales',
+      value: formatMetricValue(ordersOverview?.gross_sales),
       icon: FaRupeeSign,
-      change: refundMetrics?.avg_refund_change_percentage ? `${refundMetrics.avg_refund_change_percentage}%` : '0%',
-      changeType: refundMetrics?.avg_refund_change_percentage < 0 ? 'decrease' : 'increase',
-      color: '#06b6d4' // Cyan
+      change: ordersOverview?.gross_sales_change_percentage ? `${ordersOverview.gross_sales_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.gross_sales_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#059669',
+      tooltip: 'Raw product value before anything is subtracted'
     },
     {
-      title: '24h Refunds',
-      value: formatNumber(refundMetrics?.refunds_last_24h || 0),
-      icon: FiRefreshCw,
-      change: refundMetrics?.refund_24h_change_percentage ? `${refundMetrics.refund_24h_change_percentage}%` : '0%',
-      changeType: refundMetrics?.refund_24h_change_percentage < 0 ? 'decrease' : 'increase',
-      color: '#84cc16' // Lime
+      title: 'Net Sales',
+      value: formatMetricValue(ordersOverview?.net_sales),
+      icon: FaRupeeSign,
+      change: ordersOverview?.net_sales_change_percentage ? `${ordersOverview.net_sales_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.net_sales_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#047857',
+      tooltip: 'Sales after deductions(refunds)'
+    },
+    {
+      title: 'Gross Sales %',
+      value: formatPercentage(ordersOverview?.gross_sales_percentage),
+      icon: FiTrendingUp,
+      change: ordersOverview?.gross_sales_percentage_change ? `${ordersOverview.gross_sales_percentage_change}%` : 'NA',
+      changeType: ordersOverview?.gross_sales_percentage_change > 0 ? 'increase' : 'decrease',
+      color: '#0d9488',
+      tooltip: 'Gross sales as percentage of total sales'
+    },
+    {
+      title: 'Net Sales %',
+      value: formatPercentage(ordersOverview?.net_sales_percentage),
+      icon: FiTrendingUp,
+      change: ordersOverview?.net_sales_percentage_change ? `${ordersOverview.net_sales_percentage_change}%` : 'NA',
+      changeType: ordersOverview?.net_sales_percentage_change > 0 ? 'increase' : 'decrease',
+      color: '#0d9488',
+      tooltip: 'Net sales as percentage of total sales'
     }
   ];
 
+  const returnMetrics = [
+    {
+      title: 'Total Returns',
+      value: formatMetricValue(ordersOverview?.total_returns),
+      icon: FiRefreshCw,
+      change: ordersOverview?.returns_change_percentage ? `${ordersOverview.returns_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.returns_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#ef4444',
+      tooltip: 'Total value of returned products'
+    },
+    {
+      title: 'Return Rate',
+      value: formatPercentage(ordersOverview?.return_rate),
+      icon: FiRefreshCw,
+      change: ordersOverview?.return_rate_change ? `${ordersOverview.return_rate_change}%` : 'NA',
+      changeType: ordersOverview?.return_rate_change < 0 ? 'decrease' : 'increase',
+      color: '#dc2626',
+      tooltip: 'Percentage of total sales that were returned'
+    }
+  ];
+
+  const taxMetrics = [
+    {
+      title: 'Total Tax',
+      value: formatMetricValue(ordersOverview?.total_tax),
+      icon: FaRupeeSign,
+      change: ordersOverview?.tax_change_percentage ? `${ordersOverview.tax_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.tax_change_percentage > 0 ? 'increase' : 'decrease',
+      color: '#6366f1',
+      tooltip: 'Total tax collected on sales'
+    },
+    {
+      title: 'Tax Rate',
+      value: formatPercentage(ordersOverview?.tax_rate ? (ordersOverview.tax_rate * 100).toFixed(2) : null),
+      icon: FaRupeeSign,
+      change: ordersOverview?.tax_rate_change ? `${ordersOverview.tax_rate_change}%` : 'NA',
+      changeType: ordersOverview?.tax_rate_change > 0 ? 'increase' : 'decrease',
+      color: '#4f46e5',
+      tooltip: 'Tax as percentage of total sales'
+    }
+  ];
+
+  const expenseMetrics = [
+    {
+      title: 'COGS',
+      value: formatMetricValue(ordersOverview?.cogs),
+      icon: FaRupeeSign,
+      change: ordersOverview?.cogs_change_percentage ? `${ordersOverview.cogs_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.cogs_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#f59e0b',
+      tooltip: 'Cost of Goods Sold'
+    },
+    {
+      title: 'COGS %',
+      value: formatPercentage(ordersOverview?.cogs_percentage),
+      icon: FaRupeeSign,
+      change: ordersOverview?.cogs_percentage_change ? `${ordersOverview.cogs_percentage_change}%` : 'NA',
+      changeType: ordersOverview?.cogs_percentage_change < 0 ? 'decrease' : 'increase',
+      color: '#d97706',
+      tooltip: 'Cost of Goods Sold as percentage of total sales'
+    },
+    {
+      title: 'S&D Cost',
+      value: formatMetricValue(ordersOverview?.sd_cost),
+      icon: FaRupeeSign,
+      change: ordersOverview?.sd_cost_change_percentage ? `${ordersOverview.sd_cost_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.sd_cost_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#f97316',
+      tooltip: 'Shipping and Delivery Costs'
+    },
+    {
+      title: 'S&D Cost %',
+      value: formatPercentage(ordersOverview?.sd_cost_percentage),
+      icon: FaRupeeSign,
+      change: ordersOverview?.sd_cost_percentage_change ? `${ordersOverview.sd_cost_percentage_change}%` : 'NA',
+      changeType: ordersOverview?.sd_cost_percentage_change < 0 ? 'decrease' : 'increase',
+      color: '#ea580c',
+      tooltip: 'Shipping and Delivery Costs as percentage of total sales'
+    }
+  ];
+
+  // Add state for marketing data
+  const [marketingData, setMarketingData] = useState(null);
+
+  // Update marketingMetrics to use marketingData
+  const marketingMetrics = [
+    {
+      title: 'Total Marketing Cost',
+      value: formatMetricValue(marketingData?.totalMarketingCost || 0),
+      icon: FaRupeeSign,
+      change: ordersOverview?.marketing_cost_change_percentage ? `${ordersOverview.marketing_cost_change_percentage}%` : 'NA',
+      changeType: ordersOverview?.marketing_cost_change_percentage < 0 ? 'decrease' : 'increase',
+      color: '#8b5cf6',
+      tooltip: 'Total marketing expenditure across all channels'
+    },
+    {
+      title: 'Marketing Cost %',
+      value: formatPercentage(((marketingData?.totalMarketingCost / ordersOverview?.total_sales) * 100).toFixed(2)), //fixed to 2 decimal places
+      icon: FaRupeeSign,
+      change: ordersOverview?.marketing_cost_percentage_change ? `${ordersOverview.marketing_cost_percentage_change}%` : 'NA',
+      changeType: ordersOverview?.marketing_cost_percentage_change < 0 ? 'decrease' : 'increase',
+      color: '#7c3aed',
+      tooltip: 'Marketing costs as percentage of total sales'
+    }
+  ];
+
+  const roasMetrics = [
+    {
+      title: 'Gross ROAS',
+      value: ordersOverview?.gross_roas ? ordersOverview.gross_roas.toFixed(2) : 'NA',
+      icon: FiTrendingUp,
+      change: ordersOverview?.gross_roas_change ? `${ordersOverview.gross_roas_change}%` : 'NA',
+      changeType: ordersOverview?.gross_roas_change > 0 ? 'increase' : 'decrease',
+      color: '#06b6d4',
+      tooltip: 'Return on Ad Spend (Gross)'
+    },
+    {
+      title: 'Gross MER',
+      value: formatPercentage(ordersOverview?.gross_mer),
+      icon: FiTrendingUp,
+      change: ordersOverview?.gross_mer_change ? `${ordersOverview.gross_mer_change}%` : 'NA',
+      changeType: ordersOverview?.gross_mer_change > 0 ? 'increase' : 'decrease',
+      color: '#0891b2',
+      tooltip: 'Marketing Efficiency Ratio (Gross)'
+    },
+    {
+      title: 'Net ROAS',
+      value: ordersOverview?.net_roas ? ordersOverview.net_roas.toFixed(2) : 'NA',
+      icon: FiTrendingUp,
+      change: ordersOverview?.net_roas_change ? `${ordersOverview.net_roas_change}%` : 'NA',
+      changeType: ordersOverview?.net_roas_change > 0 ? 'increase' : 'decrease',
+      color: '#0e7490',
+      tooltip: 'Return on Ad Spend (Net)'
+    },
+    {
+      title: 'Net MER',
+      value: formatPercentage(ordersOverview?.net_mer),
+      icon: FiTrendingUp,
+      change: ordersOverview?.net_mer_change ? `${ordersOverview.net_mer_change}%` : 'NA',
+      changeType: ordersOverview?.net_mer_change > 0 ? 'increase' : 'decrease',
+      color: '#155e75',
+      tooltip: 'Marketing Efficiency Ratio (Net)'
+    },
+    {
+      title: 'N-ROAS',
+      value: ordersOverview?.n_roas ? ordersOverview.n_roas.toFixed(2) : 'NA',
+      icon: FiTrendingUp,
+      change: ordersOverview?.n_roas_change ? `${ordersOverview.n_roas_change}%` : 'NA',
+      changeType: ordersOverview?.n_roas_change > 0 ? 'increase' : 'decrease',
+      color: '#164e63',
+      tooltip: 'Net Return on Ad Spend'
+    },
+    {
+      title: 'N-MER',
+      value: formatPercentage(ordersOverview?.n_mer),
+      icon: FiTrendingUp,
+      change: ordersOverview?.n_mer_change ? `${ordersOverview.n_mer_change}%` : 'NA',
+      changeType: ordersOverview?.n_mer_change > 0 ? 'increase' : 'decrease',
+      color: '#134e4a',
+      tooltip: 'Net Marketing Efficiency Ratio'
+    }
+  ];
+
+  const cacMetrics = [
+    {
+      title: 'CAC',
+      value: formatMetricValue(ordersOverview?.cac),
+      icon: FaRupeeSign,
+      change: ordersOverview?.cac_change ? `${ordersOverview.cac_change}%` : 'NA',
+      changeType: ordersOverview?.cac_change < 0 ? 'decrease' : 'increase',
+      color: '#ec4899',
+      tooltip: 'Customer Acquisition Cost'
+    },
+    {
+      title: 'N-CAC',
+      value: formatMetricValue(ordersOverview?.n_cac),
+      icon: FaRupeeSign,
+      change: ordersOverview?.n_cac_change ? `${ordersOverview.n_cac_change}%` : 'NA',
+      changeType: ordersOverview?.n_cac_change < 0 ? 'decrease' : 'increase',
+      color: '#db2777',
+      tooltip: 'Net Customer Acquisition Cost'
+    }
+  ];
+
+  const contributionMarginMetrics = [
+    {
+      title: 'CM2',
+      value: formatMetricValue(ordersOverview?.cm2),
+      icon: FaRupeeSign,
+      change: ordersOverview?.cm2_change ? `${ordersOverview.cm2_change}%` : 'NA',
+      changeType: ordersOverview?.cm2_change > 0 ? 'increase' : 'decrease',
+      color: '#14b8a6',
+      tooltip: 'Contribution Margin Level 2'
+    },
+    {
+      title: 'CM2 %',
+      value: formatPercentage(ordersOverview?.cm2_percentage),
+      icon: FaRupeeSign,
+      change: ordersOverview?.cm2_percentage_change ? `${ordersOverview.cm2_percentage_change}%` : 'NA',
+      changeType: ordersOverview?.cm2_percentage_change > 0 ? 'increase' : 'decrease',
+      color: '#0d9488',
+      tooltip: 'Contribution Margin Level 2 as percentage'
+    },
+    {
+      title: 'CM3',
+      value: formatMetricValue(ordersOverview?.cm3),
+      icon: FaRupeeSign,
+      change: ordersOverview?.cm3_change ? `${ordersOverview.cm3_change}%` : 'NA',
+      changeType: ordersOverview?.cm3_change > 0 ? 'increase' : 'decrease',
+      color: '#0f766e',
+      tooltip: 'Contribution Margin Level 3'
+    },
+    {
+      title: 'CM3 %',
+      value: formatPercentage(ordersOverview?.cm3_percentage),
+      icon: FaRupeeSign,
+      change: ordersOverview?.cm3_percentage_change ? `${ordersOverview.cm3_percentage_change}%` : 'NA',
+      changeType: ordersOverview?.cm3_percentage_change > 0 ? 'increase' : 'decrease',
+      color: '#115e59',
+      tooltip: 'Contribution Margin Level 3 as percentage'
+    }
+  ];
+
+  // Add after the orderStats array and before the salesMetrics array
   // Prepare the orders over time chart data
   const ordersOverTimeData = {
     labels: ordersByTimeRange?.map(item => formatDate(item.date, timeframe)) || [],
@@ -739,217 +1104,385 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Orders Overview Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {orderStats.map((stat, index) => (
-            <StatCard
-              key={index}
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              change={stat.change}
-              changeType={stat.changeType}
-              loading={ordersOverviewLoading}
-              color={stat.color}
-            />
-          ))}
-        </div>
-
-        {/* Refund Metrics Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {refundStats.map((stat, index) => (
-            <StatCard
-              key={index}
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              change={stat.change}
-              changeType={stat.changeType}
-              loading={refundMetricsLoading}
-              color={stat.color}
-            />
-          ))}
-        </div>
-
-        {/* Marketing Overview - Full Width */}
-        <CombinedMarketingWidget 
-          dateRange={timeframe}
-          customDateRange={dateRange}
-          isCustomDateRange={isCustomDateRange}
-          ordersOverview={ordersOverview}
-          ordersOverviewLoading={ordersOverviewLoading}
-        />
-        
-        {/* Revenue Overview - Full Width */}
-        <ChartCard 
-          title="Revenue Overview" 
-          subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
-          legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
-          timeframes={['Day', 'Week', 'Month', 'Year']}
-          activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-          onTimeframeChange={handleTimeframeChange}
-          loading={ordersByTimeRangeLoading}
-        >
-          {ordersByTimeRangeLoading ? (
-            <div>Loading chart...</div>
-          ) : (
-            <div style={{ width: '100%', height: '300px' }}>
-              <Line data={salesChartData} options={salesChartOptions} />
-            </div>
-          )}
-        </ChartCard>
-        
-        {/* Charts Grid - 2 Column */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <ChartCard 
-            title="Customer Acquisition" 
-            subtitle="Source breakdown"
-            legends={[
-              { label: 'Direct', color: 'rgba(0, 115, 182, 0.8)' },
-              { label: 'Search', color: 'rgba(3, 169, 244, 0.8)' },
-              { label: 'Social', color: 'rgba(76, 175, 80, 0.8)' },
-              { label: 'Email', color: 'rgba(255, 193, 7, 0.8)' },
-              { label: 'Referral', color: 'rgba(244, 67, 54, 0.8)' },
-              { label: 'Other', color: 'rgba(156, 39, 176, 0.8)' },
-            ]}
-            timeframes={[]}
-          >
-            <div style={{ width: '100%', height: '300px' }}>
-              <Doughnut data={customerAcquisitionData} options={customerAcquisitionOptions} />
-            </div>
-          </ChartCard>
+        {/* Marketplace Tabs */}
+        <TabContainer>
+          <TabHeader>
+            {tabs.map((tab) => (
+              <TabButton
+                key={tab.id}
+                active={activeTab === tab.id}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <span>{tab.icon}</span> {tab.label}
+                {activeTab === tab.id && <span className="tab-badge">Active</span>}
+              </TabButton>
+            ))}
+          </TabHeader>
           
-          <ChartCard 
-            title="Orders Trend" 
-            subtitle={`Total Orders: ${formatNumber(ordersByTimeRange?.reduce((total, item) => total + item.order_count, 0) || 0)}`}
-            legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
-            timeframes={['Day', 'Week', 'Month', 'Year']}
-            activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-            onTimeframeChange={handleTimeframeChange}
-          >
-            {!ordersByTimeRangeLoading && ordersByTimeRange && (
-              <div style={{ width: '100%', height: '300px' }}>
-                <Bar data={ordersChartData} options={ordersChartOptions} />
-              </div>
-            )}
-          </ChartCard>
-        </div>
+          <TabContent>
+            {tabs.map((tab) => (
+              activeTab === tab.id && (
+                <div key={tab.id}>
+                  <div className="tab-info">
+                    <div className="tab-title">
+                      <span>{tab.icon}</span>
+                      {tab.label} Analytics
+                    </div>
+                    <div className="tab-description">
+                      {tab.description}
+                    </div>
+                  </div>
+                  
+                  {/* Show Myfrido content */}
+                  {activeTab === 'myfrido' && (
+                    <div className="myfrido-content">
+                      {/* Orders Metrics Section */}
+                      <MetricSection>
+                        <SectionTitle>Orders Metrics</SectionTitle>
+                        <MetricGrid>
+                          {orderStats.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
 
-        {/* Orders Over Time Chart - Full Width */}
-        <ChartCard
-          title="Orders and Refunds Over Time"
-          subtitle={`Showing ${timeframe} trends`}
-          legends={[
-            { label: 'Orders', color: 'rgba(59, 130, 246, 1)' },
-            { label: 'Refunds', color: 'rgba(239, 68, 68, 1)' }
-          ]}
-          timeframes={['Day', 'Week', 'Month', 'Year']}
-          activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-          onTimeframeChange={handleTimeframeChange}
-          loading={ordersByTimeRangeLoading}
-        >
-          {ordersByTimeRangeLoading ? (
-            <div>Loading chart...</div>
-          ) : (
-            <div style={{ width: '100%', height: '300px' }}>
-              <Line
-                data={ordersOverTimeData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  interaction: {
-                    intersect: false,
-                    mode: 'index',
-                  },
-                  plugins: {
-                    legend: {
-                      display: false
-                    },
-                    tooltip: {
-                      backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                      titleColor: '#fff',
-                      bodyColor: '#fff',
-                      borderColor: 'rgba(59, 130, 246, 1)',
-                      borderWidth: 1,
-                      cornerRadius: 8,
-                      displayColors: true,
-                      usePointStyle: true,
-                      callbacks: {
-                        title: (context) => `${context[0].label}`,
-                        label: (context) => {
-                          const label = context.dataset.label || '';
-                          const value = formatNumber(context.raw);
-                          return `${label}: ${value}`;
-                        }
-                      }
-                    }
-                  },
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      grid: {
-                        color: 'rgba(0, 0, 0, 0.05)',
-                        drawBorder: false,
-                      },
-                      border: {
-                        display: false,
-                      },
-                      ticks: {
-                        color: 'rgba(0, 0, 0, 0.6)',
-                        font: {
-                          size: 12,
-                        },
-                        padding: 8,
-                        callback: (value) => formatNumber(value),
-                      }
-                    },
-                    x: {
-                      grid: {
-                        display: false,
-                        drawBorder: false,
-                      },
-                      border: {
-                        display: false,
-                      },
-                      ticks: {
-                        color: 'rgba(0, 0, 0, 0.6)',
-                        font: {
-                          size: 12,
-                        },
-                        padding: 8,
-                        maxRotation: 45,
-                      }
-                    }
-                  },
-                  elements: {
-                    line: {
-                      borderJoinStyle: 'round',
-                      borderCapStyle: 'round',
-                    }
-                  },
-                  animation: {
-                    duration: 1000,
-                    easing: 'easeInOutQuart',
-                  }
-                }}
-              />
-            </div>
-          )}
-        </ChartCard>
+                      {/* Sales Metrics Section */}
+                      <MetricSection>
+                        <SectionTitle>Sales Metrics</SectionTitle>
+                        <MetricGrid>
+                          {salesMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
 
-        <DataTable 
-          title="Recent Orders"
-          columns={ordersColumns}
-          data={recentOrdersData?.orders || []}
-          pagination={true}
-          loading={recentOrdersLoading}
-          currentPage={currentPage}
-          totalPages={recentOrdersData?.totalPages || 1}
-          onPageChange={(page) => {
-            setCurrentPage(page);
-            refetchRecentOrders({ page, pageSize });
-          }}
-        />
+                      {/* Returns Section */}
+                      <MetricSection>
+                        <SectionTitle>Returns</SectionTitle>
+                        <MetricGrid>
+                          {returnMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
+
+                      {/* Tax Section */}
+                      <MetricSection>
+                        <SectionTitle>Tax</SectionTitle>
+                        <MetricGrid>
+                          {taxMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
+
+                      {/* Expenses Section */}
+                      <MetricSection>
+                        <SectionTitle>Expenses</SectionTitle>
+                        <MetricGrid>
+                          {expenseMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
+
+                      {/* Marketing Section */}
+                      <MetricSection>
+                        <SectionTitle>Marketing</SectionTitle>
+                        <MetricGrid>
+                          {marketingMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
+
+                      {/* ROAS Section */}
+                      <MetricSection>
+                        <SectionTitle>ROAS</SectionTitle>
+                        <MetricGrid>
+                          {roasMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
+
+                      {/* CAC Section */}
+                      <MetricSection>
+                        <SectionTitle>CAC</SectionTitle>
+                        <MetricGrid>
+                          {cacMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
+
+                      {/* Contribution Margin Section */}
+                      <MetricSection>
+                        <SectionTitle>Contribution Margin</SectionTitle>
+                        <MetricGrid>
+                          {contributionMarginMetrics.map((metric, index) => (
+                            <StatCard
+                              key={index}
+                              {...metric}
+                              loading={ordersOverviewLoading}
+                            />
+                          ))}
+                        </MetricGrid>
+                      </MetricSection>
+
+                      {/* Marketing Overview - Full Width */}
+                      <CombinedMarketingWidget 
+                        dateRange={timeframe}
+                        customDateRange={dateRange}
+                        isCustomDateRange={isCustomDateRange}
+                        ordersOverview={ordersOverview}
+                        ordersOverviewLoading={ordersOverviewLoading}
+                        onMarketingDataUpdate={(data) => {
+                          // Update marketing metrics when CombinedMarketingWidget data changes
+                          setMarketingData(data);
+                        }}
+                      />
+                      
+                      {/* Revenue Overview - Full Width */}
+                      <ChartCard 
+                        title="Revenue Overview" 
+                        subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
+                        legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
+                        timeframes={['Day', 'Week', 'Month', 'Year']}
+                        activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
+                        onTimeframeChange={handleTimeframeChange}
+                        loading={ordersByTimeRangeLoading}
+                      >
+                        {ordersByTimeRangeLoading ? (
+                          <div>Loading chart...</div>
+                        ) : (
+                          <div style={{ width: '100%', height: '300px' }}>
+                            <Line data={salesChartData} options={salesChartOptions} />
+                          </div>
+                        )}
+                      </ChartCard>
+                      
+                      {/* Charts Grid - 2 Column */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <ChartCard 
+                          title="Customer Acquisition" 
+                          subtitle="Source breakdown"
+                          legends={[
+                            { label: 'Direct', color: 'rgba(0, 115, 182, 0.8)' },
+                            { label: 'Search', color: 'rgba(3, 169, 244, 0.8)' },
+                            { label: 'Social', color: 'rgba(76, 175, 80, 0.8)' },
+                            { label: 'Email', color: 'rgba(255, 193, 7, 0.8)' },
+                            { label: 'Referral', color: 'rgba(244, 67, 54, 0.8)' },
+                            { label: 'Other', color: 'rgba(156, 39, 176, 0.8)' },
+                          ]}
+                          timeframes={[]}
+                        >
+                          <div style={{ width: '100%', height: '300px' }}>
+                            <Doughnut data={customerAcquisitionData} options={customerAcquisitionOptions} />
+                          </div>
+                        </ChartCard>
+                        
+                        <ChartCard 
+                          title="Orders Trend" 
+                          subtitle={`Total Orders: ${formatNumber(ordersByTimeRange?.reduce((total, item) => total + item.order_count, 0) || 0)}`}
+                          legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
+                          timeframes={['Day', 'Week', 'Month', 'Year']}
+                          activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
+                          onTimeframeChange={handleTimeframeChange}
+                        >
+                          {!ordersByTimeRangeLoading && ordersByTimeRange && (
+                            <div style={{ width: '100%', height: '300px' }}>
+                              <Bar data={ordersChartData} options={ordersChartOptions} />
+                            </div>
+                          )}
+                        </ChartCard>
+                      </div>
+
+                      {/* Orders Over Time Chart - Full Width */}
+                      <ChartCard
+                        title="Orders and Refunds Over Time"
+                        subtitle={`Showing ${timeframe} trends`}
+                        legends={[
+                          { label: 'Orders', color: 'rgba(59, 130, 246, 1)' },
+                          { label: 'Refunds', color: 'rgba(239, 68, 68, 1)' }
+                        ]}
+                        timeframes={['Day', 'Week', 'Month', 'Year']}
+                        activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
+                        onTimeframeChange={handleTimeframeChange}
+                        loading={ordersByTimeRangeLoading}
+                      >
+                        {ordersByTimeRangeLoading ? (
+                          <div>Loading chart...</div>
+                        ) : (
+                          <div style={{ width: '100%', height: '300px' }}>
+                            <Line
+                              data={ordersOverTimeData}
+                              options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                interaction: {
+                                  intersect: false,
+                                  mode: 'index',
+                                },
+                                plugins: {
+                                  legend: {
+                                    display: false
+                                  },
+                                  tooltip: {
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#fff',
+                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                    borderWidth: 1,
+                                    cornerRadius: 8,
+                                    displayColors: true,
+                                    usePointStyle: true,
+                                    callbacks: {
+                                      title: (context) => `${context[0].label}`,
+                                      label: (context) => {
+                                        const label = context.dataset.label || '';
+                                        const value = formatNumber(context.raw);
+                                        return `${label}: ${value}`;
+                                      }
+                                    }
+                                  }
+                                },
+                                scales: {
+                                  y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                      color: 'rgba(0, 0, 0, 0.05)',
+                                      drawBorder: false,
+                                    },
+                                    border: {
+                                      display: false,
+                                    },
+                                    ticks: {
+                                      color: 'rgba(0, 0, 0, 0.6)',
+                                      font: {
+                                        size: 12,
+                                      },
+                                      padding: 8,
+                                      callback: (value) => formatNumber(value),
+                                    }
+                                  },
+                                  x: {
+                                    grid: {
+                                      display: false,
+                                      drawBorder: false,
+                                    },
+                                    border: {
+                                      display: false,
+                                    },
+                                    ticks: {
+                                      color: 'rgba(0, 0, 0, 0.6)',
+                                      font: {
+                                        size: 12,
+                                      },
+                                      padding: 8,
+                                      maxRotation: 45,
+                                    }
+                                  }
+                                },
+                                elements: {
+                                  line: {
+                                    borderJoinStyle: 'round',
+                                    borderCapStyle: 'round',
+                                  }
+                                },
+                                animation: {
+                                  duration: 1000,
+                                  easing: 'easeInOutQuart',
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
+                      </ChartCard>
+
+                      <DataTable 
+                        title="Recent Orders"
+                        columns={ordersColumns}
+                        data={recentOrdersData?.orders || []}
+                        pagination={true}
+                        loading={recentOrdersLoading}
+                        currentPage={currentPage}
+                        totalPages={recentOrdersData?.totalPages || 1}
+                        onPageChange={(page) => {
+                          setCurrentPage(page);
+                          refetchRecentOrders({ page, pageSize });
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Show placeholder for non-Myfrido tabs */}
+                  {activeTab !== 'myfrido' && (
+                    <div style={{ 
+                      padding: '3rem 2rem', 
+                      background: '#f8f9fa', 
+                      borderRadius: '12px', 
+                      textAlign: 'center',
+                      border: '2px dashed #dee2e6',
+                      marginBottom: '2rem'
+                    }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{tab.icon}</div>
+                      <h3 style={{ color: '#6c757d', marginBottom: '1rem', fontSize: '1.5rem' }}>
+                        {tab.label} Analytics Coming Soon
+                      </h3>
+                      <p style={{ color: '#6c757d', fontSize: '1.1rem', margin: '0 0 1rem 0', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
+                        We're working on bringing you comprehensive {tab.label.toLowerCase()} analytics. This section will include marketplace-specific metrics, performance data, and insights.
+                      </p>
+                      <div style={{ 
+                        background: 'white', 
+                        padding: '1.5rem', 
+                        borderRadius: '8px',
+                        marginTop: '2rem',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}>
+                        <p style={{ color: '#495057', fontSize: '0.95rem', margin: '0', fontWeight: '500' }}>
+                          🚀 <strong>Coming Features:</strong> Sales metrics, profit analysis, customer insights, and performance trends specific to {tab.label}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            ))}
+          </TabContent>
+        </TabContainer>
       </div>
     </div>
   );

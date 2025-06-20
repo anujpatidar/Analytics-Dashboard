@@ -790,409 +790,546 @@ const ProductDetailsPage = () => {
       {/* All existing data sections - Only show for Myfrido tab */}
       {activeTab === 'website' && (
         <>
-          {/* Overview Section */}
+          {/* Sales Matrices Section */}
           <Section>
-            <h2>Overview</h2>
-            <StatsGrid>
-              <StatCard
-                title="Total Orders"
-                value={safeNumberFormat(data.overview.totalOrders)}
-                icon={FiShoppingCart}
-                color="#3b82f6"
-                change={data.overview.orderTrend}
-              />
-              <StatCard
-                title="Total Sales"
-                value={formatCurrency(data.overview.totalSales)}
-                icon={FiDollarSign}
-                color="#10b981"
-                change={data.overview.salesTrend}
-              />
-              <StatCard
-                title="Total Quantity Sold"
-                value={safeNumberFormat(data.overview.totalQuantitySold)}
-                icon={FiPackage}
-                color="#f59e0b"
-                change={data.overview.quantityTrend}
-              />
-              <StatCard
-                title="Net Quantity Sold"
-                value={safeNumberFormat(data.overview.netQuantitySold)}
-                icon={FiPackage}
-                color="#f59e0b"
-                change={data.overview.quantityTrend}
-              />
-              
-              <StatCard
-                title="AOV"
-                value={formatCurrency(data.overview.aov)}
-                icon={FiCreditCard}
-                color="#8b5cf6"
-                change={data.overview.aovTrend}
-              />
-              <StatCard
-                title="Gross Profit(DEMO)"
-                value={formatCurrency(data.overview.grossProfit)}
-                icon={FiTrendingUp}
-                color="#059669"
-                change={data.overview.profitTrend}
-              />
-              <StatCard
-                title="Profit Margin(DEMO)"
-                value={formatPercentage(data.overview.profitMargin)}
-                icon={FiPercent}
-                color="#dc2626"
-                change={data.overview.marginTrend}
-              />
-              <StatCard
-                title="Refund Rate(WRONG)"
-                value={formatPercentage(data.overview.refundRate)}
-                icon={FiRefreshCw}
-                color="#ef4444"
-                change={data.overview.refundTrend > 0 ? -Math.abs(data.overview.refundTrend) : Math.abs(data.overview.refundTrend)}
-              />
-            </StatsGrid>
-          </Section>
-
-          {/* Sales & Profit Analytics */}
-          <Section>
-            <h2>Sales & Profit Analytics</h2>
-            <StatsGrid>
-              <StatCard
-                title="Total Revenue"
-                value={formatCurrency(data.salesAndProfit.totalRevenue)}
-                icon={FiDollarSign}
-                color="#10b981"
-              />
-              <StatCard
-                title="Marketing Cost"
-                value={formatCurrency(data.salesAndProfit.marketingCost)}
-                icon={FiTarget}
-                color="#ef4444"
-              />
-              <StatCard
-                title="Profit After Marketing(DEMO)"
-                value={formatCurrency(data.salesAndProfit.profitAfterMarketing)}
-                icon={FiTrendingUp}
-                color="#059669"
-              />
-              <StatCard
-                title="Profit per Unit(DEMO)"
-                value={formatCurrency(data.salesAndProfit.profitPerUnit)}
-                icon={FiDollarSign}
-                color="#8b5cf6"
-              />
-              <StatCard
-                title="Cost Price per Unit(DEMO)"
-                value={formatCurrency(data.salesAndProfit.costPricePerUnit)}
-                icon={FiPackage}
-                color="#f59e0b"
-              />
-              <StatCard
-                title="Return Rate(WRONG)"
-                value={formatPercentage(data.salesAndProfit.returnRate)}
-                icon={FiRefreshCw}
-                color="#dc2626"
-              />
-            </StatsGrid>
-          </Section>
-
-          {/* Meta Ads Marketing Analytics */}
-          {data.marketing && (
-            <BackgroundSection>
-              <h2>Meta Ads Marketing Analytics</h2>
-              
-              {/* Marketing Overview */}
-              <div style={{ marginBottom: '2rem' }}>
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  padding: '1.5rem',
-                  borderRadius: '12px',
-                  marginBottom: '1.5rem'
-                }}>
-                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>
-                    Targeting Keyword: <span style={{ fontWeight: 'bold', color: '#ffd700' }}>"{data.marketing.keyword || 'N/A'}"</span>
-                  </h3>
-                  <p style={{ margin: '0 0 0.5rem 0', opacity: '0.9' }}>
-                    Found {data.marketing.campaignCount} active campaigns for this product
-                  </p>
-                  <p style={{ margin: '0', opacity: '0.8', fontSize: '0.9rem' }}>
-                    📅 Marketing data for: {new Date(data.dateFilter.startDate).toLocaleDateString()} - {new Date(data.dateFilter.endDate).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              {/* Marketing Metrics */}
+            <h2>Sales Matrices</h2>
+            
+            {/* Sales Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#3b82f6' }}>Sales</h3>
               <StatsGrid>
                 <StatCard
-                  title="Total Ad Spend"
-                  value={formatCurrency(data.marketing.totalSpend)}
+                  title="Total Sales (INR)"
+                  value={formatCurrency(data.overview.totalSales)}
                   icon={FiDollarSign}
-                  color="#ef4444"
-                />
-                <StatCard
-                  title="Total Impressions"
-                  value={safeNumberFormat(data.marketing.totalImpressions)} 
-                  icon={FiEye}
                   color="#3b82f6"
                 />
                 <StatCard
-                  title="Total Clicks"
-                  value={safeNumberFormat(data.marketing.totalClicks)}
-                  icon={FiMousePointer}
+                  title="Gross Sales (INR)"
+                  value={formatCurrency(data.overview.grossSales || data.overview.totalSales)}
+                  icon={FiDollarSign}
                   color="#10b981"
                 />
                 <StatCard
-                  title="Total Purchases"
-                  value={safeNumberFormat(data.marketing.totalPurchases)}
-                  icon={FiShoppingCart}
+                  title="Net Sales (INR)"
+                  value={formatCurrency(data.overview.netSales || data.overview.totalSales)}
+                  icon={FiDollarSign}
+                  color="#f59e0b"
+                />
+                <StatCard
+                  title="AOV (Average Order Value)"
+                  value={formatCurrency(data.overview.aov)}
+                  icon={FiCreditCard}
                   color="#8b5cf6"
                 />
                 <StatCard
-                  title="Purchase Value"
-                  value={formatCurrency(data.marketing.totalPurchaseValue)}
+                  title="Gross Sale as % of Total Sales"
+                  value={formatPercentage(data.overview.grossSalePercentage || 100)}
+                  icon={FiPercent}
+                  color="#dc2626"
+                />
+                <StatCard
+                  title="Net Sale as % of Total Sales"
+                  value={formatPercentage(data.overview.netSalePercentage || 100)}
+                  icon={FiPercent}
+                  color="#6366f1"
+                />
+              </StatsGrid>
+            </div>
+
+            {/* Orders & Quantity Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#059669' }}>Orders & Quantity</h3>
+              <StatsGrid>
+                <StatCard
+                  title="Total Orders"
+                  value={safeNumberFormat(data.overview.totalOrders)}
+                  icon={FiShoppingCart}
+                  color="#059669"
+                />
+                <StatCard
+                  title="Net Orders"
+                  value={safeNumberFormat(data.overview.netOrders || data.overview.totalOrders)}
+                  icon={FiShoppingCart}
+                  color="#10b981"
+                />
+                <StatCard
+                  title="Total Quantity"
+                  value={safeNumberFormat(data.overview.totalQuantitySold)}
+                  icon={FiPackage}
+                  color="#f59e0b"
+                />
+                <StatCard
+                  title="Net Quantity"
+                  value={safeNumberFormat(data.overview.netQuantitySold)}
+                  icon={FiPackage}
+                  color="#8b5cf6"
+                />
+                <StatCard
+                  title="Total Returns Quantity"
+                  value={safeNumberFormat(data.overview.totalReturnsQuantity || 0)}
+                  icon={FiRefreshCw}
+                  color="#ef4444"
+                />
+              </StatsGrid>
+            </div>
+
+            {/* Returns Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#ef4444' }}>Returns</h3>
+              <StatsGrid>
+                <StatCard
+                  title="Total Returns (INR)"
+                  value={formatCurrency(data.overview.totalReturns || 0)}
+                  icon={FiRefreshCw}
+                  color="#ef4444"
+                />
+                <StatCard
+                  title="Total Return (%)"
+                  value={formatPercentage(data.overview.totalReturnPercentage || 0)}
+                  icon={FiPercent}
+                  color="#dc2626"
+                />
+              </StatsGrid>
+            </div>
+
+            {/* Tax Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#059669' }}>Tax</h3>
+              <StatsGrid>
+                <StatCard
+                  title="Total Tax (INR)"
+                  value={formatCurrency(data.overview.totalTax || 0)}
                   icon={FiDollarSign}
                   color="#059669"
                 />
                 <StatCard
-                  title="ROAS"
-                  value={formatPercentage(data.marketing.averageRoas)}
+                  title="Total Tax (%)"
+                  value={formatPercentage(data.overview.totalTaxPercentage || 0)}
+                  icon={FiPercent}
+                  color="#10b981"
+                />
+              </StatsGrid>
+            </div>
+
+            {/* Expenses Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#f59e0b' }}>Expenses</h3>
+              <StatsGrid>
+                <StatCard
+                  title="COGS (INR)"
+                  value={formatCurrency(data.overview.cogs || 0)}
+                  icon={FiPackage}
+                  color="#f59e0b"
+                />
+                <StatCard
+                  title="COGS (%)"
+                  value={formatPercentage(data.overview.cogsPercentage || 0)}
+                  icon={FiPercent}
+                  color="#8b5cf6"
+                />
+                <StatCard
+                  title="S&D Cost (INR)"
+                  value={formatCurrency(data.overview.sdCost || 0)}
+                  icon={FiTarget}
+                  color="#6366f1"
+                />
+                <StatCard
+                  title="S&D Cost (%)"
+                  value={formatPercentage(data.overview.sdCostPercentage || 0)}
+                  icon={FiPercent}
+                  color="#3b82f6"
+                />
+              </StatsGrid>
+            </div>
+
+            {/* ROAS Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#8b5cf6' }}>ROAS</h3>
+              <StatsGrid>
+                <StatCard
+                  title="Gross ROAS"
+                  value={(data.overview.grossRoas || 0).toFixed(2)}
+                  icon={FiTrendingUp}
+                  color="#8b5cf6"
+                />
+                <StatCard
+                  title="Gross MER (%)"
+                  value={formatPercentage(data.overview.grossMer || 0)}
+                  icon={FiPercent}
+                  color="#6366f1"
+                />
+                <StatCard
+                  title="Net ROAS"
+                  value={(data.overview.netRoas || 0).toFixed(2)}
                   icon={FiTrendingUp}
                   color="#10b981"
                 />
                 <StatCard
-                  title="Cost Per Click"
-                  value={formatCurrency(data.marketing.averageCpc)}
-                  icon={FiTarget}
+                  title="Net MER (%)"
+                  value={formatPercentage(data.overview.netMer || 0)}
+                  icon={FiPercent}
+                  color="#059669"
+                />
+                <StatCard
+                  title="N-ROAS"
+                  value={(data.overview.nRoas || 0).toFixed(2)}
+                  icon={FiTrendingUp}
                   color="#f59e0b"
                 />
                 <StatCard
-                  title="Click-Through Rate"
-                  value={formatPercentage(data.marketing.averageCtr)}
-                  icon={FiActivity}
+                  title="N-MER (%)"
+                  value={formatPercentage(data.overview.nMer || 0)}
+                  icon={FiPercent}
+                  color="#dc2626"
+                />
+              </StatsGrid>
+            </div>
+
+            {/* CAC Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#ef4444' }}>CAC</h3>
+              <StatsGrid>
+                <StatCard
+                  title="CAC"
+                  value={formatCurrency(data.overview.cac || 0)}
+                  icon={FiCreditCard}
+                  color="#ef4444"
+                />
+                <StatCard
+                  title="N-CAC"
+                  value={formatCurrency(data.overview.nCac || 0)}
+                  icon={FiCreditCard}
+                  color="#dc2626"
+                />
+              </StatsGrid>
+            </div>
+
+            {/* Contribution Margin Metrics */}
+            <div style={{ marginBottom: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#059669' }}>Contribution Margin</h3>
+              <StatsGrid>
+                <StatCard
+                  title="CM2 (INR)"
+                  value={formatCurrency(data.overview.cm2 || 0)}
+                  icon={FiTrendingUp}
+                  color="#059669"
+                />
+                <StatCard
+                  title="CM2 (%)"
+                  value={formatPercentage(data.overview.cm2Percentage || 0)}
+                  icon={FiPercent}
+                  color="#10b981"
+                />
+                <StatCard
+                  title="CM3 (INR)"
+                  value={formatCurrency(data.overview.cm3 || 0)}
+                  icon={FiTrendingUp}
+                  color="#8b5cf6"
+                />
+                <StatCard
+                  title="CM3 (%)"
+                  value={formatPercentage(data.overview.cm3Percentage || 0)}
+                  icon={FiPercent}
                   color="#6366f1"
                 />
               </StatsGrid>
+            </div>
+          </Section>
 
-              {/* Performance Metrics */}
-              <div style={{ marginTop: '2rem' }}>
-                <h3 style={{ marginBottom: '1rem' }}>Performance Insights</h3>
-                <StatsGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
-                  <StatCard
-                    title="Cost Per Purchase"
-                    value={formatCurrency(data.marketing.performanceMetrics.costPerPurchase)}
-                    icon={FiTarget}
-                    color="#ef4444"
-                  />
-                  <StatCard
-                    title="Conversion Rate"
-                    value={formatPercentage(data.marketing.performanceMetrics.conversionRate)}
-                    icon={FiPercent}
-                    color="#10b981"
-                  />
-                  <StatCard
-                    title="Profit from Ads"
-                    value={formatCurrency(data.marketing.performanceMetrics.profitFromAds)}
-                    icon={FiTrendingUp}
-                    color={data.marketing.performanceMetrics.profitFromAds > 0 ? "#059669" : "#dc2626"}
-                  />
-                </StatsGrid>
+          {/* Marketing Overview */}
+          <BackgroundSection>
+            <h2>Meta Ads Marketing Analytics</h2>
+            
+            <div style={{ marginBottom: '2rem' }}>
+              <div style={{ 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                padding: '1.5rem',
+                borderRadius: '12px',
+                marginBottom: '1.5rem'
+              }}>
+                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>
+                  Targeting Keyword: <span style={{ fontWeight: 'bold', color: '#ffd700' }}>"{data.marketing.keyword || 'N/A'}"</span>
+                </h3>
+                <p style={{ margin: '0 0 0.5rem 0', opacity: '0.9' }}>
+                  Found {data.marketing.campaignCount} active campaigns for this product
+                </p>
+                <p style={{ margin: '0', opacity: '0.8', fontSize: '0.9rem' }}>
+                  📅 Marketing data for: {new Date(data.dateFilter.startDate).toLocaleDateString()} - {new Date(data.dateFilter.endDate).toLocaleDateString()}
+                </p>
               </div>
+            </div>
 
-              {/* Campaign Performance Charts */}
-              {data.marketing.campaigns && data.marketing.campaigns.length > 0 && (
-                <>
-                  <div style={{ marginTop: '2rem' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>Campaign Performance Overview</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                      {/* Campaign Spend Distribution */}
-                      <div>
-                        <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
-                          Ad Spend by Campaign
-                        </h4>
-                        <div style={{ height: '300px' }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={data.marketing.campaigns.map(campaign => ({
-                                  name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
-                                  value: campaign.spend,
-                                  fullName: campaign.name
-                                }))}
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={100}
-                                fill="#8884d8"
-                                dataKey="value"
-                                label={({ value, percent }) => `₹${value.toFixed(0)} (${(percent * 100).toFixed(1)}%)`}
-                              >
-                                {data.marketing.campaigns.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                              </Pie>
-                              <Tooltip formatter={(value, name, props) => [
-                                `₹${value.toFixed(2)}`,
-                                props.payload.fullName
-                              ]} />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
+            {/* Marketing Metrics */}
+            <StatsGrid>
+              <StatCard
+                title="Total Ad Spend"
+                value={formatCurrency(data.marketing.totalSpend)}
+                icon={FiDollarSign}
+                color="#ef4444"
+              />
+              <StatCard
+                title="Total Impressions"
+                value={safeNumberFormat(data.marketing.totalImpressions)} 
+                icon={FiEye}
+                color="#3b82f6"
+              />
+              <StatCard
+                title="Total Clicks"
+                value={safeNumberFormat(data.marketing.totalClicks)}
+                icon={FiMousePointer}
+                color="#10b981"
+              />
+              <StatCard
+                title="Total Purchases"
+                value={safeNumberFormat(data.marketing.totalPurchases)}
+                icon={FiShoppingCart}
+                color="#8b5cf6"
+              />
+              <StatCard
+                title="Purchase Value"
+                value={formatCurrency(data.marketing.totalPurchaseValue)}
+                icon={FiDollarSign}
+                color="#059669"
+              />
+              <StatCard
+                title="ROAS"
+                value={formatPercentage(data.marketing.averageRoas)}
+                icon={FiTrendingUp}
+                color="#10b981"
+              />
+              <StatCard
+                title="Cost Per Click"
+                value={formatCurrency(data.marketing.averageCpc)}
+                icon={FiTarget}
+                color="#f59e0b"
+              />
+              <StatCard
+                title="Click-Through Rate"
+                value={formatPercentage(data.marketing.averageCtr)}
+                icon={FiActivity}
+                color="#6366f1"
+              />
+            </StatsGrid>
 
-                      {/* Campaign Performance Metrics */}
-                      <div>
-                        <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
-                          ROAS by Campaign
-                        </h4>
-                        <div style={{ height: '300px' }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
+            {/* Performance Metrics */}
+            <div style={{ marginTop: '2rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>Performance Insights</h3>
+              <StatsGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+                <StatCard
+                  title="Cost Per Purchase"
+                  value={formatCurrency(data.marketing.performanceMetrics.costPerPurchase)}
+                  icon={FiTarget}
+                  color="#ef4444"
+                />
+                <StatCard
+                  title="Conversion Rate"
+                  value={formatPercentage(data.marketing.performanceMetrics.conversionRate)}
+                  icon={FiPercent}
+                  color="#10b981"
+                />
+                <StatCard
+                  title="Profit from Ads"
+                  value={formatCurrency(data.marketing.performanceMetrics.profitFromAds)}
+                  icon={FiTrendingUp}
+                  color={data.marketing.performanceMetrics.profitFromAds > 0 ? "#059669" : "#dc2626"}
+                />
+              </StatsGrid>
+            </div>
+
+            {/* Campaign Performance Charts */}
+            {data.marketing.campaigns && data.marketing.campaigns.length > 0 && (
+              <>
+                <div style={{ marginTop: '2rem' }}>
+                  <h3 style={{ marginBottom: '1rem' }}>Campaign Performance Overview</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                    {/* Campaign Spend Distribution */}
+                    <div>
+                      <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                        Ad Spend by Campaign
+                      </h4>
+                      <div style={{ height: '300px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
                               data={data.marketing.campaigns.map(campaign => ({
-                                name: campaign.name.length > 15 ? campaign.name.substring(0, 15) + '...' : campaign.name,
-                                roas: campaign.roas,
-                                spend: campaign.spend,
-                                revenue: campaign.purchaseValue,
+                                name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
+                                value: campaign.spend,
                                 fullName: campaign.name
                               }))}
+                              cx="50%"
+                              cy="50%"
+                              outerRadius={100}
+                              fill="#8884d8"
+                              dataKey="value"
+                              label={({ value, percent }) => `₹${value.toFixed(0)} (${(percent * 100).toFixed(1)}%)`}
                             >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="name" />
-                              <YAxis />
-                              <Tooltip formatter={(value, name, props) => {
-                                if (name === 'roas') return [`${value.toFixed(2)}x`, 'ROAS'];
-                                if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
-                                if (name === 'revenue') return [`₹${value.toFixed(2)}`, 'Revenue'];
-                                return [value, name];
-                              }} 
-                              labelFormatter={(label, payload) => 
-                                payload && payload[0] ? payload[0].payload.fullName : label
-                              } />
-                              <Legend />
-                              <Bar dataKey="roas" fill="#10b981" name="ROAS" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
+                              {data.marketing.campaigns.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value, name, props) => [
+                              `₹${value.toFixed(2)}`,
+                              props.payload.fullName
+                            ]} />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Campaign Performance Metrics */}
+                    <div>
+                      <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+                        ROAS by Campaign
+                      </h4>
+                      <div style={{ height: '300px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={data.marketing.campaigns.map(campaign => ({
+                              name: campaign.name.length > 15 ? campaign.name.substring(0, 15) + '...' : campaign.name,
+                              roas: campaign.roas,
+                              spend: campaign.spend,
+                              revenue: campaign.purchaseValue,
+                              fullName: campaign.name
+                            }))}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis />
+                            <Tooltip formatter={(value, name, props) => {
+                              if (name === 'roas') return [`${value.toFixed(2)}x`, 'ROAS'];
+                              if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
+                              if (name === 'revenue') return [`₹${value.toFixed(2)}`, 'Revenue'];
+                              return [value, name];
+                            }} 
+                            labelFormatter={(label, payload) => 
+                              payload && payload[0] ? payload[0].payload.fullName : label
+                            } />
+                            <Legend />
+                            <Bar dataKey="roas" fill="#10b981" name="ROAS" />
+                          </BarChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
                   </div>
-
-                  {/* Campaign Comparison Chart */}
-                  <div style={{ marginTop: '2rem' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>Campaign Comparison: Spend vs Performance</h3>
-                    <ChartContainer>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={data.marketing.campaigns.map(campaign => ({
-                            name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
-                            spend: campaign.spend,
-                            clicks: campaign.clicks,
-                            purchases: campaign.purchases,
-                            impressions: campaign.impressions / 1000, // Scale down for better visualization
-                            fullName: campaign.name
-                          }))}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="name" />
-                          <YAxis yAxisId="left" />
-                          <YAxis yAxisId="right" orientation="right" />
-                          <Tooltip formatter={(value, name, props) => {
-                            if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
-                            if (name === 'clicks') return [value, 'Clicks'];
-                            if (name === 'purchases') return [value, 'Purchases'];
-                            if (name === 'impressions') return [`${(value * 1000).toLocaleString()}`, 'Impressions'];
-                            return [value, name];
-                          }}
-                          labelFormatter={(label, payload) => 
-                            payload && payload[0] ? payload[0].payload.fullName : label
-                          } />
-                          <Legend />
-                          <Bar yAxisId="left" dataKey="spend" fill="#ef4444" name="Ad Spend" />
-                          <Bar yAxisId="left" dataKey="clicks" fill="#3b82f6" name="Clicks" />
-                          <Bar yAxisId="right" dataKey="purchases" fill="#10b981" name="Purchases" />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  </div>
-
-                  {/* Detailed Campaign Table */}
-                  <div style={{ marginTop: '2rem' }}>
-                    <h3 style={{ marginBottom: '1rem' }}>Detailed Campaign Analysis</h3>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ 
-                        width: '100%', 
-                        borderCollapse: 'collapse',
-                        background: 'white',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-                      }}>
-                        <thead>
-                          <tr style={{ background: '#f8f9fa' }}>
-                            <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '2px solid #e9ecef' }}>Campaign Name</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Spend</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Impressions</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Clicks</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CTR</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CPC</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Purchases</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Revenue</th>
-                            <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>ROAS</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {data.marketing.campaigns.map((campaign, index) => (
-                            <tr key={index} style={{ borderBottom: '1px solid #e9ecef' }}>
-                              <td style={{ padding: '1rem', maxWidth: '200px' }}>
-                                <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{campaign.name}</div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>ID: {campaign.id}</div>
-                              </td>
-                              <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.spend.toFixed(2)}</td>
-                              <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.impressions.toLocaleString()}</td>
-                              <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.clicks.toLocaleString()}</td>
-                              <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.ctr.toFixed(2)}%</td>
-                              <td style={{ padding: '1rem', textAlign: 'right' }}>₹{campaign.cpc.toFixed(2)}</td>
-                              <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>{campaign.purchases}</td>
-                              <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.purchaseValue.toFixed(2)}</td>
-                              <td style={{ padding: '1rem', textAlign: 'right' }}>
-                                <span style={{ 
-                                  padding: '0.25rem 0.5rem', 
-                                  borderRadius: '12px', 
-                                  fontSize: '0.8rem',
-                                  fontWeight: '500',
-                                  backgroundColor: campaign.roas > 2 ? '#d4edda' : campaign.roas > 1 ? '#fff3cd' : '#f8d7da',
-                                  color: campaign.roas > 2 ? '#155724' : campaign.roas > 1 ? '#856404' : '#721c24'
-                                }}>
-                                  {campaign.roas.toFixed(2)}x
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {/* No Campaigns Found Message */}
-              {(!data.marketing.campaigns || data.marketing.campaigns.length === 0) && (
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: '3rem 2rem',
-                  background: '#f8f9fa',
-                  borderRadius: '8px',
-                  marginTop: '2rem'
-                }}>
-                  <FiBarChart2 size={48} style={{ color: '#6c757d', marginBottom: '1rem' }} />
-                  <h3 style={{ color: '#6c757d', marginBottom: '0.5rem' }}>No Campaign Data Available</h3>
-                  <p style={{ color: '#6c757d', margin: '0' }}>
-                    No Meta Ads campaigns found for the keyword "{data.marketing.keyword}" or the keyword is not configured for marketing campaigns.
-                  </p>
                 </div>
-              )}
-            </BackgroundSection>
-          )}
+
+                {/* Campaign Comparison Chart */}
+                <div style={{ marginTop: '2rem' }}>
+                  <h3 style={{ marginBottom: '1rem' }}>Campaign Comparison: Spend vs Performance</h3>
+                  <ChartContainer>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={data.marketing.campaigns.map(campaign => ({
+                          name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
+                          spend: campaign.spend,
+                          clicks: campaign.clicks,
+                          purchases: campaign.purchases,
+                          impressions: campaign.impressions / 1000, // Scale down for better visualization
+                          fullName: campaign.name
+                        }))}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis yAxisId="left" />
+                        <YAxis yAxisId="right" orientation="right" />
+                        <Tooltip formatter={(value, name, props) => {
+                          if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
+                          if (name === 'clicks') return [value, 'Clicks'];
+                          if (name === 'purchases') return [value, 'Purchases'];
+                          if (name === 'impressions') return [`${(value * 1000).toLocaleString()}`, 'Impressions'];
+                          return [value, name];
+                        }}
+                        labelFormatter={(label, payload) => 
+                          payload && payload[0] ? payload[0].payload.fullName : label
+                        } />
+                        <Legend />
+                        <Bar yAxisId="left" dataKey="spend" fill="#ef4444" name="Ad Spend" />
+                        <Bar yAxisId="left" dataKey="clicks" fill="#3b82f6" name="Clicks" />
+                        <Bar yAxisId="right" dataKey="purchases" fill="#10b981" name="Purchases" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartContainer>
+                </div>
+
+                {/* Detailed Campaign Table */}
+                <div style={{ marginTop: '2rem' }}>
+                  <h3 style={{ marginBottom: '1rem' }}>Detailed Campaign Analysis</h3>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ 
+                      width: '100%', 
+                      borderCollapse: 'collapse',
+                      background: 'white',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                    }}>
+                      <thead>
+                        <tr style={{ background: '#f8f9fa' }}>
+                          <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '2px solid #e9ecef' }}>Campaign Name</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Spend</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Impressions</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Clicks</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CTR</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CPC</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Purchases</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Revenue</th>
+                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>ROAS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.marketing.campaigns.map((campaign, index) => (
+                          <tr key={index} style={{ borderBottom: '1px solid #e9ecef' }}>
+                            <td style={{ padding: '1rem', maxWidth: '200px' }}>
+                              <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{campaign.name}</div>
+                              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>ID: {campaign.id}</div>
+                            </td>
+                            <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.spend.toFixed(2)}</td>
+                            <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.impressions.toLocaleString()}</td>
+                            <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.clicks.toLocaleString()}</td>
+                            <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.ctr.toFixed(2)}%</td>
+                            <td style={{ padding: '1rem', textAlign: 'right' }}>₹{campaign.cpc.toFixed(2)}</td>
+                            <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>{campaign.purchases}</td>
+                            <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.purchaseValue.toFixed(2)}</td>
+                            <td style={{ padding: '1rem', textAlign: 'right' }}>
+                              <span style={{ 
+                                padding: '0.25rem 0.5rem', 
+                                borderRadius: '12px', 
+                                fontSize: '0.8rem',
+                                fontWeight: '500',
+                                backgroundColor: campaign.roas > 2 ? '#d4edda' : campaign.roas > 1 ? '#fff3cd' : '#f8d7da',
+                                color: campaign.roas > 2 ? '#155724' : campaign.roas > 1 ? '#856404' : '#721c24'
+                              }}>
+                                {campaign.roas.toFixed(2)}x
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* No Campaigns Found Message */}
+            {(!data.marketing.campaigns || data.marketing.campaigns.length === 0) && (
+              <div style={{ 
+                textAlign: 'center', 
+                padding: '3rem 2rem',
+                background: '#f8f9fa',
+                borderRadius: '8px',
+                marginTop: '2rem'
+              }}>
+                <FiBarChart2 size={48} style={{ color: '#6c757d', marginBottom: '1rem' }} />
+                <h3 style={{ color: '#6c757d', marginBottom: '0.5rem' }}>No Campaign Data Available</h3>
+                <p style={{ color: '#6c757d', margin: '0' }}>
+                  No Meta Ads campaigns found for the keyword "{data.marketing.keyword}" or the keyword is not configured for marketing campaigns.
+                </p>
+              </div>
+            )}
+          </BackgroundSection>
 
           {/* Customer Insights */}
           <BackgroundSection>
