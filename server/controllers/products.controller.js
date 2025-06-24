@@ -8,7 +8,7 @@ const {fetchTotalProductsCount,calculateAverageProductPrice,getTopSellingProduct
 const {fetchAllProducts} = require('../utils/fetchDataFromShopify');
 const {fetchListingImageAndDescriptionById} = require('../utils/fetchDataFromShopify');
 const queryForBigQuery = require('../config/bigquery');
-const { getDatasetName } = require('../utils/bigquery');
+const { getDatasetName, executeQuery } = require('../utils/bigquery');
 const marketingKeywords = require('./marketingKeywords.json');
 const MetaAdsAnalytics = require('../utils/MetaAdsAnalytics');
 const productsController = {
@@ -174,6 +174,44 @@ const productsController = {
       const { productSlug } = req.params; //product Id referes to slug of the product
       const { startDate, endDate } = req.query; // Get date filter parameters
       
+      // Helper function to convert date to UTC with 5:30 offset
+      const convertToUTCWithOffset = (dateString, isEndDate = false) => {
+        if (!dateString) return null;
+        
+        try {
+          // Parse the input date (assuming YYYY-MM-DD format)
+          const [year, month, day] = dateString.split('-').map(Number);
+          
+          if (!year || !month || !day) {
+            throw new Error('Invalid date format');
+          }
+          
+          console.log(`Converting ${dateString} (isEndDate: ${isEndDate})`);
+          console.log(`Parsed: year=${year}, month=${month}, day=${day}`);
+          
+          if (isEndDate) {
+            // For end date: same day at 18:29:59 UTC
+            // This means the date should be the same as input, but at 18:29:59 UTC
+            const date = new Date(Date.UTC(year, month - 1, day, 18, 29, 59, 999));
+            console.log(`End date result: ${date.toISOString()}`);
+            return date.toISOString();
+          } else {
+            // For start date: previous day at 18:30:00 UTC
+            // First, create the date for the input day
+            const inputDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+            // Subtract 24 hours to get the previous day
+            const previousDay = new Date(inputDate.getTime() - (24 * 60 * 60 * 1000));
+            // Set to 18:30:00 UTC
+            previousDay.setUTCHours(18, 30, 0, 0);
+            console.log(`Start date result: ${previousDay.toISOString()}`);
+            return previousDay.toISOString();
+          }
+        } catch (error) {
+          console.error('Error converting date:', error);
+          return null;
+        }
+      };
+      
       // Set default date range if not provided (last 30 days)
       const defaultEndDate = new Date().toISOString().split('T')[0];
       const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -181,7 +219,30 @@ const productsController = {
       const filterStartDate = startDate || defaultStartDate;
       const filterEndDate = endDate || defaultEndDate;
       
-      console.log(`Filtering data from ${filterStartDate} to ${filterEndDate}`);
+      // Convert dates to UTC with offset
+      const utcStartDate = convertToUTCWithOffset(filterStartDate, false);
+      const utcEndDate = convertToUTCWithOffset(filterEndDate, true);
+      
+      // Validate converted dates
+      if (!utcStartDate || !utcEndDate) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Invalid date format provided. Please use YYYY-MM-DD format.' 
+        });
+      }
+      
+      console.log(`Original dates: ${filterStartDate} to ${filterEndDate}`);
+      console.log(`UTC dates with offset: ${utcStartDate} to ${utcEndDate}`);
+      
+      // Test case verification
+      if (filterStartDate === '2025-06-01' && filterEndDate === '2025-06-15') {
+        console.log('=== TEST CASE VERIFICATION ===');
+        console.log('Expected start date: 2025-05-31T18:30:00.000Z');
+        console.log('Actual start date:   ' + utcStartDate);
+        console.log('Expected end date:   2025-06-15T18:29:59.999Z');
+        console.log('Actual end date:     ' + utcEndDate);
+        console.log('=============================');
+      }
       
       // Validate product exists
       const product = skuJson.find(p => p.MasterSKU === productSlug);
@@ -232,7 +293,10 @@ const productsController = {
       const variantSkus = product.variants && Array.isArray(product.variants) 
         ? product.variants.flatMap(v => 
             v.variantSkus && Array.isArray(v.variantSkus) 
-              ? v.variantSkus.map(s => s.variant_sku).filter(Boolean)
+              ? v.variantSkus
+                  .filter(s => s.storeName === 'Shopify') // Only include Shopify SKUs
+                  .map(s => s.variant_sku)
+                  .filter(Boolean)  
               : []
           ).filter(Boolean)
         : [];
@@ -244,91 +308,413 @@ const productsController = {
         });
       }
 
-      // Updated query for nested line_items structure
-      const query1 = `SELECT 
-        COUNT(DISTINCT line_item.VARIANT_ID) as total_variants_sold,
-        SUM(line_item.QUANTITY) as total_units_sold,
-        ROUND(SUM(line_item.PRICE * line_item.QUANTITY), 2) as total_sales_amount,
-        ROUND(AVG(line_item.PRICE), 2) as average_price,
-        COUNT(DISTINCT o.NAME) as total_orders
-      FROM \`${getDatasetName()}\` o,
-      UNNEST(o.line_items) as line_item
-      WHERE line_item.SKU IN ('${variantSkus.join("','")}') 
-        AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
-        AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'`;
+      // Updated query for nested line_items structure with UTC dates
+      const query1=`WITH latest_orders AS (
+  SELECT *,
+    ROW_NUMBER() OVER (PARTITION BY name ORDER BY _daton_batch_runtime DESC) as rn
+  FROM \`frido-429506.Frido_BigQuery.Frido_Shopify_orders\`
+  WHERE created_at >= TIMESTAMP('${utcStartDate}')
+    AND created_at <= TIMESTAMP('${utcEndDate}')
+),
+product_data AS (
+  SELECT 
+    o.id as order_id,  -- Added order_id here
+    item.name as product_name,
+    CAST(item.price AS NUMERIC) * item.quantity  as gross_sales_per_item,
+    (
+     
+      (CAST(item.price AS NUMERIC) * item.quantity) - 
+      COALESCE((
+        SELECT SUM(CAST(disc.amount AS NUMERIC)) 
+        FROM UNNEST(item.discount_allocations) as disc
+      ), 0)
+    ) as total_sales_per_item,
+    (
+      SELECT SUM(CAST(tax.price AS NUMERIC)) 
+      FROM UNNEST(item.tax_lines) as tax
+    ) as total_tax_per_item,
+    item.quantity as total_items_sold_per_line
+  FROM latest_orders o
+  CROSS JOIN UNNEST(o.line_items) as item
+  WHERE o.rn = 1
+    AND item.sku IN ('${variantSkus.join("','")}')
+)
+
+SELECT 
+  SUM(total_sales_per_item) as total_sales,
+  SUM(gross_sales_per_item) as gross_sales,
+  SUM(total_tax_per_item) as total_tax,
+  CASE 
+    WHEN SUM(total_sales_per_item) > 0 THEN SUM(total_tax_per_item) / SUM(total_sales_per_item)
+    ELSE 0 
+  END as tax_rate,
+  SUM(total_items_sold_per_line) as total_items_sold,
+  COUNT(DISTINCT order_id) as total_orders,  -- Changed to COUNT(DISTINCT order_id)
+  CASE 
+    WHEN SUM(total_items_sold_per_line) > 0 THEN SUM(total_sales_per_item) / SUM(total_items_sold_per_line)
+    ELSE 0 
+  END as average_order_price
+FROM product_data;
+`
 
       let overviewData = {};
       try {
-        const result = await queryForBigQuery(query1);
+        const result = await executeQuery(query1);
         overviewData = result[0] || {};
       } catch (error) {
         console.error('Error fetching overview data:', error.message);
         overviewData = {};
       }
 
-      // Query 2: Customer insights with error handling
-      const query2 = `SELECT 
-        COUNT(DISTINCT CUSTOMER_ID) as unique_customers,
-        COUNT(DISTINCT o.NAME) as total_orders,
-        ROUND(SUM(line_item.QUANTITY) / COUNT(DISTINCT o.NAME), 2) as avg_quantity_per_order,
-        ROUND(SUM(line_item.PRICE * line_item.QUANTITY) / COUNT(DISTINCT o.NAME), 2) as avg_order_value,
-        COUNT(DISTINCT CASE WHEN o.FINANCIAL_STATUS = 'refunded' THEN o.NAME END) as refunded_orders
-      FROM \`${getDatasetName()}\` o,
-      UNNEST(o.line_items) as line_item
-      WHERE line_item.SKU IN ('${variantSkus.join("','")}') 
-        AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
-        AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'`;
+      // Query 2: Customer insights with error handling - using UTC dates
+      const query2 = `WITH latest_orders AS (
+  SELECT *,
+    ROW_NUMBER() OVER (PARTITION BY name ORDER BY _daton_batch_runtime DESC) as rn
+  FROM \`frido-429506.Frido_BigQuery.Frido_Shopify_orders\`
+  WHERE created_at >= TIMESTAMP('${utcStartDate}')
+    AND created_at <= TIMESTAMP('${utcEndDate}')
+),
+product_orders AS (
+  SELECT DISTINCT
+    o.id as order_id,
+    o.name as order_name,
+    cust.id as customer_id,
+    cust.email as customer_email,
+    CAST(o.total_price AS NUMERIC) as order_total_value,
+    -- Calculate product-specific value for this order
+    (
+      SELECT SUM(
+        (CAST(item.price AS NUMERIC) * item.quantity) - 
+        COALESCE((
+          SELECT SUM(CAST(disc.amount AS NUMERIC)) 
+          FROM UNNEST(item.discount_allocations) as disc
+        ), 0)
+      )
+      FROM UNNEST(o.line_items) as item
+      WHERE item.sku IN ('${variantSkus.join("','")}')
+    ) as product_specific_value
+  FROM latest_orders o
+  CROSS JOIN UNNEST(o.customer) as cust
+  WHERE o.rn = 1
+    AND EXISTS (
+      SELECT 1 
+      FROM UNNEST(o.line_items) as item
+      WHERE item.sku IN ('${variantSkus.join("','")}')
+    )
+    AND cust.id IS NOT NULL
+),
+customer_metrics AS (
+  SELECT 
+    customer_id,
+    customer_email,
+    COUNT(DISTINCT order_id) as order_count,
+    SUM(product_specific_value) as total_product_value,
+    AVG(product_specific_value) as avg_order_value
+  FROM product_orders
+  GROUP BY customer_id, customer_email
+),
+customer_segments AS (
+  SELECT 
+    *,
+    -- Frequency segments
+    CASE 
+      WHEN order_count = 1 THEN 'one_order'
+      WHEN order_count = 2 THEN 'two_orders' 
+      WHEN order_count = 3 THEN 'three_orders'
+      WHEN order_count >= 4 THEN 'four_plus_orders'
+    END as frequency_segment,
+    -- Value segments (you may need to adjust these thresholds)
+    CASE 
+      WHEN total_product_value >= 7000 THEN 'high_value'
+      WHEN total_product_value >= 5000 THEN 'medium_value'
+      ELSE 'low_value'
+    END as value_segment
+  FROM customer_metrics
+),
+summary_stats AS (
+  SELECT 
+    COUNT(*) as total_customers,
+    COUNT(CASE WHEN order_count > 1 THEN 1 END) as repeat_customers,
+    COUNT(CASE WHEN order_count = 1 THEN 1 END) as first_time_customers,
+    AVG(order_count) as avg_orders_per_customer
+  FROM customer_metrics
+)
+
+-- Main query combining all insights
+SELECT 
+  -- Basic customer metrics
+  (SELECT total_customers FROM summary_stats) as unique_customers,
+  (SELECT repeat_customers FROM summary_stats) as repeat_customers,
+  (SELECT repeat_customers * 100.0 / total_customers FROM summary_stats) as repeat_customer_rate,
+  (SELECT avg_orders_per_customer FROM summary_stats) as avg_quantity_per_order,
+  (SELECT first_time_customers FROM summary_stats) as first_time_customers,
+  (SELECT first_time_customers * 100.0 / total_customers FROM summary_stats) as first_time_customer_rate,
+  
+  -- Value segments
+  COUNT(CASE WHEN value_segment = 'high_value' THEN 1 END) as high_value_customer_count,
+  COUNT(CASE WHEN value_segment = 'high_value' THEN 1 END) * 100.0 / COUNT(*) as high_value_customer_percentage,
+  
+  COUNT(CASE WHEN value_segment = 'medium_value' THEN 1 END) as medium_value_customer_count,
+  COUNT(CASE WHEN value_segment = 'medium_value' THEN 1 END) * 100.0 / COUNT(*) as medium_value_customer_percentage,
+  
+  COUNT(CASE WHEN value_segment = 'low_value' THEN 1 END) as low_value_customer_count,
+  COUNT(CASE WHEN value_segment = 'low_value' THEN 1 END) * 100.0 / COUNT(*) as low_value_customer_percentage,
+  
+  -- Frequency distribution
+  COUNT(CASE WHEN frequency_segment = 'one_order' THEN 1 END) as one_order_customer_count,
+  COUNT(CASE WHEN frequency_segment = 'one_order' THEN 1 END) * 100.0 / COUNT(*) as one_order_customer_percentage,
+  
+  COUNT(CASE WHEN frequency_segment = 'two_orders' THEN 1 END) as two_orders_customer_count,
+  COUNT(CASE WHEN frequency_segment = 'two_orders' THEN 1 END) * 100.0 / COUNT(*) as two_orders_customer_percentage,
+  
+  COUNT(CASE WHEN frequency_segment = 'three_orders' THEN 1 END) as three_orders_customer_count,
+  COUNT(CASE WHEN frequency_segment = 'three_orders' THEN 1 END) * 100.0 / COUNT(*) as three_orders_customer_percentage,
+  
+  COUNT(CASE WHEN frequency_segment = 'four_plus_orders' THEN 1 END) as four_plus_orders_customer_count,
+  COUNT(CASE WHEN frequency_segment = 'four_plus_orders' THEN 1 END) * 100.0 / COUNT(*) as four_plus_orders_customer_percentage
+
+FROM customer_segments`;
 
       let customerInsights = {};
       try {
-        const result2 = await queryForBigQuery(query2);
+        const result2 = await executeQuery(query2);
         customerInsights = result2[0] || {};
+        console.log(customerInsights, 'customerInsights');
       } catch (error) {
         console.error('Error fetching customer insights:', error.message);
         customerInsights = {};
       }
 
-      // Query 3: Variant insights with updated structure for nested line_items
-      const query3 = `SELECT 
-        line_item.VARIANT_TITLE,
-        SUM(line_item.QUANTITY) as total_units_sold,
-        ROUND(SUM(line_item.PRICE * line_item.QUANTITY - COALESCE(line_item.TOTAL_DISCOUNT, 0)), 2) as total_sales_amount,
-        ROUND(
-          (SUM(line_item.QUANTITY) * 100.0) / NULLIF(SUM(SUM(line_item.QUANTITY)) OVER(), 0), 2
-        ) as units_sold_percentage
-      FROM \`${getDatasetName()}\` o,
-      UNNEST(o.line_items) as line_item
-      WHERE line_item.SKU IN ('${variantSkus.join("','")}') 
-        AND DATE(o.PROCESSED_AT) >= '${filterStartDate}'
-        AND DATE(o.PROCESSED_AT) <= '${filterEndDate}'
-      GROUP BY line_item.VARIANT_TITLE
-      ORDER BY total_sales_amount DESC`;
+      // Create SKU to variant name mapping from sku.json
+      const skuToVariantMap = new Map();
+      if (product && product.variants && Array.isArray(product.variants)) {
+        for (const variant of product.variants) {
+          if (variant.variantSkus && Array.isArray(variant.variantSkus)) {
+            for (const skuData of variant.variantSkus) {
+              if (skuData.storeName === 'Shopify' && skuData.variant_sku) {
+                skuToVariantMap.set(skuData.variant_sku, variant.variantName || 'Unknown Variant');
+              }
+            }
+          }
+        }
+      }
+
+      // Query 3: Variant insights grouped by SKU only - using UTC dates
+      const query3 = `WITH latest_orders AS (
+                      SELECT *,
+                        ROW_NUMBER() OVER (PARTITION BY name ORDER BY _daton_batch_runtime DESC) as rn
+                      FROM \`frido-429506.Frido_BigQuery.Frido_Shopify_orders\`
+                      WHERE created_at >= TIMESTAMP('${utcStartDate}')
+                        AND created_at <= TIMESTAMP('${utcEndDate}')
+                    ),
+                    variant_data AS (
+                      SELECT 
+                        item.sku as variant_sku,
+                        SUM(item.quantity) as total_units_sold,
+                        SUM(
+                          (CAST(item.price AS NUMERIC) * item.quantity) - 
+                          COALESCE((
+                            SELECT SUM(CAST(disc.amount AS NUMERIC)) 
+                            FROM UNNEST(item.discount_allocations) as disc
+                          ), 0)
+                        ) as total_sales_amount
+                      FROM latest_orders o
+                      CROSS JOIN UNNEST(o.line_items) as item
+                      WHERE o.rn = 1
+                        AND item.sku IN ('${variantSkus.join("','")}')
+                     GROUP BY item.sku
+                    )
+                    SELECT 
+                      variant_sku,
+                      total_units_sold,
+                      ROUND(total_sales_amount, 2) as total_sales_amount,
+                      ROUND(
+                        (total_units_sold * 100.0) / NULLIF(SUM(total_units_sold) OVER(), 0), 2
+                      ) as units_sold_percentage
+                    FROM variant_data
+                    ORDER BY total_sales_amount DESC`;
 
       let fetchVariantInsights = [];
       try {
-        fetchVariantInsights = await queryForBigQuery(query3);
+        const rawVariantData = await executeQuery(query3);
+        console.log('Raw variant data:', rawVariantData);
+        
+        // Process the raw data to map SKUs to variant names and group "Other"
+        const mappedVariants = [];
+        let otherVariantData = {
+          variant_sku: 'OTHER',
+          variant_name: 'Other',
+          total_units_sold: 0,
+          total_sales_amount: 0,
+          units_sold_percentage: 0
+        };
+        
+        for (const variantData of rawVariantData) {
+          const sku = variantData.variant_sku;
+          const variantName = skuToVariantMap.get(sku);
+          
+          if (variantName) {
+            // SKU found in sku.json, use the mapped variant name
+            mappedVariants.push({
+              variant_sku: sku,
+              variant_name: variantName,
+              total_units_sold: variantData.total_units_sold,
+              total_sales_amount: variantData.total_sales_amount,
+              units_sold_percentage: variantData.units_sold_percentage
+            });
+          } else {
+            // SKU not found in sku.json, aggregate into "Other"
+            otherVariantData.total_units_sold += parseInt(variantData.total_units_sold) || 0;
+            otherVariantData.total_sales_amount += parseFloat(variantData.total_sales_amount) || 0;
+          }
+        }
+        
+        // Add "Other" category if it has any data
+        if (otherVariantData.total_units_sold > 0) {
+          // Calculate percentage for "Other" category
+          const totalUnits = mappedVariants.reduce((sum, v) => sum + (parseInt(v.total_units_sold) || 0), 0) + otherVariantData.total_units_sold;
+          otherVariantData.units_sold_percentage = totalUnits > 0 ? ((otherVariantData.total_units_sold * 100.0) / totalUnits) : 0;
+          
+          // Recalculate percentages for all variants including "Other"
+          for (const variant of mappedVariants) {
+            variant.units_sold_percentage = totalUnits > 0 ? ((parseInt(variant.total_units_sold) * 100.0) / totalUnits) : 0;
+          }
+          
+          mappedVariants.push(otherVariantData);
+        }
+        
+        fetchVariantInsights = mappedVariants.sort((a, b) => (parseFloat(b.total_sales_amount) || 0) - (parseFloat(a.total_sales_amount) || 0));
+        console.log('Processed variant insights:', fetchVariantInsights);
       } catch (error) {
         console.error('Error fetching variant insights:', error.message);
         fetchVariantInsights = [];
       }
-      
-      // Safe calculations with null checks
-      const totalRevenue = parseFloat(overviewData.total_sales) || 0;
+
+      /**
+       * Calculate total COGS and S&D cost based on variant sales
+       * 
+       * Logic:
+       * 1. For each sold variant SKU, first try to find it in the product's variants list
+       * 2. If found, use the variant-specific COGS and S&D costs
+       * 3. If not found in variants, fall back to product-level COGS and S&D costs
+       * 4. This ensures we can handle cases where new SKUs exist in sales data
+       *    but haven't been added to the sku.json variants list yet
+       */
+      let totalCogs = 0;
+      let totalSdCost = 0;
+
+      if (product && fetchVariantInsights.length > 0) {
+        // Create a map of SKU -> cost details for quick lookup
+        const skuCostMap = new Map();
+        
+        // First, populate with variant-specific costs if variants exist
+        if (product.variants && Array.isArray(product.variants)) {
+          for (const variant of product.variants) {
+            if (variant.variantSkus && Array.isArray(variant.variantSkus)) {
+              for (const skuData of variant.variantSkus) {
+                if (skuData.storeName === 'Shopify' && skuData.variant_sku) {
+                  skuCostMap.set(skuData.variant_sku, {
+                    cogs: variant.cogs || product.cogs || 0,
+                    sd: variant['s&d'] || product['s&d'] || 0,
+                    source: 'variant'
+                  });
+                }
+              }
+            }
+          }
+        }
+
+        //console skuCostMap
+        console.log(skuCostMap,'skuCostMap');
+
+        // Calculate total costs for each sold variant
+        for (const variantSold of fetchVariantInsights) {
+          const variantSku = variantSold.variant_sku;
+          const unitsSold = parseInt(variantSold.total_units_sold) || 0;
+          
+          // Try to get costs from SKU map (variant-specific)
+          let costDetails = skuCostMap.get(variantSku);
+          
+          // If not found in variants, use product-level costs as fallback
+          if (!costDetails) {
+            costDetails = {
+              cogs: product.cogs || 0,
+              sd: product['s&d'] || 0,
+              source: 'product-fallback'
+            };
+            console.log(`Using product-level costs for SKU ${variantSku} (not found in variants)`);
+          }
+          
+          totalCogs += unitsSold * costDetails.cogs;
+          totalSdCost += unitsSold * costDetails.sd;
+          
+          console.log(`SKU: ${variantSku}, Units: ${unitsSold}, COGS: ${costDetails.cogs}, S&D: ${costDetails.sd}, Source: ${costDetails.source}`);
+        }
+      }
+
+      const totalSales = parseFloat(overviewData.total_sales) || 0;
+      const grossSales = parseFloat(overviewData.gross_sales) || 0;
+      const totalTax = parseFloat(overviewData.total_tax) || 0;
+      const taxRate = parseFloat(overviewData.tax_rate) || 0;
+      const totalItemsSold = parseInt(overviewData.total_items_sold) || 0;
       const totalOrders = parseInt(overviewData.total_orders) || 0;
-      const totalQuantitySold = parseInt(overviewData.total_units_sold) || 0;
-      const netQuantitySold = parseInt(overviewData.total_variants_sold) || 0;
-      const exchangeOrdersCount = parseInt(customerInsights.refunded_orders) || 0;
+      const averageOrderPrice = parseFloat(overviewData.average_order_price) || 0;
+
+      const cogsPercentage = totalSales > 0 ? (totalCogs / totalSales) * 100 : 0;
+      const sdCostPercentage = totalSales > 0 ? (totalSdCost / totalSales) * 100 : 0;
+
+      /**
+       * Calculate ROAS and MER metrics
+       * 
+       * Definitions:
+       * - Gross ROAS: Total Sales / Marketing Spend
+       * - Net ROAS: (Total Sales - COGS) / Marketing Spend
+       * - N-ROAS: (Total Sales - COGS - S&D) / Marketing Spend
+       * - Gross MER: (Marketing Spend / Total Sales) * 100
+       * - Net MER: (Marketing Spend / (Total Sales - COGS)) * 100
+       * - N-MER: (Marketing Spend / (Total Sales - COGS - S&D)) * 100
+       */
+        const totalMarketingSpend = marketingData ? (marketingData.totalSpend || 0) : 0;
+        const netSales = totalSales - totalCogs; // Sales after COGS
+        const nSales = totalSales - totalCogs - totalSdCost; // Sales after COGS and S&D
+
+        // ROAS calculations (return on ad spend)
+        const grossRoas = totalMarketingSpend > 0 ? totalSales / totalMarketingSpend : 0;
+        const netRoas = totalMarketingSpend > 0 ? netSales / totalMarketingSpend : 0;
+        const nRoas = totalMarketingSpend > 0 ? nSales / totalMarketingSpend : 0;
+
+              // MER calculations (marketing efficiency ratio as percentage)
+      const grossMer = totalSales > 0 ? (totalMarketingSpend / totalSales) * 100 : 0;
+      const netMer = netSales > 0 ? (totalMarketingSpend / netSales) * 100 : 0;
+      const nMer = nSales > 0 ? (totalMarketingSpend / nSales) * 100 : 0;
+
+      /**
+       * Calculate Contribution Margin metrics
+       * 
+       * Definitions:
+       * - CM2: Total Sales - COGS - Marketing Spend (Contribution Margin after variable costs and marketing)
+       * - CM2%: (CM2 / Total Sales) * 100
+       * - CM3: Total Sales - COGS - S&D - Marketing Spend (Contribution Margin after all variable costs)
+       * - CM3%: (CM3 / Total Sales) * 100
+       */
+      const cm2 = totalSales - totalCogs - totalMarketingSpend;
+      const cm2Percentage = totalSales > 0 ? (cm2 / totalSales) * 100 : 0;
+      const cm3 = totalSales - totalCogs - totalSdCost - totalMarketingSpend;
+      const cm3Percentage = totalSales > 0 ? (cm3 / totalSales) * 100 : 0;
+
+      console.log(overviewData,totalCogs,totalSdCost,sdCostPercentage,cogsPercentage,'overviewData')
+      console.log(customerInsights,'customerInsights')
       
       const totalMarketingCost = marketingData ? (marketingData.totalSpend || 0) : 0;
-      const grossProfit = totalRevenue * 0.4; // Assuming 40% gross margin
-      const profitAfterMarketing = grossProfit - totalMarketingCost;
-      const aov = netQuantitySold > 0 ? totalRevenue / netQuantitySold : 0;
-      const refundRate = totalOrders > 0 ? (exchangeOrdersCount / totalOrders) * 100 : 0;
+      const grossProfit = totalSales * 0.4; 
+
       
       const mockData = {
         dateFilter: {
           startDate: filterStartDate,
-          endDate: filterEndDate
+          endDate: filterEndDate, 
+          utcStartDate: utcStartDate,
+          utcEndDate: utcEndDate
         },
         product: {
           id: productId || null,
@@ -340,23 +726,31 @@ const productsController = {
           costPrice: product.costPrice || 0,
         },
        overview: {
-          totalOrders: totalOrders,
-          totalSales: totalRevenue,
-          aov: aov,
-          netQuantitySold: netQuantitySold,
-          totalQuantitySold: totalQuantitySold,
-          grossProfit: grossProfit,
-          profitMargin: totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0,
-          refundRate: refundRate,
-        },
-        salesAndProfit: {
-          totalRevenue: totalRevenue,
-          marketingCost: totalMarketingCost,
-          profitAfterMarketing: profitAfterMarketing,
-          profitPerUnit: netQuantitySold > 0 ? profitAfterMarketing / netQuantitySold : 0,
-          costPricePerUnit: product.costPrice || 8000,
-          returnUnits: exchangeOrdersCount,
-          returnRate: refundRate,
+        totalSales: totalSales,
+        grossSales: grossSales,
+        netSales: 0,
+        totalTax: totalTax,
+        taxRate: (taxRate*100).toFixed(2),
+        totalQuantitySold: totalItemsSold,
+        netQuantitySold: 0,
+        totalOrders: totalOrders,
+        netOrders: 0,
+        aov: averageOrderPrice.toFixed(2),
+        cogs: totalCogs,
+        cogsPercentage: cogsPercentage,
+        sdCost: totalSdCost,
+        sdCostPercentage: sdCostPercentage,
+        grossRoas: grossRoas,
+        netRoas: netRoas,
+        grossMer: grossMer,
+        netMer: netMer,
+        nRoas: nRoas,
+        nMer: nMer,
+        cac:(marketingData.totalPurchases || 0) > 0 ? (marketingData.totalSpend || 0) / (marketingData.totalPurchases || 1) : 0,
+        cm2: cm2,
+        cm2Percentage: cm2Percentage,
+        cm3: cm3,
+        cm3Percentage: cm3Percentage
         },
         // Add marketing data section with safe access
         marketing: marketingData ? {
@@ -391,46 +785,52 @@ const productsController = {
           }
         } : null,
         customerInsights: {
-          totalCustomers: customerInsights.unique_customers || 0,
-          repeatCustomers: 0,
-          repeatCustomerRate: 0,
-          avgOrdersPerCustomer: customerInsights.avg_quantity_per_order || 0,
-          firstTimeCustomers: 0,
+          totalCustomers: parseFloat(customerInsights?.unique_customers || 0),
+          repeatCustomers: parseFloat(customerInsights?.repeat_customers || 0),
+          repeatCustomerRate: parseFloat(customerInsights?.repeat_customer_rate || 0),
+          avgOrdersPerCustomer: parseFloat(customerInsights?.avg_quantity_per_order || 0),
+          firstTimeCustomers: parseFloat(customerInsights?.first_time_customers || 0), 
+          firstTimeCustomerRate: parseFloat(customerInsights?.first_time_customer_rate || 0),
           customerAcquisitionCost: 0,
+          
           highValueCustomers: {
-            customerCount: 0,
-            customerPercentage: 0,
+            customerCount: customerInsights?.high_value_customer_count || 0,
+            customerPercentage: parseFloat(customerInsights?.high_value_customer_percentage || 0),
           },
           mediumValueCustomers: {
-            customerCount: 0,
-            customerPercentage: 0,
+            customerCount: customerInsights?.medium_value_customer_count || 0,
+            customerPercentage: parseFloat(customerInsights?.medium_value_customer_percentage || 0),
           },
           lowValueCustomers: {
-            customerCount: 0,
-            customerPercentage: 0,
+            customerCount: customerInsights?.low_value_customer_count || 0,
+            customerPercentage: parseFloat(customerInsights?.low_value_customer_percentage || 0),
           },
+          
           frequencyDistribution: {
             oneOrderCustomers: {
-              customerCount: 0,
-              customerPercentage: 0,
+              customerCount: customerInsights?.one_order_customer_count || 0,
+              customerPercentage: parseFloat(customerInsights?.one_order_customer_percentage || 0),
             },
             twoOrdersCustomers: {
-              customerCount: 0,
-              customerPercentage: 0,
+              customerCount: customerInsights?.two_orders_customer_count || 0,
+              customerPercentage: parseFloat(customerInsights?.two_orders_customer_percentage || 0),
             },
             threeOrdersCustomers: {
-              customerCount: 0,
-              customerPercentage: 0,
+              customerCount: customerInsights?.three_orders_customer_count || 0,
+              customerPercentage: parseFloat(customerInsights?.three_orders_customer_percentage || 0),
             },
             fourOrdersCustomers: {
-              customerCount: 0,
-              customerPercentage: 0,
+              customerCount: customerInsights?.four_plus_orders_customer_count || 0,
+              customerPercentage: parseFloat(customerInsights?.four_plus_orders_customer_percentage || 0),
             }
           }
         },
         variants: fetchVariantInsights && Array.isArray(fetchVariantInsights) ? fetchVariantInsights.map(variant => ({
-          name: variant.VARIANT_TITLE || 'Unknown Variant',
+          name: variant.variant_name || 'Unknown Variant',
+          sku: variant.variant_sku || 'N/A',
           soldCount: parseInt(variant.total_units_sold) || 0,
+          salesAmount: parseFloat(variant.total_sales_amount) || 0,
+          unitsPercentage: parseFloat(variant.units_sold_percentage) || 0,
           profit: parseFloat(variant.total_sales_amount) * 0.4 || 0 // Assuming 40% profit margin
         })) : [],
         salesTrend: [

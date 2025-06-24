@@ -7,7 +7,11 @@ const bigquery = new BigQuery({
 
 async function queryForBigQuery(query) {
     try {
-        const [job] = await bigquery.createQueryJob({ query });
+        const [job] = await bigquery.createQueryJob({ 
+            query,
+            autoParse: false  // Return raw JSON strings
+        });
+        
         console.log(`Job ${job.id} started.`);
         const [rows] = await job.getQueryResults();
         return rows;

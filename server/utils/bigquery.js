@@ -23,7 +23,6 @@ const executeQuery = async (query, params = {}) => {
       } else if (typeof value === 'number') {
         acc[key] = { value: value, type: 'INT64' };
       } else if (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
-        // Handle ISO string dates
         acc[key] = { value: value, type: 'TIMESTAMP' };
       } else {
         acc[key] = { value: value, type: 'STRING' };
@@ -34,13 +33,32 @@ const executeQuery = async (query, params = {}) => {
     const options = {
       query,
       params: formattedParams,
-      location: process.env.BIGQUERY_LOCATION || 'US'
+      location: process.env.BIGQUERY_LOCATION || 'US',
+      // Add these options to prevent Big objects
+      wrapIntegers: false,
+      parseJSON: true
     };
 
     logger.info('Executing BigQuery query:', { query, params: formattedParams });
     const [rows] = await bigquery.query(options);
+    
+    // Convert any remaining Big objects and numbers to strings
+    const formattedRows = rows.map(row => {
+      const formattedRow = {};
+      for (const [key, value] of Object.entries(row)) {
+        if (value && typeof value === 'object' && value.constructor && value.constructor.name === 'Big') {
+          formattedRow[key] = value.toString();
+        } else if (typeof value === 'number') {
+          formattedRow[key] = value.toString();
+        } else {
+          formattedRow[key] = value;
+        }
+      }
+      return formattedRow;
+    });
+    
     logger.info('BigQuery query executed successfully');
-    return rows;
+    return formattedRows;
   } catch (error) {
     logger.error('BigQuery query execution error:', error);
     throw error;

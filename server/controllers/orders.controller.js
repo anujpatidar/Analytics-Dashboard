@@ -2,6 +2,26 @@ const logger = require('../utils/logger');
 const valkeyClient = require('../config/valkey');
 const chalk = require('chalk');
 const { executeQuery, getDatasetName, formatDateForBigQuery } = require('../utils/bigquery');
+const skuData = require('./sku.json');
+
+// Helper function to find COGS and S&D for a given SKU
+const findCOGSForSKU = (sku) => {
+  for (const product of skuData) {
+    for (const variant of product.variants) {
+      for (const variantSku of variant.variantSkus) {
+        if (variantSku.variant_sku === sku) {
+          return {
+            cogs: variant.cogs || product.cogs || 0,
+            sd: variant['s&d'] || product['s&d'] || 0,
+            productName: product.itemName,
+            variantName: variant.variantName
+          };
+        }
+      }
+    }
+  }
+  return { cogs: 0, sd: 0, productName: 'Unknown', variantName: 'Unknown' };
+};
 
 const ordersController = {
   getOrdersOverview: async (req, res, next) => {
@@ -35,7 +55,7 @@ const ordersController = {
       //     fromCache: true
       //   });
       // }
-
+      console.log(startDate,endDate,'startDate,endDate')
       // Format dates for BigQuery
       const formattedStartDate = startDate ? new Date(startDate).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
       const formattedEndDate = endDate ? new Date(endDate).toISOString() : new Date().toISOString();
@@ -44,38 +64,144 @@ const ordersController = {
       console.log('Formatted dates:', { formattedStartDate, formattedEndDate });
       console.log("--------------------------------");
       // Updated query for new table structure with nested data
+      //2025-06-12T18:30:00.000Z
+      //2025-06-20T18:29:59.000Z
       const query = `
         WITH latest_orders AS (
         SELECT *,
           ROW_NUMBER() OVER (PARTITION BY name ORDER BY _daton_batch_runtime desc) as rn
         FROM \`frido-429506.Frido_BigQuery.Frido_Shopify_orders\`
-        WHERE created_at >= TIMESTAMP('${formattedStartDate}')
-          AND created_at <= TIMESTAMP('${formattedEndDate}')
+            WHERE created_at >= TIMESTAMP('${formattedStartDate}')
+                AND created_at <= TIMESTAMP('${formattedEndDate}')
+      ),
+      overall_metrics AS (
+        SELECT 
+          COUNT(DISTINCT name) as total_orders,
+          SUM(CAST(total_price AS NUMERIC)) as total_sales,
+          SUM(CAST(total_tax as Numeric)) as total_tax,
+          SUM(CAST(total_tax as Numeric))/SUM(CAST(total_price as Numeric)) as tax_rate, 
+          SUM(CAST(total_line_items_price AS NUMERIC)) as gross_sales, 
+          AVG(CAST(total_price AS NUMERIC)) as average_order_value,
+          SUM((SELECT SUM(item.quantity) FROM UNNEST(line_items) as item)) as total_items_sold,
+          COUNT(DISTINCT CASE WHEN ARRAY_LENGTH(refunds) > 0 THEN name END) as orders_with_refunds
+        FROM latest_orders
+        WHERE rn = 1
+      ),
+      sku_data AS (
+        SELECT 
+          item.sku,
+          item.title as product_name,
+          SUM(item.quantity) as quantity_sold,
+          SUM(CAST(item.price AS NUMERIC) * item.quantity) as sku_total_sales,
+          AVG(CAST(item.price AS NUMERIC)) as average_unit_price,
+          COUNT(DISTINCT o.name) as orders_containing_sku
+        FROM latest_orders o
+        CROSS JOIN UNNEST(o.line_items) as item
+        WHERE o.rn = 1
+        GROUP BY item.sku, item.title
       )
+
       SELECT 
-        COUNT(DISTINCT name) as total_orders,
-        SUM(CAST(total_price AS NUMERIC)) as total_sales,
-         SUM(CAST (total_tax as Numeric)) as total_tax,
-         SUM(CAST(total_tax as Numeric))/SUM(CAST(total_price as Numeric)) as tax_rate, 
-        SUM(CAST(total_line_items_price AS NUMERIC)) as gross_sales, 
-        AVG(CAST(total_price AS NUMERIC)) as average_order_value,
-        SUM(ARRAY_LENGTH(line_items)) as total_items_sold,
-        COUNT(DISTINCT CASE WHEN ARRAY_LENGTH(refunds) > 0 THEN name END) as orders_with_refunds,
-      FROM latest_orders
-      WHERE rn = 1
+        -- Overall metrics (will be repeated for each row but you can take first row)
+        (SELECT total_orders FROM overall_metrics) as total_orders,
+        (SELECT total_sales FROM overall_metrics) as total_sales,
+        (SELECT total_tax FROM overall_metrics) as total_tax,
+        (SELECT tax_rate FROM overall_metrics) as tax_rate,
+        (SELECT gross_sales FROM overall_metrics) as gross_sales,
+        (SELECT average_order_value FROM overall_metrics) as average_order_value,
+        (SELECT total_items_sold FROM overall_metrics) as total_items_sold,
+        (SELECT orders_with_refunds FROM overall_metrics) as orders_with_refunds,
+        
+        -- SKU-wise data for COGS calculation
+        sku,
+        product_name,
+        quantity_sold,
+        sku_total_sales,
+        average_unit_price,
+        orders_containing_sku
+      FROM sku_data
+      ORDER BY quantity_sold DESC;
       `;
 
       const rows = await executeQuery(query);
-      const result = rows[0] || {};
+      const result = rows || [];
+
+      // console.log(result,'result');
+
+      // Calculate COGS and S&D costs
+      let totalCogs = 0;
+      let totalSdCost = 0;
+      const totalSales = parseFloat(result[0].total_sales) || 0;
+      
+      result.forEach(row => {
+        const sku = row.sku;
+        const quantitySold = parseFloat(row.quantity_sold) || 0;
+        const cogsInfo = findCOGSForSKU(sku);
+        
+        const itemCogs = cogsInfo.cogs * quantitySold;
+        const itemSdCost = cogsInfo.sd * quantitySold;
+        
+        totalCogs += itemCogs;
+        totalSdCost += itemSdCost;
+        
+        // console.log(`SKU: ${sku}, Quantity: ${quantitySold}, COGS per unit: ${cogsInfo.cogs}, Total COGS: ${itemCogs}, S&D: ${itemSdCost}`);
+      });
+
+
+      //cogs and sd percentage
+      const cogsPercentage = totalSales > 0 ? (totalCogs / totalSales) * 100 : 0;
+      const sdCostPercentage = totalSales > 0 ? (totalSdCost / totalSales) * 100 : 0;
+      
+
+      const finalData = {
+        dateFilter: {
+          startDate: startDate,
+          endDate: endDate, 
+          utcStartDate: formattedStartDate,
+          utcEndDate: formattedEndDate,
+        },
+       overview: {
+        totalSales: parseFloat(result[0].total_sales) || 0,
+        grossSales: parseFloat(result[0].gross_sales) || 0,
+        grossSalesPercentage: (parseFloat(result[0].gross_sales)/parseFloat(result[0].total_sales)*100),
+        netSalesPercentage: (parseFloat(result[0].net_sales)/parseFloat(result[0].total_sales)*100),
+        totalReturns :0,
+        returnRate:0,
+        netSales: 0,
+        totalTax: parseFloat(result[0].total_tax) || 0,
+        taxRate: (parseFloat(result[0].tax_rate)*100),
+        totalQuantitySold: parseFloat(result[0].total_items_sold) || 0,
+        netQuantitySold: 0,
+        totalOrders: parseFloat(result[0].total_orders) || 0,
+        netOrders: 0,
+        aov: parseFloat(result[0].average_order_value) || 0,
+        cogs: totalCogs,
+        cogsPercentage: cogsPercentage,
+        sdCost: totalSdCost,
+        sdCostPercentage: sdCostPercentage,
+        // grossRoas: grossRoas,
+        // netRoas: netRoas,
+        // grossMer: grossMer,
+        // netMer: netMer,
+        // nRoas: nRoas,
+        // nMer: nMer,
+        // cac:(marketingData.totalPurchases || 0) > 0 ? (marketingData.totalSpend || 0) / (marketingData.totalPurchases || 1) : 0,
+        // cm2: cm2,
+        // cm2Percentage: cm2Percentage,
+        // cm3: cm3,
+        // cm3Percentage: cm3Percentage
+        }
+        
+      };
       
       // Store in cache for 1 hour
       try {
-        await valkeyClient.set(cacheKey, JSON.stringify(result), 3600);
+        await valkeyClient.set(cacheKey, JSON.stringify(finalData), 3600);
       } catch (cacheError) {
         logger.warn('Cache error:', cacheError);
       }
       
-      res.status(200).json({ success: true, data: rows[0], store: store });
+      res.status(200).json({ success: true, data: finalData, store: store });
     } catch (error) {
       logger.error('Error fetching orders overview:', error);
       next(error);

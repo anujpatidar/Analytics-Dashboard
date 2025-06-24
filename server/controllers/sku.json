@@ -750,14 +750,22 @@
       "productId": "9464517001497",
       "MasterSKU": "frido-ultimate-wedge-plus-cushion",
       "tax": 18,
-      "cogs": 150,
+      "cogs": 638,
+      "s&d":337,
       "variants": [
         {
           "variantName": "White",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-white",
+          "cogs":638,
+          "s&d":337,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-W1"
+
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-W1"
             }
           ]
@@ -765,9 +773,15 @@
         {
           "variantName": "White Grey",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-white-grey",
+          "cogs":638,
+          "s&d":337,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-WG1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-WG1"
             }
           ]
@@ -775,9 +789,15 @@
         {
           "variantName": "Black",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-black",
+          "cogs":638,
+          "s&d":337,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-B1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-B1"
             }
           ]
@@ -785,9 +805,15 @@
         {
           "variantName": "Light Caramel",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-light-caramel",
+          "cogs":638,
+          "s&d":337,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-LC1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-LC1"
             }
           ]
@@ -795,9 +821,14 @@
         {
           "variantName": "Mustard Yellow",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-mustard-yellow",
+          "cogs":638,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-MY1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-MY1"
             }
           ]
@@ -805,9 +836,15 @@
         {
           "variantName": "Coffee Brown",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-coffee-brown",
+          "cogs":638,
+          "s&d":337,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-CB1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-CB1"
             }
           ]
@@ -815,9 +852,15 @@
         {
           "variantName": "Slate Grey",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-slate-grey",
+          "cogs":638,
+          "s&d":337,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-GR1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-GR1"
             }
           ]
@@ -825,19 +868,29 @@
         {
           "variantName": "Sage Green",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-sage-green",
+          "cogs":638,
           "variantSkus": [
             {
               "storeName": "Shopify",
               "variant_sku": "FR-ULWC-PL-SG1"
+            },
+            {
+              "storeName": "Amazon",
+              "variant_sku": "FR-ULWC-PL-SG"
             }
           ]
         },
         {
           "variantName": "Blush Pink",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-blush-pink",
+          "cogs":638,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-BP1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-BP1"
             }
           ]
@@ -845,9 +898,15 @@
         {
           "variantName": "Teal Blue",
           "variantMasterSKU": "frido-ultimate-wedge-plus-cushion-teal-blue",
+          "cogs":638,
+          "s&d":337,
           "variantSkus": [
             {
               "storeName": "Shopify",
+              "variant_sku": "FR-ULWC-PL-TB1"
+            },
+            {
+              "storeName": "Amazon",
               "variant_sku": "FR-ULWC-PL-TB1"
             }
           ]

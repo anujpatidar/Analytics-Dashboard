@@ -97,6 +97,9 @@ const formatMetricValue = (value, formatter = formatCurrency) => {
 
 const formatPercentage = (value) => {
   if (value === undefined || value === null) return 'NA';
+  if (typeof value === 'number') {
+    return `${value.toFixed(2)}%`;
+  }
   return `${value}%`;
 };
 
@@ -664,7 +667,7 @@ const DashboardPage = () => {
   const orderStats = [
     {
       title: 'Total Orders',
-      value: formatNumber(ordersOverview?.total_orders || 0),
+      value: formatNumber(ordersOverview?.overview?.totalOrders || 0),
       icon: FiShoppingCart,
       change: ordersOverview?.orders_change_percentage ? `${ordersOverview.orders_change_percentage}%` : '0%',
       changeType: ordersOverview?.orders_change_percentage > 0 ? 'increase' : 'decrease',
@@ -673,7 +676,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Average Order Value',
-      value: formatCurrency(ordersOverview?.average_order_value || 0),
+      value: formatCurrency(ordersOverview?.overview?.aov || 0),
       icon: FaRupeeSign,
       change: ordersOverview?.aov_change_percentage ? `${ordersOverview.aov_change_percentage}%` : '0%',
       changeType: ordersOverview?.aov_change_percentage > 0 ? 'increase' : 'decrease',
@@ -686,7 +689,7 @@ const DashboardPage = () => {
   const salesMetrics = [
     {
       title: 'Total Sales',
-      value: formatMetricValue(ordersOverview?.total_sales),
+      value: formatMetricValue(ordersOverview?.overview?.totalSales),
       icon: FaRupeeSign,
       change: ordersOverview?.revenue_change_percentage ? `${ordersOverview.revenue_change_percentage}%` : 'NA',
       changeType: ordersOverview?.revenue_change_percentage > 0 ? 'increase' : 'decrease',
@@ -695,7 +698,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Gross Sales',
-      value: formatMetricValue(ordersOverview?.gross_sales),
+      value: formatMetricValue(ordersOverview?.overview?.grossSales),
       icon: FaRupeeSign,
       change: ordersOverview?.gross_sales_change_percentage ? `${ordersOverview.gross_sales_change_percentage}%` : 'NA',
       changeType: ordersOverview?.gross_sales_change_percentage > 0 ? 'increase' : 'decrease',
@@ -704,7 +707,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Net Sales',
-      value: formatMetricValue(ordersOverview?.net_sales),
+      value: formatMetricValue(ordersOverview?.overview?.netSales),
       icon: FaRupeeSign,
       change: ordersOverview?.net_sales_change_percentage ? `${ordersOverview.net_sales_change_percentage}%` : 'NA',
       changeType: ordersOverview?.net_sales_change_percentage > 0 ? 'increase' : 'decrease',
@@ -713,7 +716,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Gross Sales %',
-      value: formatPercentage(ordersOverview?.gross_sales_percentage),
+      value: formatPercentage(ordersOverview?.overview?.grossSalesPercentage),
       icon: FiTrendingUp,
       change: ordersOverview?.gross_sales_percentage_change ? `${ordersOverview.gross_sales_percentage_change}%` : 'NA',
       changeType: ordersOverview?.gross_sales_percentage_change > 0 ? 'increase' : 'decrease',
@@ -722,7 +725,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Net Sales %',
-      value: formatPercentage(ordersOverview?.net_sales_percentage),
+      value: formatPercentage(ordersOverview?.overview?.netSalesPercentage),
       icon: FiTrendingUp,
       change: ordersOverview?.net_sales_percentage_change ? `${ordersOverview.net_sales_percentage_change}%` : 'NA',
       changeType: ordersOverview?.net_sales_percentage_change > 0 ? 'increase' : 'decrease',
@@ -734,7 +737,7 @@ const DashboardPage = () => {
   const returnMetrics = [
     {
       title: 'Total Returns',
-      value: formatMetricValue(ordersOverview?.total_returns),
+      value: formatMetricValue(ordersOverview?.overview?.totalReturns),
       icon: FiRefreshCw,
       change: ordersOverview?.returns_change_percentage ? `${ordersOverview.returns_change_percentage}%` : 'NA',
       changeType: ordersOverview?.returns_change_percentage < 0 ? 'decrease' : 'increase',
@@ -743,7 +746,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Return Rate',
-      value: formatPercentage(ordersOverview?.return_rate),
+      value: formatPercentage(ordersOverview?.overview?.returnRate),
       icon: FiRefreshCw,
       change: ordersOverview?.return_rate_change ? `${ordersOverview.return_rate_change}%` : 'NA',
       changeType: ordersOverview?.return_rate_change < 0 ? 'decrease' : 'increase',
@@ -755,7 +758,7 @@ const DashboardPage = () => {
   const taxMetrics = [
     {
       title: 'Total Tax',
-      value: formatMetricValue(ordersOverview?.total_tax),
+      value: formatMetricValue(ordersOverview?.overview?.totalTax),
       icon: FaRupeeSign,
       change: ordersOverview?.tax_change_percentage ? `${ordersOverview.tax_change_percentage}%` : 'NA',
       changeType: ordersOverview?.tax_change_percentage > 0 ? 'increase' : 'decrease',
@@ -764,7 +767,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Tax Rate',
-      value: formatPercentage(ordersOverview?.tax_rate ? (ordersOverview.tax_rate * 100).toFixed(2) : null),
+      value: formatPercentage(ordersOverview?.overview?.taxRate),
       icon: FaRupeeSign,
       change: ordersOverview?.tax_rate_change ? `${ordersOverview.tax_rate_change}%` : 'NA',
       changeType: ordersOverview?.tax_rate_change > 0 ? 'increase' : 'decrease',
@@ -776,7 +779,7 @@ const DashboardPage = () => {
   const expenseMetrics = [
     {
       title: 'COGS',
-      value: formatMetricValue(ordersOverview?.cogs),
+      value: formatMetricValue(ordersOverview?.overview?.cogs),
       icon: FaRupeeSign,
       change: ordersOverview?.cogs_change_percentage ? `${ordersOverview.cogs_change_percentage}%` : 'NA',
       changeType: ordersOverview?.cogs_change_percentage < 0 ? 'decrease' : 'increase',
@@ -785,7 +788,7 @@ const DashboardPage = () => {
     },
     {
       title: 'COGS %',
-      value: formatPercentage(ordersOverview?.cogs_percentage),
+      value: formatPercentage(ordersOverview?.overview?.cogsPercentage),
       icon: FaRupeeSign,
       change: ordersOverview?.cogs_percentage_change ? `${ordersOverview.cogs_percentage_change}%` : 'NA',
       changeType: ordersOverview?.cogs_percentage_change < 0 ? 'decrease' : 'increase',
@@ -794,7 +797,7 @@ const DashboardPage = () => {
     },
     {
       title: 'S&D Cost',
-      value: formatMetricValue(ordersOverview?.sd_cost),
+      value: formatMetricValue(ordersOverview?.overview?.sdCost),
       icon: FaRupeeSign,
       change: ordersOverview?.sd_cost_change_percentage ? `${ordersOverview.sd_cost_change_percentage}%` : 'NA',
       changeType: ordersOverview?.sd_cost_change_percentage < 0 ? 'decrease' : 'increase',
@@ -803,7 +806,7 @@ const DashboardPage = () => {
     },
     {
       title: 'S&D Cost %',
-      value: formatPercentage(ordersOverview?.sd_cost_percentage),
+      value: formatPercentage(ordersOverview?.overview?.sdCostPercentage),
       icon: FaRupeeSign,
       change: ordersOverview?.sd_cost_percentage_change ? `${ordersOverview.sd_cost_percentage_change}%` : 'NA',
       changeType: ordersOverview?.sd_cost_percentage_change < 0 ? 'decrease' : 'increase',

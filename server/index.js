@@ -12,6 +12,7 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const metaAdsRoutes = require('./routes/metaAdsRoutes');
 const googleAdsRoutes = require('./routes/googleAdsRoutes');
+const sku=require('./controllers/sku.json');
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   logger.info(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  
 }); 
 
 

@@ -73,6 +73,10 @@ import { formatCurrency, formatNumber } from '../../utils/formatters';
 //       { name: 'First-time', value: 65 },
 //       { name: 'Returning', value: 35 },
 //     ],
+//     one_order_customer_count: 200,
+//     two_orders_customer_count: 150,
+//     three_orders_customer_count: 100,
+//     four_plus_orders_customer_count: 50,
 //   },
 //   variants: [
 //     { name: 'Black', soldCount: 500, profit: 2000000 },
@@ -328,7 +332,7 @@ const VariantsTable = styled.table`
 `;
 
 const formatPercentage = (value) => {
-  return `${value.toFixed(1)}%`;
+  return `${value?.toFixed(1)}%`;
 };
 
 const DateFilterContainer = styled.div`
@@ -604,6 +608,7 @@ const ProductDetailsPage = () => {
       
       const result = await response.json();
       setData(result.data);
+      console.log(result.data);
     } catch (error) {
       console.error('Error fetching product data:', error);
       setError(error.message);
@@ -812,7 +817,7 @@ const ProductDetailsPage = () => {
                 />
                 <StatCard
                   title="Net Sales (INR)"
-                  value={formatCurrency(data.overview.netSales || data.overview.totalSales)}
+                  value={formatCurrency(data.overview.netSales || 0)}
                   icon={FiDollarSign}
                   color="#f59e0b"
                 />
@@ -849,7 +854,7 @@ const ProductDetailsPage = () => {
                 />
                 <StatCard
                   title="Net Orders"
-                  value={safeNumberFormat(data.overview.netOrders || data.overview.totalOrders)}
+                  value={safeNumberFormat(data.overview.netOrders)}
                   icon={FiShoppingCart}
                   color="#10b981"
                 />
@@ -905,7 +910,7 @@ const ProductDetailsPage = () => {
                 />
                 <StatCard
                   title="Total Tax (%)"
-                  value={formatPercentage(data.overview.totalTaxPercentage || 0)}
+                  value={(data.overview.taxRate || 0)}
                   icon={FiPercent}
                   color="#10b981"
                 />
@@ -1138,180 +1143,7 @@ const ProductDetailsPage = () => {
               </StatsGrid>
             </div>
 
-            {/* Campaign Performance Charts */}
-            {data.marketing.campaigns && data.marketing.campaigns.length > 0 && (
-              <>
-                <div style={{ marginTop: '2rem' }}>
-                  <h3 style={{ marginBottom: '1rem' }}>Campaign Performance Overview</h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                    {/* Campaign Spend Distribution */}
-                    <div>
-                      <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
-                        Ad Spend by Campaign
-                      </h4>
-                      <div style={{ height: '300px' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={data.marketing.campaigns.map(campaign => ({
-                                name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
-                                value: campaign.spend,
-                                fullName: campaign.name
-                              }))}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={100}
-                              fill="#8884d8"
-                              dataKey="value"
-                              label={({ value, percent }) => `₹${value.toFixed(0)} (${(percent * 100).toFixed(1)}%)`}
-                            >
-                              {data.marketing.campaigns.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip formatter={(value, name, props) => [
-                              `₹${value.toFixed(2)}`,
-                              props.payload.fullName
-                            ]} />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
 
-                    {/* Campaign Performance Metrics */}
-                    <div>
-                      <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>
-                        ROAS by Campaign
-                      </h4>
-                      <div style={{ height: '300px' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={data.marketing.campaigns.map(campaign => ({
-                              name: campaign.name.length > 15 ? campaign.name.substring(0, 15) + '...' : campaign.name,
-                              roas: campaign.roas,
-                              spend: campaign.spend,
-                              revenue: campaign.purchaseValue,
-                              fullName: campaign.name
-                            }))}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip formatter={(value, name, props) => {
-                              if (name === 'roas') return [`${value.toFixed(2)}x`, 'ROAS'];
-                              if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
-                              if (name === 'revenue') return [`₹${value.toFixed(2)}`, 'Revenue'];
-                              return [value, name];
-                            }} 
-                            labelFormatter={(label, payload) => 
-                              payload && payload[0] ? payload[0].payload.fullName : label
-                            } />
-                            <Legend />
-                            <Bar dataKey="roas" fill="#10b981" name="ROAS" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Campaign Comparison Chart */}
-                <div style={{ marginTop: '2rem' }}>
-                  <h3 style={{ marginBottom: '1rem' }}>Campaign Comparison: Spend vs Performance</h3>
-                  <ChartContainer>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={data.marketing.campaigns.map(campaign => ({
-                          name: campaign.name.length > 20 ? campaign.name.substring(0, 20) + '...' : campaign.name,
-                          spend: campaign.spend,
-                          clicks: campaign.clicks,
-                          purchases: campaign.purchases,
-                          impressions: campaign.impressions / 1000, // Scale down for better visualization
-                          fullName: campaign.name
-                        }))}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis yAxisId="left" />
-                        <YAxis yAxisId="right" orientation="right" />
-                        <Tooltip formatter={(value, name, props) => {
-                          if (name === 'spend') return [`₹${value.toFixed(2)}`, 'Ad Spend'];
-                          if (name === 'clicks') return [value, 'Clicks'];
-                          if (name === 'purchases') return [value, 'Purchases'];
-                          if (name === 'impressions') return [`${(value * 1000).toLocaleString()}`, 'Impressions'];
-                          return [value, name];
-                        }}
-                        labelFormatter={(label, payload) => 
-                          payload && payload[0] ? payload[0].payload.fullName : label
-                        } />
-                        <Legend />
-                        <Bar yAxisId="left" dataKey="spend" fill="#ef4444" name="Ad Spend" />
-                        <Bar yAxisId="left" dataKey="clicks" fill="#3b82f6" name="Clicks" />
-                        <Bar yAxisId="right" dataKey="purchases" fill="#10b981" name="Purchases" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </ChartContainer>
-                </div>
-
-                {/* Detailed Campaign Table */}
-                <div style={{ marginTop: '2rem' }}>
-                  <h3 style={{ marginBottom: '1rem' }}>Detailed Campaign Analysis</h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ 
-                      width: '100%', 
-                      borderCollapse: 'collapse',
-                      background: 'white',
-                      borderRadius: '8px',
-                      overflow: 'hidden',
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-                    }}>
-                      <thead>
-                        <tr style={{ background: '#f8f9fa' }}>
-                          <th style={{ padding: '1rem', textAlign: 'left', borderBottom: '2px solid #e9ecef' }}>Campaign Name</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Spend</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Impressions</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Clicks</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CTR</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>CPC</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Purchases</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>Revenue</th>
-                          <th style={{ padding: '1rem', textAlign: 'right', borderBottom: '2px solid #e9ecef' }}>ROAS</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.marketing.campaigns.map((campaign, index) => (
-                          <tr key={index} style={{ borderBottom: '1px solid #e9ecef' }}>
-                            <td style={{ padding: '1rem', maxWidth: '200px' }}>
-                              <div style={{ fontWeight: '500', marginBottom: '0.25rem' }}>{campaign.name}</div>
-                              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>ID: {campaign.id}</div>
-                            </td>
-                            <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.spend.toFixed(2)}</td>
-                            <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.impressions.toLocaleString()}</td>
-                            <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.clicks.toLocaleString()}</td>
-                            <td style={{ padding: '1rem', textAlign: 'right' }}>{campaign.ctr.toFixed(2)}%</td>
-                            <td style={{ padding: '1rem', textAlign: 'right' }}>₹{campaign.cpc.toFixed(2)}</td>
-                            <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>{campaign.purchases}</td>
-                            <td style={{ padding: '1rem', textAlign: 'right', fontWeight: '500' }}>₹{campaign.purchaseValue.toFixed(2)}</td>
-                            <td style={{ padding: '1rem', textAlign: 'right' }}>
-                              <span style={{ 
-                                padding: '0.25rem 0.5rem', 
-                                borderRadius: '12px', 
-                                fontSize: '0.8rem',
-                                fontWeight: '500',
-                                backgroundColor: campaign.roas > 2 ? '#d4edda' : campaign.roas > 1 ? '#fff3cd' : '#f8d7da',
-                                color: campaign.roas > 2 ? '#155724' : campaign.roas > 1 ? '#856404' : '#721c24'
-                              }}>
-                                {campaign.roas.toFixed(2)}x
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </>
-            )}
 
             {/* No Campaigns Found Message */}
             {(!data.marketing.campaigns || data.marketing.campaigns.length === 0) && (
@@ -1331,8 +1163,176 @@ const ProductDetailsPage = () => {
             )}
           </BackgroundSection>
 
-          {/* Customer Insights */}
+          {/* Variants Summary */}
           <BackgroundSection>
+            <h2>Variants Performance Analysis</h2>
+            
+            {/* Variants Overview Stats */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4ECDC4' }}>
+                  {safeNumberFormat(data.variantInsights.length)}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Total Variants</div>
+              </div>
+              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FF6B6B' }}>
+                  {safeDisplayValue(data.variantInsights[0]?.variant_name)}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Top Performing</div>
+              </div>
+              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#45B7D1' }}>
+                  {formatCurrency(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseFloat(variant.total_sales_amount), 0) / data.variantInsights.length))}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Revenue/Variant</div>
+              </div>
+              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#96CEB4' }}>
+                  {safeNumberFormat(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseInt(variant.total_units_sold), 0) / data.variantInsights.length))}
+                </div>
+                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Units/Variant</div>
+              </div>
+            </div>
+
+            {/* Charts Section */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+              {/* Units Sold Distribution */}
+              <div>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Units Sold Distribution</h3>
+                <div style={{ height: '250px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={data.variantInsights.map(variant => ({
+                          name: variant.variant_title,
+                          value: parseInt(variant.total_units_sold),
+                          percentage: parseFloat(variant.units_sold_percentage)
+                        }))}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percentage }) => `${name} (${percentage}%)`}
+                      >
+                        {data.variantInsights.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [value.toLocaleString(), 'Units Sold']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Revenue Distribution */}
+              <div>
+                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Revenue Distribution</h3>
+                <div style={{ height: '250px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={data.variantInsights.map(variant => ({
+                        name: variant.variant_title,
+                        revenue: parseFloat(variant.total_sales_amount),
+                        units: parseInt(variant.total_units_sold)
+                      }))}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip formatter={(value, name) => [
+                        name === 'revenue' ? formatCurrency(value) : value.toLocaleString(),
+                        name === 'revenue' ? 'Revenue' : 'Units'
+                      ]} />
+                      <Legend />
+                      <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+
+
+            {/* Detailed Variants Table */}
+            <div>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Detailed Variant Analysis</h3>
+              <VariantsTable>
+                <thead>
+                  <tr>
+                    <th>Variant</th>
+                    <th>Units Sold</th>
+                    <th>Market Share</th>
+                    <th>Total Revenue</th>
+                    <th>Avg Price per Unit</th>
+                    <th>Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.variantInsights.map((variant, index) => {
+                    const avgPrice = parseFloat(variant.total_sales_amount) / parseInt(variant.total_units_sold);
+                    const totalUnits = data.variantInsights.reduce((sum, v) => sum + parseInt(v.total_units_sold), 0);
+                    const performance = parseFloat(variant.units_sold_percentage);
+                    
+                    return (
+                      <tr key={index}>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div 
+                              style={{ 
+                                width: '12px', 
+                                height: '12px', 
+                                borderRadius: '50%', 
+                                backgroundColor: COLORS[index % COLORS.length] 
+                              }}
+                            ></div>
+                            <strong>{safeDisplayValue(variant.variant_name)}</strong>
+                          </div>
+                        </td>
+                        <td>{safeNumberFormat(parseInt(variant.total_units_sold))}</td>
+                        <td>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ 
+                              width: '60px', 
+                              height: '8px', 
+                              backgroundColor: '#e0e0e0', 
+                              borderRadius: '4px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{ 
+                                width: `${performance}%`, 
+                                height: '100%', 
+                                backgroundColor: COLORS[index % COLORS.length],
+                                borderRadius: '4px'
+                              }}></div>
+                            </div>
+                            <span>{formatPercentage(performance)}</span>
+                          </div>
+                        </td>
+                        <td>{formatCurrency(parseFloat(variant.total_sales_amount))}</td>
+                        <td>{formatCurrency(avgPrice)}</td>
+                        <td>
+                          <span style={{ 
+                            padding: '0.25rem 0.5rem', 
+                            borderRadius: '12px', 
+                            fontSize: '0.8rem',
+                            backgroundColor: performance > 20 ? '#d4edda' : performance > 10 ? '#fff3cd' : '#f8d7da',
+                            color: performance > 20 ? '#155724' : performance > 10 ? '#856404' : '#721c24'
+                          }}>
+                            {performance > 20 ? 'Excellent' : performance > 10 ? 'Good' : 'Average'}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </VariantsTable>
+            </div>
+          </BackgroundSection>
+
+            {/* Customer Insights */}
+            <BackgroundSection>
             <h2>Customer Insights</h2>
             
             {/* Customer Overview Stats */}
@@ -1353,14 +1353,14 @@ const ProductDetailsPage = () => {
               />
               <StatCard
                 title="Repeat Customer Rate"
-                value={formatPercentage(data.customerInsights.repeatCustomerRate)}
+                value={data?.customerInsights?.repeatCustomerRate?.toFixed(2)}
                 icon={FiPercent}
                 color="#dc2626"
                 change={1.2}
               />
               <StatCard
                 title="Avg. Orders per Customer"
-                value={(data.customerInsights.avgOrdersPerCustomer)}
+                value={data?.customerInsights?.avgOrdersPerCustomer?.toFixed(2)}
                 icon={FiUsers}
                 color="#3b82f6"
                 change={5.1}
@@ -1383,8 +1383,8 @@ const ProductDetailsPage = () => {
                     <PieChart>
                       <Pie
                         data={[
-                          { name: 'First-time Customers', value: data.customerInsights.firstTimeCustomers }, // TODO: Replace with actual data
-                          { name: 'Repeat Customers', value: data.customerInsights.repeatCustomers } // TODO: Replace with actual data
+                          { name: 'First-time Customers', value: data.customerInsights.firstTimeCustomers}, // TODO: Replace with actual data
+                          { name: 'Repeat Customers', value: data.customerInsights.repeatCustomers} // TODO: Replace with actual data
                         ]}
                         cx="50%"
                         cy="50%"
@@ -1431,412 +1431,38 @@ const ProductDetailsPage = () => {
               </div>
             </div>
 
-            {/* Customer Acquisition Trend */}
+            {/* Customer Order Frequency Chart */}
             <div style={{ marginTop: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Customer Acquisition Trend</h3>
-              <ChartContainer>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={[
-                      { month: 'Jan', newCustomers: 1200, repeatCustomers: 45 }, // TODO: Replace with actual data
-                      { month: 'Feb', newCustomers: 1500, repeatCustomers: 62 },
-                      { month: 'Mar', newCustomers: 1800, repeatCustomers: 78 },
-                      { month: 'Apr', newCustomers: 1650, repeatCustomers: 89 },
-                      { month: 'May', newCustomers: 2100, repeatCustomers: 102 },
-                      { month: 'Jun', newCustomers: 2200, repeatCustomers: 125 }
-                    ]}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Area
-                      type="monotone"
-                      dataKey="newCustomers"
-                      stackId="1"
-                      stroke="#8884d8"
-                      fill="#8884d8"
-                      name="New Customers"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="repeatCustomers"
-                      stackId="1"
-                      stroke="#82ca9d"
-                      fill="#82ca9d"
-                      name="Repeat Customers"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-
-            {/* Customer Behavior Insights */}
-            <div>
-              <h4 style={{ marginBottom: '1rem', fontSize: '1rem', color: 'var(--text-secondary)' }}>Customer Behavior Insights</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', height: '200px' }}>
-                {/* Behavior Metrics */}
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
-                  <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-                      {formatCurrency(data.overview.aov)}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Average Order Value</div>
-                  </div>
-                  
-                  <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-                      {formatPercentage(data.customerInsights.firstTimeCustomers / data.customerInsights.totalCustomers * 100)}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>First-time Buyers</div>
-                  </div>
-                  
-                  <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f8f9fa', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#45B7D1' }}>
-                      {formatCurrency(Math.round(data.overview.totalSales / data.overview.totalOrders))}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Revenue per Order</div>
-                  </div>
-                </div>
-
-                {/* Customer Loyalty Distribution */}
-                <div style={{ height: '200px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { 
-                            name: 'Single Purchase', 
-                            value: data.customerInsights.frequencyDistribution.oneOrderCustomers.customerCount,
-                            color: '#FF6B6B'
-                          },
-                          { 
-                            name: 'Loyal (2+ Orders)', 
-                            value: data.customerInsights.frequencyDistribution.twoOrdersCustomers.customerCount + 
-                                   data.customerInsights.frequencyDistribution.threeOrdersCustomers.customerCount +
-                                   data.customerInsights.frequencyDistribution.fourOrdersCustomers.customerCount,
-                            color: '#4ECDC4'
-                          }
-                        ]}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        <Cell fill="#FF6B6B" />
-                        <Cell fill="#4ECDC4" />
-                      </Pie>
-                      <Tooltip formatter={(value) => [value.toLocaleString(), 'Customers']} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-              
-              {/* Additional Insights Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '1rem' }}>
-                <div style={{ textAlign: 'center', padding: '0.5rem', background: '#e8f4fd', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#2196F3' }}>
-                    {safeNumberFormat(Math.round((data.customerInsights.repeatCustomers / data.customerInsights.totalCustomers) * data.customerInsights.avgOrdersPerCustomer * 100))}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Loyalty Index</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '0.5rem', background: '#fff3e0', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#FF9800' }}>
-                    {formatCurrency(Math.round(data.customerInsights.customerAcquisitionCost / (data.overview.aov / 1000)))}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>CAC to AOV Ratio</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f3e5f5', borderRadius: '6px' }}>
-                  <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#9C27B0' }}>
-                    {safeNumberFormat(data.customerInsights.avgOrdersPerCustomer)}
-                  </div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Orders per Customer</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Customer Retention Insights */}
-            <div style={{ marginTop: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Customer Retention Analysis</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-                <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-                    30% {/* TODO: Replace with actual data */}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>1-Month Retention</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-                    18% {/* TODO: Replace with actual data */}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>3-Month Retention</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#45B7D1' }}>
-                    12% {/* TODO: Replace with actual data */}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>6-Month Retention</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#96CEB4' }}>
-                    8% {/* TODO: Replace with actual data */}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>12-Month Retention</div>
-                </div>
-              </div>
-            </div>
-          </BackgroundSection>
-
-          {/* Variants Summary */}
-          <BackgroundSection>
-            <h2>Variants Performance Analysis</h2>
-            
-            {/* Variants Overview Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-                  {safeNumberFormat(data.variantInsights.length)}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Total Variants</div>
-              </div>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-                  {safeDisplayValue(data.variantInsights[0]?.VARIANT_TITLE)}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Top Performing</div>
-              </div>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#45B7D1' }}>
-                  {formatCurrency(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseFloat(variant.total_sales_amount), 0) / data.variantInsights.length))}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Revenue/Variant</div>
-              </div>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#96CEB4' }}>
-                  {safeNumberFormat(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseInt(variant.total_units_sold), 0) / data.variantInsights.length))}
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Units/Variant</div>
-              </div>
-            </div>
-
-            {/* Charts Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-              {/* Units Sold Distribution */}
-              <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Units Sold Distribution</h3>
-                <div style={{ height: '250px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={data.variantInsights.map(variant => ({
-                          name: variant.VARIANT_TITLE,
-                          value: parseInt(variant.total_units_sold),
-                          percentage: parseFloat(variant.units_sold_percentage)
-                        }))}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percentage }) => `${name} (${percentage}%)`}
-                      >
-                        {data.variantInsights.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [value.toLocaleString(), 'Units Sold']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Revenue Distribution */}
-              <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Revenue Distribution</h3>
-                <div style={{ height: '250px' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={data.variantInsights.map(variant => ({
-                        name: variant.VARIANT_TITLE,
-                        revenue: parseFloat(variant.total_sales_amount),
-                        units: parseInt(variant.total_units_sold)
-                      }))}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'revenue' ? formatCurrency(value) : value.toLocaleString(),
-                        name === 'revenue' ? 'Revenue' : 'Units'
-                      ]} />
-                      <Legend />
-                      <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            {/* Performance Comparison Chart */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Variant Performance Comparison</h3>
-              <ChartContainer>
+              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Customer Order Frequency</h3>
+              <div style={{ height: '300px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={data.variantInsights.map(variant => ({
-                      name: variant.VARIANT_TITLE,
-                      units: parseInt(variant.total_units_sold),
-                      revenue: parseFloat(variant.total_sales_amount),
-                      avgPrice: parseFloat(variant.total_sales_amount) / parseInt(variant.total_units_sold)
-                    }))}
+                    data={[
+                      { name: '1 Order', customers: parseInt(data.customerInsights.frequencyDistribution.oneOrderCustomers.customerCount || '0') },
+                      { name: '2 Orders', customers: parseInt(data.customerInsights.frequencyDistribution.twoOrdersCustomers.customerCount || '0') },
+                      { name: '3 Orders', customers: parseInt(data.customerInsights.frequencyDistribution.threeOrdersCustomers.customerCount || '0') },
+                      { name: '4+ Orders', customers: parseInt(data.customerInsights.frequencyDistribution.fourOrdersCustomers.customerCount || '0') },
+                    ]}
+                    margin={{
+                      top: 20, right: 30, left: 20, bottom: 5,
+                    }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip formatter={(value, name) => {
-                      if (name === 'units') return [value.toLocaleString(), 'Units Sold'];
-                      if (name === 'revenue') return [formatCurrency(value), 'Revenue'];
-                      if (name === 'avgPrice') return [formatCurrency(value), 'Avg Price per Unit'];
-                      return [value, name];
-                    }} />
+                    <YAxis />
+                    <Tooltip formatter={(value) => [value.toLocaleString(), 'Customers']} />
                     <Legend />
-                    <Bar yAxisId="left" dataKey="units" fill="#8884d8" name="Units Sold" />
-                    <Bar yAxisId="right" dataKey="avgPrice" fill="#82ca9d" name="Avg Price per Unit" />
+                    <Bar dataKey="customers" fill="#4ECDC4" name="Number of Customers" />
                   </BarChart>
                 </ResponsiveContainer>
-              </ChartContainer>
+              </div>
             </div>
 
-            {/* Detailed Variants Table */}
-            <div>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Detailed Variant Analysis</h3>
-              <VariantsTable>
-                <thead>
-                  <tr>
-                    <th>Variant</th>
-                    <th>Units Sold</th>
-                    <th>Market Share</th>
-                    <th>Total Revenue</th>
-                    <th>Avg Price per Unit</th>
-                    <th>Performance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.variantInsights.map((variant, index) => {
-                    const avgPrice = parseFloat(variant.total_sales_amount) / parseInt(variant.total_units_sold);
-                    const totalUnits = data.variantInsights.reduce((sum, v) => sum + parseInt(v.total_units_sold), 0);
-                    const performance = parseFloat(variant.units_sold_percentage);
-                    
-                    return (
-                      <tr key={index}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div 
-                              style={{ 
-                                width: '12px', 
-                                height: '12px', 
-                                borderRadius: '50%', 
-                                backgroundColor: COLORS[index % COLORS.length] 
-                              }}
-                            ></div>
-                            <strong>{safeDisplayValue(variant.VARIANT_TITLE)}</strong>
-                          </div>
-                        </td>
-                        <td>{safeNumberFormat(parseInt(variant.total_units_sold))}</td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{ 
-                              width: '60px', 
-                              height: '8px', 
-                              backgroundColor: '#e0e0e0', 
-                              borderRadius: '4px',
-                              overflow: 'hidden'
-                            }}>
-                              <div style={{ 
-                                width: `${performance}%`, 
-                                height: '100%', 
-                                backgroundColor: COLORS[index % COLORS.length],
-                                borderRadius: '4px'
-                              }}></div>
-                            </div>
-                            <span>{formatPercentage(performance)}</span>
-                          </div>
-                        </td>
-                        <td>{formatCurrency(parseFloat(variant.total_sales_amount))}</td>
-                        <td>{formatCurrency(avgPrice)}</td>
-                        <td>
-                          <span style={{ 
-                            padding: '0.25rem 0.5rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.8rem',
-                            backgroundColor: performance > 20 ? '#d4edda' : performance > 10 ? '#fff3cd' : '#f8d7da',
-                            color: performance > 20 ? '#155724' : performance > 10 ? '#856404' : '#721c24'
-                          }}>
-                            {performance > 20 ? 'Excellent' : performance > 10 ? 'Good' : 'Average'}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </VariantsTable>
-            </div>
           </BackgroundSection>
 
-          {/* Charts */}
-          <BackgroundSection>
-            <h2>Sales Trend</h2>
-            <ChartContainer>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data.salesTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="sales" stroke="#8884d8" />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </BackgroundSection>
 
-          <BackgroundSection>
-            <h2>Refunds Over Time</h2>
-            <ChartContainer>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.refundsOverTime}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="refunds" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </BackgroundSection>
-
-          <BackgroundSection>
-            <h2>Profit vs Marketing Spend</h2>
-            <ChartContainer>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data.profitVsMarketing}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Area type="monotone" dataKey="profit" stackId="1" stroke="#8884d8" fill="#8884d8" />
-                  <Area type="monotone" dataKey="marketing" stackId="1" stroke="#82ca9d" fill="#82ca9d" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </BackgroundSection>
+          
+          
         </>
       )}
     </PageContainer>
