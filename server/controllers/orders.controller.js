@@ -3,6 +3,8 @@ const valkeyClient = require('../config/valkey');
 const chalk = require('chalk');
 const { executeQuery, getDatasetName, formatDateForBigQuery } = require('../utils/bigquery');
 const skuData = require('./sku.json');
+const marketingKeywords = require('./marketingKeywords.json');
+const MetaAdsAnalytics = require('../utils/MetaAdsAnalytics');
 
 // Helper function to find COGS and S&D for a given SKU
 const findCOGSForSKU = (sku) => {
@@ -21,6 +23,95 @@ const findCOGSForSKU = (sku) => {
     }
   }
   return { cogs: 0, sd: 0, productName: 'Unknown', variantName: 'Unknown' };
+};
+
+// Helper function to initialize Meta Ads Analytics
+const initializeMetaAds = () => {
+  const accessToken = process.env.META_ACCESS_TOKEN || 'EAATpfGwjZCXkBO33nuWkRLZCpRpsBbNU5EVkes11zoG5VewkbMqYZC2aDn2H4y5tYCQye4ZBd2OQBSQ1al25QJNAM8TMZBWUkDQpH89C3D9kC9azE7hwTDq7HA2CpIbq9rzPqBjyPlcjYUtydyR5dCX0pdWltSbRdcZBI3iqmjBtvORMy6MMpM';
+  const appId = process.env.META_APP_ID || '1609334849774379';
+  const appSecret = process.env.META_APP_SECRET || 'c43c137e36f234e9a9f38df459d018bd';
+  const adAccountId = process.env.META_AD_ACCOUNT_ID || 'act_1889983027860390';
+
+  return new MetaAdsAnalytics(accessToken, appId, appSecret, adAccountId);
+};
+
+// Helper function to get overall marketing data (without product filtering)
+const getOverallMarketingData = async (startDate, endDate) => {
+  try {
+    console.log(`Fetching overall marketing data from ${startDate} to ${endDate}`);
+    
+    const analytics = initializeMetaAds();
+    
+    // Create date range for Meta Ads API
+    const dateRange = {
+      since: startDate,
+      until: endDate
+    };
+    
+    // Get all campaigns for the specified date range
+    const allCampaigns = await analytics.getCampaignInsights(dateRange);
+    
+    console.log(`Found ${allCampaigns.length} total campaigns in date range ${startDate} to ${endDate}`);
+    
+    if (allCampaigns.length === 0) {
+      return {
+        campaigns: [],
+        totalSpend: 0,
+        totalImpressions: 0,
+        totalClicks: 0,
+        totalPurchases: 0,
+        totalPurchaseValue: 0,
+        averageRoas: 0,
+        averageCpc: 0,
+        averageCpm: 0,
+        averageCtr: 0,
+        keyword: null
+      };
+    }
+
+    // Calculate aggregate metrics for all campaigns
+    const totalSpend = allCampaigns.reduce((sum, campaign) => sum + (campaign.spend || 0), 0);
+    const totalImpressions = allCampaigns.reduce((sum, campaign) => sum + (campaign.impressions || 0), 0);
+    const totalClicks = allCampaigns.reduce((sum, campaign) => sum + (campaign.clicks || 0), 0);
+    const totalPurchases = allCampaigns.reduce((sum, campaign) => sum + (campaign.total_purchases || 0), 0);
+    const totalPurchaseValue = allCampaigns.reduce((sum, campaign) => sum + (campaign.total_purchase_value || 0), 0);
+    
+    // Calculate averages
+    const averageRoas = totalSpend > 0 ? totalPurchaseValue / totalSpend : 0;
+    const averageCpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
+    const averageCpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : 0;
+    const averageCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+
+    return {
+      campaigns: allCampaigns,
+      totalSpend: Math.round(totalSpend * 100) / 100,
+      totalImpressions,
+      totalClicks,
+      totalPurchases,
+      totalPurchaseValue: Math.round(totalPurchaseValue * 100) / 100,
+      averageRoas: Math.round(averageRoas * 100) / 100,
+      averageCpc: Math.round(averageCpc * 100) / 100,
+      averageCpm: Math.round(averageCpm * 100) / 100,
+      averageCtr: Math.round(averageCtr * 100) / 100,
+      keyword: null // No specific keyword for overall data
+    };
+  } catch (error) {
+    console.error('Error fetching overall marketing data:', error);
+    return {
+      campaigns: [],
+      totalSpend: 0,
+      totalImpressions: 0,
+      totalClicks: 0,
+      totalPurchases: 0,
+      totalPurchaseValue: 0,
+      averageRoas: 0,
+      averageCpc: 0,
+      averageCpm: 0,
+      averageCtr: 0,
+      error: error.message,
+      keyword: null
+    };
+  }
 };
 
 const ordersController = {
@@ -152,6 +243,30 @@ const ordersController = {
       const cogsPercentage = totalSales > 0 ? (totalCogs / totalSales) * 100 : 0;
       const sdCostPercentage = totalSales > 0 ? (totalSdCost / totalSales) * 100 : 0;
       
+      // Fetch overall marketing data - extract date part from ISO strings for Meta Ads API
+      const marketingStartDate = formattedStartDate.split('T')[0]; // Extract YYYY-MM-DD from ISO string
+      const marketingEndDate = formattedEndDate.split('T')[0]; // Extract YYYY-MM-DD from ISO string
+      const marketingData = await getOverallMarketingData(marketingStartDate, marketingEndDate);
+
+      const netSales = totalSales - totalCogs; // Sales after COGS
+      const nSales = totalSales - totalCogs - totalSdCost; // Sales after COGS and S&D
+      
+
+      // Calculate financial metrics with marketing data
+      const grossRoas = marketingData.totalSpend > 0 ? (totalSales / marketingData.totalSpend) : 0;
+      const netRoas = marketingData.totalSpend > 0 ? (netSales / marketingData.totalSpend) : 0;
+      const nRoas = marketingData.totalSpend > 0 ? (nSales / marketingData.totalSpend) : 0;
+
+      const grossMer = totalSales > 0 ? (marketingData.totalSpend / totalSales) * 100 : 0;
+      const netMer = (netSales) > 0 ? (marketingData.totalSpend / (netSales)) * 100 : 0;
+      const nMer = (nSales) > 0 ? (marketingData.totalSpend / (nSales)) * 100 : 0;
+
+      const cac = marketingData.totalPurchases > 0 ? (marketingData.totalSpend / marketingData.totalPurchases) : 0;
+      const cm2 = totalSales - totalCogs - marketingData.totalSpend;
+      const cm2Percentage = totalSales > 0 ? (cm2 / totalSales) * 100 : 0;
+      const cm3 = totalSales - totalCogs - totalSdCost - marketingData.totalSpend;
+      const cm3Percentage = totalSales > 0 ? (cm3 / totalSales) * 100 : 0;
+
 
       const finalData = {
         dateFilter: {
@@ -179,19 +294,50 @@ const ordersController = {
         cogsPercentage: cogsPercentage,
         sdCost: totalSdCost,
         sdCostPercentage: sdCostPercentage,
-        // grossRoas: grossRoas,
-        // netRoas: netRoas,
-        // grossMer: grossMer,
-        // netMer: netMer,
-        // nRoas: nRoas,
-        // nMer: nMer,
-        // cac:(marketingData.totalPurchases || 0) > 0 ? (marketingData.totalSpend || 0) / (marketingData.totalPurchases || 1) : 0,
-        // cm2: cm2,
-        // cm2Percentage: cm2Percentage,
-        // cm3: cm3,
-        // cm3Percentage: cm3Percentage
-        }
-        
+        grossRoas: grossRoas,
+        netRoas: netRoas,
+        grossMer: grossMer,
+        netMer: netMer,
+        nRoas: nRoas,
+        nMer: nMer,
+        cac: cac,
+        cm2: cm2,
+        cm2Percentage: cm2Percentage,
+        cm3: cm3,
+        cm3Percentage: cm3Percentage
+        },
+        // Add marketing data section with same structure as products controller
+        marketing: marketingData ? {
+          keyword: marketingData.keyword || null,
+          totalSpend: parseFloat(marketingData.totalSpend) || 0,
+          totalImpressions: parseFloat(marketingData.totalImpressions) || 0,
+          totalClicks: parseFloat(marketingData.totalClicks) || 0,
+          totalPurchases: parseFloat(marketingData.totalPurchases) || 0,
+          totalPurchaseValue: parseFloat(marketingData.totalPurchaseValue) || 0,
+          averageRoas: parseFloat(marketingData.averageRoas) || 0,
+          averageCpc: parseFloat(marketingData.averageCpc) || 0,
+          averageCpm: parseFloat(marketingData.averageCpm) || 0,
+          averageCtr: parseFloat(marketingData.averageCtr) || 0,
+          campaignCount: marketingData.campaigns ? marketingData.campaigns.length : 0,
+          campaigns: marketingData.campaigns && Array.isArray(marketingData.campaigns) ? marketingData.campaigns.map(campaign => ({
+            id: campaign.campaign_id || null,
+            name: campaign.campaign_name || 'Unknown Campaign',
+            spend: campaign.spend || 0,
+            impressions: campaign.impressions || 0,
+            clicks: campaign.clicks || 0,
+            purchases: campaign.total_purchases || 0,
+            purchaseValue: campaign.total_purchase_value || 0,
+            roas: campaign.overall_roas || 0,
+            cpc: campaign.cpc || 0,
+            cpm: campaign.cpm || 0,
+            ctr: campaign.ctr || 0
+          })) : [],
+          performanceMetrics: {
+            costPerPurchase: (marketingData.totalPurchases || 0) > 0 ? (marketingData.totalSpend || 0) / (marketingData.totalPurchases || 1) : 0,
+            conversionRate: (marketingData.totalClicks || 0) > 0 ? ((marketingData.totalPurchases || 0) / (marketingData.totalClicks || 1)) * 100 : 0,
+            profitFromAds: (marketingData.totalPurchaseValue || 0) - (marketingData.totalSpend || 0)
+          }
+        } : null
       };
       
       // Store in cache for 1 hour

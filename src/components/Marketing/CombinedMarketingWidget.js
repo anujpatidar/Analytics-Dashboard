@@ -120,6 +120,8 @@ const CombinedMarketingWidget = ({
         
         // Use date range instead of predefined periods for more accurate results
         const calculatedRange = getDateRange(dateRange);
+      //   const formattedStartDate = startDate ? new Date(startDate).toISOString() : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      // const formattedEndDate = endDate ? new Date(endDate).toISOString() : new Date().toISOString();
         marketingDateRange = {
           since: new Date(calculatedRange.startDate).toISOString().split('T')[0],
           until: new Date(calculatedRange.endDate).toISOString().split('T')[0]

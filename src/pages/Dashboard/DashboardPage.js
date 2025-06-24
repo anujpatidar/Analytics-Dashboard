@@ -822,7 +822,7 @@ const DashboardPage = () => {
   const marketingMetrics = [
     {
       title: 'Total Marketing Cost',
-      value: formatMetricValue(marketingData?.totalMarketingCost || 0),
+      value: formatMetricValue(ordersOverview?.marketing?.totalSpend || 0),
       icon: FaRupeeSign,
       change: ordersOverview?.marketing_cost_change_percentage ? `${ordersOverview.marketing_cost_change_percentage}%` : 'NA',
       changeType: ordersOverview?.marketing_cost_change_percentage < 0 ? 'decrease' : 'increase',
@@ -831,7 +831,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Marketing Cost %',
-      value: formatPercentage(((marketingData?.totalMarketingCost / ordersOverview?.total_sales) * 100).toFixed(2)), //fixed to 2 decimal places
+      value: formatPercentage(((ordersOverview?.marketing?.totalSpend / ordersOverview?.overview?.totalSales) * 100).toFixed(2)), //fixed to 2 decimal places
       icon: FaRupeeSign,
       change: ordersOverview?.marketing_cost_percentage_change ? `${ordersOverview.marketing_cost_percentage_change}%` : 'NA',
       changeType: ordersOverview?.marketing_cost_percentage_change < 0 ? 'decrease' : 'increase',
@@ -843,7 +843,7 @@ const DashboardPage = () => {
   const roasMetrics = [
     {
       title: 'Gross ROAS',
-      value: ordersOverview?.gross_roas ? ordersOverview.gross_roas.toFixed(2) : 'NA',
+      value: ordersOverview?.overview?.grossRoas.toFixed(2),
       icon: FiTrendingUp,
       change: ordersOverview?.gross_roas_change ? `${ordersOverview.gross_roas_change}%` : 'NA',
       changeType: ordersOverview?.gross_roas_change > 0 ? 'increase' : 'decrease',
@@ -852,7 +852,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Gross MER',
-      value: formatPercentage(ordersOverview?.gross_mer),
+      value: formatPercentage(ordersOverview?.overview?.grossMer),
       icon: FiTrendingUp,
       change: ordersOverview?.gross_mer_change ? `${ordersOverview.gross_mer_change}%` : 'NA',
       changeType: ordersOverview?.gross_mer_change > 0 ? 'increase' : 'decrease',
@@ -861,7 +861,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Net ROAS',
-      value: ordersOverview?.net_roas ? ordersOverview.net_roas.toFixed(2) : 'NA',
+      value: ordersOverview?.overview?.netRoas.toFixed(2),
       icon: FiTrendingUp,
       change: ordersOverview?.net_roas_change ? `${ordersOverview.net_roas_change}%` : 'NA',
       changeType: ordersOverview?.net_roas_change > 0 ? 'increase' : 'decrease',
@@ -870,7 +870,7 @@ const DashboardPage = () => {
     },
     {
       title: 'Net MER',
-      value: formatPercentage(ordersOverview?.net_mer),
+      value: formatPercentage(ordersOverview?.overview?.netMer),
       icon: FiTrendingUp,
       change: ordersOverview?.net_mer_change ? `${ordersOverview.net_mer_change}%` : 'NA',
       changeType: ordersOverview?.net_mer_change > 0 ? 'increase' : 'decrease',
@@ -879,7 +879,7 @@ const DashboardPage = () => {
     },
     {
       title: 'N-ROAS',
-      value: ordersOverview?.n_roas ? ordersOverview.n_roas.toFixed(2) : 'NA',
+      value: ordersOverview?.overview?.nRoas.toFixed(2),
       icon: FiTrendingUp,
       change: ordersOverview?.n_roas_change ? `${ordersOverview.n_roas_change}%` : 'NA',
       changeType: ordersOverview?.n_roas_change > 0 ? 'increase' : 'decrease',
@@ -888,7 +888,7 @@ const DashboardPage = () => {
     },
     {
       title: 'N-MER',
-      value: formatPercentage(ordersOverview?.n_mer),
+      value: formatPercentage(ordersOverview?.overview?.nMer),
       icon: FiTrendingUp,
       change: ordersOverview?.n_mer_change ? `${ordersOverview.n_mer_change}%` : 'NA',
       changeType: ordersOverview?.n_mer_change > 0 ? 'increase' : 'decrease',
@@ -921,7 +921,7 @@ const DashboardPage = () => {
   const contributionMarginMetrics = [
     {
       title: 'CM2',
-      value: formatMetricValue(ordersOverview?.cm2),
+      value: formatMetricValue(ordersOverview?.overview?.cm2),
       icon: FaRupeeSign,
       change: ordersOverview?.cm2_change ? `${ordersOverview.cm2_change}%` : 'NA',
       changeType: ordersOverview?.cm2_change > 0 ? 'increase' : 'decrease',
@@ -930,7 +930,7 @@ const DashboardPage = () => {
     },
     {
       title: 'CM2 %',
-      value: formatPercentage(ordersOverview?.cm2_percentage),
+      value: formatPercentage(ordersOverview?.overview?.cm2Percentage),
       icon: FaRupeeSign,
       change: ordersOverview?.cm2_percentage_change ? `${ordersOverview.cm2_percentage_change}%` : 'NA',
       changeType: ordersOverview?.cm2_percentage_change > 0 ? 'increase' : 'decrease',
@@ -939,7 +939,7 @@ const DashboardPage = () => {
     },
     {
       title: 'CM3',
-      value: formatMetricValue(ordersOverview?.cm3),
+      value: formatMetricValue(ordersOverview?.overview?.cm3),
       icon: FaRupeeSign,
       change: ordersOverview?.cm3_change ? `${ordersOverview.cm3_change}%` : 'NA',
       changeType: ordersOverview?.cm3_change > 0 ? 'increase' : 'decrease',
@@ -948,7 +948,7 @@ const DashboardPage = () => {
     },
     {
       title: 'CM3 %',
-      value: formatPercentage(ordersOverview?.cm3_percentage),
+      value: formatPercentage(ordersOverview?.overview?.cm3Percentage),
       icon: FaRupeeSign,
       change: ordersOverview?.cm3_percentage_change ? `${ordersOverview.cm3_percentage_change}%` : 'NA',
       changeType: ordersOverview?.cm3_percentage_change > 0 ? 'increase' : 'decrease',
@@ -1265,189 +1265,8 @@ const DashboardPage = () => {
                         </MetricGrid>
                       </MetricSection>
 
-                      {/* Marketing Overview - Full Width */}
-                      <CombinedMarketingWidget 
-                        dateRange={timeframe}
-                        customDateRange={dateRange}
-                        isCustomDateRange={isCustomDateRange}
-                        ordersOverview={ordersOverview}
-                        ordersOverviewLoading={ordersOverviewLoading}
-                        onMarketingDataUpdate={(data) => {
-                          // Update marketing metrics when CombinedMarketingWidget data changes
-                          setMarketingData(data);
-                        }}
-                      />
                       
-                      {/* Revenue Overview - Full Width */}
-                      <ChartCard 
-                        title="Revenue Overview" 
-                        subtitle={`Total: ${formatCurrency(ordersByTimeRange?.reduce((total, item) => total + item.daily_revenue, 0) || 0)}`}
-                        legends={[{ label: 'Revenue', color: 'var(--primary-color)' }]}
-                        timeframes={['Day', 'Week', 'Month', 'Year']}
-                        activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-                        onTimeframeChange={handleTimeframeChange}
-                        loading={ordersByTimeRangeLoading}
-                      >
-                        {ordersByTimeRangeLoading ? (
-                          <div>Loading chart...</div>
-                        ) : (
-                          <div style={{ width: '100%', height: '300px' }}>
-                            <Line data={salesChartData} options={salesChartOptions} />
-                          </div>
-                        )}
-                      </ChartCard>
-                      
-                      {/* Charts Grid - 2 Column */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <ChartCard 
-                          title="Customer Acquisition" 
-                          subtitle="Source breakdown"
-                          legends={[
-                            { label: 'Direct', color: 'rgba(0, 115, 182, 0.8)' },
-                            { label: 'Search', color: 'rgba(3, 169, 244, 0.8)' },
-                            { label: 'Social', color: 'rgba(76, 175, 80, 0.8)' },
-                            { label: 'Email', color: 'rgba(255, 193, 7, 0.8)' },
-                            { label: 'Referral', color: 'rgba(244, 67, 54, 0.8)' },
-                            { label: 'Other', color: 'rgba(156, 39, 176, 0.8)' },
-                          ]}
-                          timeframes={[]}
-                        >
-                          <div style={{ width: '100%', height: '300px' }}>
-                            <Doughnut data={customerAcquisitionData} options={customerAcquisitionOptions} />
-                          </div>
-                        </ChartCard>
-                        
-                        <ChartCard 
-                          title="Orders Trend" 
-                          subtitle={`Total Orders: ${formatNumber(ordersByTimeRange?.reduce((total, item) => total + item.order_count, 0) || 0)}`}
-                          legends={[{ label: 'Orders', color: 'var(--success-color)' }]}
-                          timeframes={['Day', 'Week', 'Month', 'Year']}
-                          activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-                          onTimeframeChange={handleTimeframeChange}
-                        >
-                          {!ordersByTimeRangeLoading && ordersByTimeRange && (
-                            <div style={{ width: '100%', height: '300px' }}>
-                              <Bar data={ordersChartData} options={ordersChartOptions} />
-                            </div>
-                          )}
-                        </ChartCard>
-                      </div>
-
-                      {/* Orders Over Time Chart - Full Width */}
-                      <ChartCard
-                        title="Orders and Refunds Over Time"
-                        subtitle={`Showing ${timeframe} trends`}
-                        legends={[
-                          { label: 'Orders', color: 'rgba(59, 130, 246, 1)' },
-                          { label: 'Refunds', color: 'rgba(239, 68, 68, 1)' }
-                        ]}
-                        timeframes={['Day', 'Week', 'Month', 'Year']}
-                        activeTimeframe={timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-                        onTimeframeChange={handleTimeframeChange}
-                        loading={ordersByTimeRangeLoading}
-                      >
-                        {ordersByTimeRangeLoading ? (
-                          <div>Loading chart...</div>
-                        ) : (
-                          <div style={{ width: '100%', height: '300px' }}>
-                            <Line
-                              data={ordersOverTimeData}
-                              options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                interaction: {
-                                  intersect: false,
-                                  mode: 'index',
-                                },
-                                plugins: {
-                                  legend: {
-                                    display: false
-                                  },
-                                  tooltip: {
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    titleColor: '#fff',
-                                    bodyColor: '#fff',
-                                    borderColor: 'rgba(59, 130, 246, 1)',
-                                    borderWidth: 1,
-                                    cornerRadius: 8,
-                                    displayColors: true,
-                                    usePointStyle: true,
-                                    callbacks: {
-                                      title: (context) => `${context[0].label}`,
-                                      label: (context) => {
-                                        const label = context.dataset.label || '';
-                                        const value = formatNumber(context.raw);
-                                        return `${label}: ${value}`;
-                                      }
-                                    }
-                                  }
-                                },
-                                scales: {
-                                  y: {
-                                    beginAtZero: true,
-                                    grid: {
-                                      color: 'rgba(0, 0, 0, 0.05)',
-                                      drawBorder: false,
-                                    },
-                                    border: {
-                                      display: false,
-                                    },
-                                    ticks: {
-                                      color: 'rgba(0, 0, 0, 0.6)',
-                                      font: {
-                                        size: 12,
-                                      },
-                                      padding: 8,
-                                      callback: (value) => formatNumber(value),
-                                    }
-                                  },
-                                  x: {
-                                    grid: {
-                                      display: false,
-                                      drawBorder: false,
-                                    },
-                                    border: {
-                                      display: false,
-                                    },
-                                    ticks: {
-                                      color: 'rgba(0, 0, 0, 0.6)',
-                                      font: {
-                                        size: 12,
-                                      },
-                                      padding: 8,
-                                      maxRotation: 45,
-                                    }
-                                  }
-                                },
-                                elements: {
-                                  line: {
-                                    borderJoinStyle: 'round',
-                                    borderCapStyle: 'round',
-                                  }
-                                },
-                                animation: {
-                                  duration: 1000,
-                                  easing: 'easeInOutQuart',
-                                }
-                              }}
-                            />
-                          </div>
-                        )}
-                      </ChartCard>
-
-                      <DataTable 
-                        title="Recent Orders"
-                        columns={ordersColumns}
-                        data={recentOrdersData?.orders || []}
-                        pagination={true}
-                        loading={recentOrdersLoading}
-                        currentPage={currentPage}
-                        totalPages={recentOrdersData?.totalPages || 1}
-                        onPageChange={(page) => {
-                          setCurrentPage(page);
-                          refetchRecentOrders({ page, pageSize });
-                        }}
-                      />
+                     
                     </div>
                   )}
                   
