@@ -6,6 +6,7 @@ import { StoreProvider } from './context/StoreContext';
 import DashboardPage from './pages/Dashboard/DashboardPage';
 import ProductsPage from './pages/Products/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage/ProductDetailsPage';
+import VariantDetailsPage from './pages/VariantDetailsPage/VariantDetailsPage';
 import MarketPlacePrices from './pages/MarketPlacePrices/MarketPlacePrices';
 import MetaAdsAnalytics from './components/MetaAds/MetaAdsAnalytics';
 import GoogleAdsAnalytics from './components/GoogleAds/GoogleAdsAnalytics';
@@ -32,6 +33,7 @@ function App() {
               <Route path="/sales" element={<SalesPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:productId" element={<ProductDetailsPage />} />
+              <Route path="/products/:productId/:variantName" element={<VariantDetailsPage />} />
               <Route path="/marketplace-prices" element={<MarketPlacePrices />} />
               <Route path="/meta-ads" element={<MetaAdsAnalytics />} />
               <Route path="/google-ads" element={<GoogleAdsAnalytics />} />

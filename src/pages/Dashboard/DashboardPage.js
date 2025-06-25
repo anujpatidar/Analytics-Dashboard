@@ -100,20 +100,59 @@ ChartJS.register(
   Filler
 );
 
+// Animated Loading Dots Component
+const LoadingDots = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  
+  .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.4;
+    animation: loadingDots 1.4s infinite ease-in-out;
+    
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+  
+  @keyframes loadingDots {
+    0%, 80%, 100% {
+      opacity: 0.4;
+      transform: scale(1);
+    }
+    40% {
+      opacity: 1;
+      transform: scale(1.2);
+    }
+  }
+`;
+
 // Modern Dashboard Container
 const DashboardContainer = styled.div`
   
   min-height: 100vh;
-  padding: 1rem;
+  padding: 1rem 0 1rem 1rem; /* Remove right padding, keep left, top, bottom */
   
   @media (max-width: 768px) {
-    padding: 0.5rem;
+    padding: 0.5rem 0 0.5rem 0.5rem; /* Remove right padding on mobile too */
   }
 `;
 
 const DashboardContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%; /* Use full available width instead of max-width constraint */
+  margin: 0;
 `;
 
 // Compact Modern Header Section
@@ -588,6 +627,15 @@ const formatPercentage = (value) => {
   return `${value}%`;
 };
 
+// Animated Loading Dots React Component
+const AnimatedLoadingDots = () => (
+  <LoadingDots>
+    <div className="dot"></div>
+    <div className="dot"></div>
+    <div className="dot"></div>
+  </LoadingDots>
+);
+
 // Create a modern compact metric component with icons
 const ModernMetricCard = ({ title, value, icon: Icon, change, changeType, color = '#667eea', loading }) => (
   <MiniMetricCard>
@@ -612,7 +660,7 @@ const ModernMetricCard = ({ title, value, icon: Icon, change, changeType, color 
         </div>
       )}
     </div>
-    <div className="metric-value">{loading ? '...' : value}</div>
+    <div className="metric-value">{loading ? <AnimatedLoadingDots /> : value}</div>
     <div className="metric-change" style={{ 
       color: changeType === 'increase' ? '#059669' : changeType === 'decrease' ? '#dc2626' : '#64748b' 
     }}>
@@ -1759,6 +1807,8 @@ const DashboardPage = () => {
     }
   ];
 
+  console.log(ordersOverview,'data');
+
   return (
     <DashboardContainer>
       <DashboardContent>
@@ -1775,19 +1825,19 @@ const DashboardPage = () => {
                 <QuickStat>
                   <div className="label">Orders</div>
                   <div className="value">
-                    {ordersOverviewLoading || amazonLoading ? '...' : formatNumber(safeAdd(ordersOverview?.overview?.totalOrders, amazonData?.total_orders))}
+                    {ordersOverviewLoading || amazonLoading ? <AnimatedLoadingDots /> : formatNumber(safeAdd(ordersOverview?.overview?.totalOrders, amazonData?.total_orders))}
               </div>
                 </QuickStat>
                 <QuickStat>
                   <div className="label">Revenue</div>
                   <div className="value">
-                    {ordersOverviewLoading || amazonLoading ? '...' : formatMetricValue(safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))}
+                    {ordersOverviewLoading || amazonLoading ? <AnimatedLoadingDots /> : formatMetricValue(safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))}
             </div>
                 </QuickStat>
                 <QuickStat>
                   <div className="label">AOV</div>
                   <div className="value">
-                    {ordersOverviewLoading || amazonLoading ? '...' : formatCurrency((safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales)) / Math.max(1, safeAdd(ordersOverview?.overview?.totalOrders, amazonData?.total_orders)))}
+                    {ordersOverviewLoading || amazonLoading ? <AnimatedLoadingDots /> : formatCurrency((safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales)) / Math.max(1, safeAdd(ordersOverview?.overview?.totalOrders, amazonData?.total_orders)))}
                   </div>
                 </QuickStat>
               </StatsQuickView>
@@ -1987,216 +2037,214 @@ const DashboardPage = () => {
                   </SectionContent>
                 </SectionCard>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(600px, 1fr))', gap: '1.5rem' }}>
-                  <SectionCard>
-                    <SectionHeader>
-                      <h2>💰 Financial Metrics</h2>
-                      <p>Revenue, costs, and profitability</p>
-                    </SectionHeader>
-                    <SectionContent>
-                      <CompactGrid>
-                        {/* Returns */}
-                        <ModernMetricCard
-                          title="Total Returns"
-                          value={formatMetricValue(safeAdd(ordersOverview?.overview?.totalReturns, amazonReturns?.total_return_amount || amazonData?.total_returns))}
-                          icon={HiTrendingDown}
-                          change="Combined"
-                          changeType="decrease"
-                          color="#ef4444"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="Return Rate"
-                          value={formatPercentage(
-                            ((safeAdd(ordersOverview?.overview?.totalReturns, amazonReturns?.total_return_amount || amazonData?.total_returns)) / 
-                             Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
-                          )}
-                          icon={FiTrendingDown}
-                          change="Combined"
-                          changeType="decrease"
-                          color="#dc2626"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        {/* Tax */}
-                        <ModernMetricCard
-                          title="Total Tax"
-                          value={formatMetricValue(safeAdd(ordersOverview?.overview?.totalTax, amazonData?.total_tax))}
-                          icon={HiCalculator}
-                          change="Combined"
-                          changeType="increase"
-                          color="#6366f1"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="Tax Rate"
-                          value={formatPercentage(
-                            ((safeAdd(ordersOverview?.overview?.totalTax, amazonData?.total_tax)) / 
-                             Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
-                          )}
-                          icon={FaCalculator}
-                          change="Combined"
-                          changeType="increase"
-                          color="#4f46e5"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        {/* Expenses */}
-                        <ModernMetricCard
-                          title="COGS"
-                          value={formatMetricValue(safeAdd(ordersOverview?.overview?.cogs, amazonData?.cogs))}
-                          icon={FaBoxes}
-                          change="Combined"
-                          changeType="increase"
-                          color="#f59e0b"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="COGS %"
-                          value={formatPercentage(
-                            ((safeAdd(ordersOverview?.overview?.cogs, amazonData?.cogs)) / 
-                             Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
-                          )}
-                          icon={FaChartPie}
-                          change="Combined"
-                          changeType="increase"
-                          color="#d97706"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="S&D Cost"
-                          value={formatMetricValue(safeAdd(ordersOverview?.overview?.sdCost, amazonData?.sd_cost || amazonData?.total_shipping))}
-                          icon={FaShippingFast}
-                          change="Combined"
-                          changeType="increase"
-                          color="#f97316"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="S&D Cost %"
-                          value={formatPercentage(
-                            ((safeAdd(ordersOverview?.overview?.sdCost, amazonData?.sd_cost || amazonData?.total_shipping)) / 
-                             Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
-                          )}
-                          icon={FiPackage}
-                          change="Combined"
-                          changeType="increase"
-                          color="#ea580c"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                      </CompactGrid>
-                    </SectionContent>
-                  </SectionCard>
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>💰 Financial Metrics</h2>
+                    <p>Revenue, costs, and profitability</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      {/* Returns */}
+                      <ModernMetricCard
+                        title="Total Returns"
+                        value={formatMetricValue(safeAdd(ordersOverview?.overview?.totalReturns, amazonReturns?.total_return_amount || amazonData?.total_returns))}
+                        icon={HiTrendingDown}
+                        change="Combined"
+                        changeType="decrease"
+                        color="#ef4444"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="Return Rate"
+                        value={formatPercentage(
+                          ((safeAdd(ordersOverview?.overview?.totalReturns, amazonReturns?.total_return_amount || amazonData?.total_returns)) / 
+                           Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
+                        )}
+                        icon={FiTrendingDown}
+                        change="Combined"
+                        changeType="decrease"
+                        color="#dc2626"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      {/* Tax */}
+                      <ModernMetricCard
+                        title="Total Tax"
+                        value={formatMetricValue(safeAdd(ordersOverview?.overview?.totalTax, amazonData?.total_tax))}
+                        icon={HiCalculator}
+                        change="Combined"
+                        changeType="increase"
+                        color="#6366f1"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="Tax Rate"
+                        value={formatPercentage(
+                          ((safeAdd(ordersOverview?.overview?.totalTax, amazonData?.total_tax)) / 
+                           Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
+                        )}
+                        icon={FaCalculator}
+                        change="Combined"
+                        changeType="increase"
+                        color="#4f46e5"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      {/* Expenses */}
+                      <ModernMetricCard
+                        title="COGS"
+                        value={formatMetricValue(safeAdd(ordersOverview?.overview?.cogs, amazonData?.cogs))}
+                        icon={FaBoxes}
+                        change="Combined"
+                        changeType="increase"
+                        color="#f59e0b"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="COGS %"
+                        value={formatPercentage(
+                          ((safeAdd(ordersOverview?.overview?.cogs, amazonData?.cogs)) / 
+                           Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
+                        )}
+                        icon={FaChartPie}
+                        change="Combined"
+                        changeType="increase"
+                        color="#d97706"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost"
+                        value={formatMetricValue(safeAdd(ordersOverview?.overview?.sdCost, amazonData?.sd_cost || amazonData?.total_shipping))}
+                        icon={FaShippingFast}
+                        change="Combined"
+                        changeType="increase"
+                        color="#f97316"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost %"
+                        value={formatPercentage(
+                          ((safeAdd(ordersOverview?.overview?.sdCost, amazonData?.sd_cost || amazonData?.total_shipping)) / 
+                           Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
+                        )}
+                        icon={FiPackage}
+                        change="Combined"
+                        changeType="increase"
+                        color="#ea580c"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
 
-                  <SectionCard>
-                    <SectionHeader>
-                      <h2>📈 Marketing & Performance</h2>
-                      <p>ROAS, CAC, and marketing efficiency</p>
-                    </SectionHeader>
-                    <SectionContent>
-                      <CompactGrid>
-                        {/* Marketing - MyFrido Only */}
-                        <ModernMetricCard
-                          title="Marketing Spend"
-                          value={formatMetricValue(ordersOverview?.overview?.marketingSpend)}
-                          icon={FaBullseye}
-                          change="MyFrido Only"
-                          changeType="increase"
-                          color="#8b5cf6"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="Marketing %"
-                          value={formatPercentage((ordersOverview?.overview?.marketingSpend / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FiTarget}
-                          change="MyFrido Only"
-                          changeType="increase"
-                          color="#7c3aed"
-                          loading={ordersOverviewLoading}
-                        />
-                        {/* ROAS - Not Available for Combined */}
-                        <ModernMetricCard
-                          title="ROAS"
-                          value="N/A"
-                          icon={FaHandHoldingUsd}
-                          change="Data Not Available"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        <ModernMetricCard
-                          title="Target ROAS"
-                          value="N/A"
-                          icon={FaBullseye}
-                          change="Data Not Available"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        {/* CAC - Not Available for Combined */}
-                        <ModernMetricCard
-                          title="CAC"
-                          value="N/A"
-                          icon={FaUserTie}
-                          change="Data Not Available"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        <ModernMetricCard
-                          title="LTV/CAC"
-                          value="N/A"
-                          icon={FaChartLine}
-                          change="Data Not Available"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        {/* Contribution Margin */}
-                        <ModernMetricCard
-                          title="CM2"
-                          value={formatMetricValue(safeAdd(ordersOverview?.overview?.cm2, amazonData?.cm2))}
-                          icon={HiChartBar}
-                          change="Combined"
-                          changeType="increase"
-                          color="#059669"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM2 %"
-                          value={formatPercentage(
-                            ((safeAdd(ordersOverview?.overview?.cm2, amazonData?.cm2)) / 
-                             Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
-                          )}
-                          icon={FiBarChart}
-                          change="Combined"
-                          changeType="increase"
-                          color="#047857"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM3"
-                          value={formatMetricValue(safeAdd(ordersOverview?.overview?.cm3, amazonData?.cm3))}
-                          icon={HiScale}
-                          change="Combined"
-                          changeType="increase"
-                          color="#0d9488"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM3 %"
-                          value={formatPercentage(
-                            ((safeAdd(ordersOverview?.overview?.cm3, amazonData?.cm3)) / 
-                             Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
-                          )}
-                          icon={FiBarChart2}
-                          change="Combined"
-                          changeType="increase"
-                          color="#0f766e"
-                          loading={ordersOverviewLoading || amazonLoading}
-                        />
-                      </CompactGrid>
-                    </SectionContent>
-                  </SectionCard>
-                    </div>
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>📈 Marketing & Performance</h2>
+                    <p>ROAS, CAC, and marketing efficiency</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      {/* Marketing - MyFrido Only */}
+                      <ModernMetricCard
+                        title="Marketing Spend"
+                        value={formatMetricValue(ordersOverview?.overview?.marketingSpend)}
+                        icon={FaBullseye}
+                        change="MyFrido Only"
+                        changeType="increase"
+                        color="#8b5cf6"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="Marketing %"
+                        value={formatPercentage((ordersOverview?.overview?.marketingSpend / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
+                        icon={FiTarget}
+                        change="MyFrido Only"
+                        changeType="increase"
+                        color="#7c3aed"
+                        loading={ordersOverviewLoading}
+                      />
+                      {/* ROAS - Not Available for Combined */}
+                      <ModernMetricCard
+                        title="ROAS"
+                        value="N/A"
+                        icon={FaHandHoldingUsd}
+                        change="Data Not Available"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      <ModernMetricCard
+                        title="Target ROAS"
+                        value="N/A"
+                        icon={FaBullseye}
+                        change="Data Not Available"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      {/* CAC - Not Available for Combined */}
+                      <ModernMetricCard
+                        title="CAC"
+                        value="N/A"
+                        icon={FaUserTie}
+                        change="Data Not Available"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      <ModernMetricCard
+                        title="LTV/CAC"
+                        value="N/A"
+                        icon={FaChartLine}
+                        change="Data Not Available"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      {/* Contribution Margin */}
+                      <ModernMetricCard
+                        title="CM2"
+                        value={formatMetricValue(safeAdd(ordersOverview?.overview?.cm2, amazonData?.cm2))}
+                        icon={HiChartBar}
+                        change="Combined"
+                        changeType="increase"
+                        color="#059669"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM2 %"
+                        value={formatPercentage(
+                          ((safeAdd(ordersOverview?.overview?.cm2, amazonData?.cm2)) / 
+                           Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
+                        )}
+                        icon={FiBarChart}
+                        change="Combined"
+                        changeType="increase"
+                        color="#047857"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM3"
+                        value={formatMetricValue(safeAdd(ordersOverview?.overview?.cm3, amazonData?.cm3))}
+                        icon={HiScale}
+                        change="Combined"
+                        changeType="increase"
+                        color="#0d9488"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM3 %"
+                        value={formatPercentage(
+                          ((safeAdd(ordersOverview?.overview?.cm3, amazonData?.cm3)) / 
+                           Math.max(1, safeAdd(ordersOverview?.overview?.totalSales, amazonData?.total_sales))) * 100
+                        )}
+                        icon={FiBarChart2}
+                        change="Combined"
+                        changeType="increase"
+                        color="#0f766e"
+                        loading={ordersOverviewLoading || amazonLoading}
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
                     </div>
             )}
                   
@@ -2221,7 +2269,7 @@ const DashboardPage = () => {
                             />
                       <ModernMetricCard
                         title="Average Order Value"
-                        value={formatCurrency(ordersOverview?.overview?.averageOrderValue)}
+                        value={formatCurrency(ordersOverview?.overview?.aov)}
                         icon={FaMoneyBillWave}
                         change="vs last period"
                         changeType="increase"
@@ -2257,7 +2305,7 @@ const DashboardPage = () => {
                             />
                       <ModernMetricCard
                         title="Gross Sales %"
-                        value={formatPercentage((ordersOverview?.overview?.grossSales / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
+                        value={formatPercentage(ordersOverview?.overview?.grossSalesPercentage)}
                         icon={FaPercentage}
                         change="vs last period"
                         changeType="increase"
@@ -2268,198 +2316,197 @@ const DashboardPage = () => {
                   </SectionContent>
                 </SectionCard>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(600px, 1fr))', gap: '1.5rem' }}>
-                  <SectionCard>
-                    <SectionHeader>
-                      <h2>💰 Financial Metrics</h2>
-                      <p>Revenue, costs, and profitability</p>
-                    </SectionHeader>
-                    <SectionContent>
-                      <CompactGrid>
-                        {/* Returns */}
-                        <ModernMetricCard
-                          title="Total Returns"
-                          value={formatMetricValue(ordersOverview?.overview?.totalReturns)}
-                          icon={HiTrendingDown}
-                          change="vs last period"
-                          changeType="decrease"
-                          color="#ef4444"
-                              loading={ordersOverviewLoading}
-                            />
-                        <ModernMetricCard
-                          title="Return Rate"
-                          value={formatPercentage((ordersOverview?.overview?.totalReturns / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FiTrendingDown}
-                          change="vs last period"
-                          changeType="decrease"
-                          color="#dc2626"
-                              loading={ordersOverviewLoading}
-                            />
-                        {/* Tax */}
-                        <ModernMetricCard
-                          title="Total Tax"
-                          value={formatMetricValue(ordersOverview?.overview?.totalTax)}
-                          icon={HiCalculator}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#6366f1"
-                              loading={ordersOverviewLoading}
-                            />
-                        <ModernMetricCard
-                          title="Tax Rate"
-                          value={formatPercentage((ordersOverview?.overview?.totalTax / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FaCalculator}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#4f46e5"
-                          loading={ordersOverviewLoading}
-                        />
-                        {/* Expenses */}
-                        <ModernMetricCard
-                          title="COGS"
-                          value={formatMetricValue(ordersOverview?.overview?.cogs)}
-                          icon={FaBoxes}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#f59e0b"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="COGS %"
-                          value={formatPercentage((ordersOverview?.overview?.cogs / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FaChartPie}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#d97706"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="S&D Cost"
-                          value={formatMetricValue(ordersOverview?.overview?.sdCost)}
-                          icon={FaShippingFast}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#f97316"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="S&D Cost %"
-                          value={formatPercentage((ordersOverview?.overview?.sdCost / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FiPackage}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#ea580c"
-                          loading={ordersOverviewLoading}
-                        />
-                      </CompactGrid>
-                    </SectionContent>
-                  </SectionCard>
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>💰 Financial Metrics</h2>
+                    <p>Revenue, costs, and profitability</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      {/* Returns */}
+                      <ModernMetricCard
+                        title="Total Returns"
+                        value={formatMetricValue(ordersOverview?.overview?.totalReturns)}
+                        icon={HiTrendingDown}
+                        change="vs last period"
+                        changeType="decrease"
+                        color="#ef4444"
+                            loading={ordersOverviewLoading}
+                          />
+                      <ModernMetricCard
+                        title="Return Rate"
+                        value={formatPercentage(ordersOverview?.overview?.returnRate)}
+                        icon={FiTrendingDown}
+                        change="vs last period"
+                        changeType="decrease"
+                        color="#dc2626"
+                            loading={ordersOverviewLoading}
+                          />
+                      {/* Tax */}
+                      <ModernMetricCard
+                        title="Total Tax"
+                        value={formatMetricValue(ordersOverview?.overview?.totalTax)}
+                        icon={HiCalculator}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#6366f1"
+                            loading={ordersOverviewLoading}
+                          />
+                      <ModernMetricCard
+                        title="Tax Rate"
+                        value={formatPercentage(ordersOverview?.overview?.taxRate)}
+                        icon={FaCalculator}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#4f46e5"
+                        loading={ordersOverviewLoading}
+                      />
+                      {/* Expenses */}
+                      <ModernMetricCard
+                        title="COGS"
+                        value={formatMetricValue(ordersOverview?.overview?.cogs)}
+                        icon={FaBoxes}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#f59e0b"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="COGS %"
+                        value={formatPercentage(ordersOverview?.overview?.cogsPercentage)}
+                        icon={FaChartPie}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#d97706"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost"
+                        value={formatMetricValue(ordersOverview?.overview?.sdCost)}
+                        icon={FaShippingFast}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#f97316"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost %"
+                        value={formatPercentage(ordersOverview?.overview?.sdCostPercentage)}
+                        icon={FiPackage}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#ea580c"
+                        loading={ordersOverviewLoading}
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
 
-                  <SectionCard>
-                    <SectionHeader>
-                      <h2>📈 Marketing & Performance</h2>
-                      <p>ROAS, CAC, and marketing efficiency</p>
-                    </SectionHeader>
-                    <SectionContent>
-                      <CompactGrid>
-                        {/* Marketing */}
-                        <ModernMetricCard
-                          title="Marketing Spend"
-                          value={formatMetricValue(ordersOverview?.overview?.marketingSpend)}
-                          icon={FaBullseye}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#8b5cf6"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="Marketing %"
-                          value={formatPercentage((ordersOverview?.overview?.marketingSpend / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FiTarget}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#7c3aed"
-                          loading={ordersOverviewLoading}
-                        />
-                        {/* ROAS */}
-                        <ModernMetricCard
-                          title="ROAS"
-                          value={formatNumber(ordersOverview?.overview?.roas)}
-                          icon={FaHandHoldingUsd}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#10b981"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="Target ROAS"
-                          value={formatNumber(ordersOverview?.overview?.targetRoas)}
-                          icon={FaBullseye}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#059669"
-                          loading={ordersOverviewLoading}
-                        />
-                        {/* CAC */}
-                        <ModernMetricCard
-                          title="CAC"
-                          value={formatCurrency(ordersOverview?.overview?.cac)}
-                          icon={FaUserTie}
-                          change="vs last period"
-                          changeType="decrease"
-                          color="#ef4444"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="LTV/CAC"
-                          value={formatNumber(ordersOverview?.overview?.ltvCac)}
-                          icon={FaChartLine}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#0ea5e9"
-                          loading={ordersOverviewLoading}
-                        />
-                        {/* Contribution Margin */}
-                        <ModernMetricCard
-                          title="CM2"
-                          value={formatMetricValue(ordersOverview?.overview?.cm2)}
-                          icon={HiChartBar}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#059669"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM2 %"
-                          value={formatPercentage((ordersOverview?.overview?.cm2 / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FiBarChart}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#047857"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM3"
-                          value={formatMetricValue(ordersOverview?.overview?.cm3)}
-                          icon={HiScale}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#0d9488"
-                          loading={ordersOverviewLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM3 %"
-                          value={formatPercentage((ordersOverview?.overview?.cm3 / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
-                          icon={FiBarChart2}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#0f766e"
-                          loading={ordersOverviewLoading}
-                        />
-                      </CompactGrid>
-                    </SectionContent>
-                  </SectionCard>
-                          </div>
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>📈 Marketing & Performance</h2>
+                    <p>ROAS, CAC, and marketing efficiency</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      {/* Marketing */}
+                      <ModernMetricCard
+                        title="Marketing Spend"
+                        value={formatMetricValue(ordersOverview?.marketing?.totalSpend)}
+                        icon={FaBullseye}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#8b5cf6"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="Marketing %"
+                        value={formatPercentage((ordersOverview?.marketing?.totalSpend / Math.max(1, ordersOverview?.overview?.totalSales)) * 100)}
+                        icon={FiTarget}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#7c3aed"
+                        loading={ordersOverviewLoading}
+                      />
+                      {/* ROAS */}
+                      <ModernMetricCard
+                        title="GrossROAS"
+                        value={(ordersOverview?.overview?.grossRoas?.toFixed(2))}
+                        icon={FaHandHoldingUsd}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#10b981"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="NetROAS"
+                        value={(ordersOverview?.overview?.netRoas?.toFixed(2))}
+                        icon={FaBullseye}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#059669"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="N-ROAS"
+                        value={(ordersOverview?.overview?.nRoas?.toFixed(2))}
+                        icon={FaBullseye}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#059669"
+                        loading={ordersOverviewLoading}
+                      />
+                      {/* CAC */}
+                      <ModernMetricCard
+                        title="CAC"
+                        value={formatCurrency(ordersOverview?.overview?.cac)}
+                        icon={FaUserTie}
+                        change="vs last period"
+                        changeType="decrease"
+                        color="#ef4444"
+                        loading={ordersOverviewLoading}
+                      />
+                     
+                      {/* Contribution Margin */}
+                      <ModernMetricCard
+                        title="CM2"
+                        value={formatMetricValue(ordersOverview?.overview?.cm2)}
+                        icon={HiChartBar}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#059669"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM2 %"
+                        value={formatPercentage(ordersOverview?.overview?.cm2Percentage)}
+                        icon={FiBarChart}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#047857"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM3"
+                        value={formatMetricValue(ordersOverview?.overview?.cm3)}
+                        icon={HiScale}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#0d9488"
+                        loading={ordersOverviewLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM3 %"
+                        value={formatPercentage(ordersOverview?.overview?.cm3Percentage)}
+                        icon={FiBarChart2}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#0f766e"
+                        loading={ordersOverviewLoading}
+                      />
+                    </CompactGrid>
+                  </SectionContent>=-6780-=
+                </SectionCard>
                             </div>
                           )}
 
@@ -2533,198 +2580,196 @@ const DashboardPage = () => {
                   </SectionContent>
                 </SectionCard>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(600px, 1fr))', gap: '1.5rem' }}>
-                  <SectionCard>
-                    <SectionHeader>
-                      <h2>💰 Financial Metrics</h2>
-                      <p>Revenue, costs, and profitability</p>
-                    </SectionHeader>
-                    <SectionContent>
-                      <CompactGrid>
-                        {/* Returns */}
-                        <ModernMetricCard
-                          title="Total Returns"
-                          value={formatCurrency(amazonReturns?.total_return_amount || amazonData?.total_returns || 0)}
-                          icon={HiTrendingDown}
-                          change="vs last period"
-                          changeType="decrease"
-                          color="#ef4444"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="Return Rate %"
-                          value={formatPercentage(amazonReturns?.return_rate_percentage || amazonData?.return_rate || 0)}
-                          icon={FiTrendingDown}
-                          change="vs last period"
-                          changeType="decrease"
-                          color="#dc2626"
-                          loading={amazonLoading}
-                        />
-                        {/* Tax */}
-                        <ModernMetricCard
-                          title="Total Tax"
-                          value={formatCurrency(amazonData?.total_tax || 0)}
-                          icon={HiCalculator}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#6366f1"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="Tax Rate %"
-                          value={formatPercentage(amazonData?.tax_rate ? amazonData.tax_rate * 100 : 0)}
-                          icon={FaCalculator}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#4f46e5"
-                          loading={amazonLoading}
-                        />
-                        {/* Expenses */}
-                        <ModernMetricCard
-                          title="COGS"
-                          value={formatCurrency(amazonData?.cogs || 0)}
-                          icon={FaBoxes}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#f59e0b"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="COGS %"
-                          value={formatPercentage(amazonData?.cogs_percentage || 0)}
-                          icon={FaChartPie}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#d97706"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="S&D Cost"
-                          value={formatCurrency(amazonData?.sd_cost || amazonData?.total_shipping || 0)}
-                          icon={FaShippingFast}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#f97316"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="S&D Cost %"
-                          value={formatPercentage(amazonData?.sd_cost_percentage || (amazonData?.sd_cost && amazonData?.total_sales ? (amazonData.sd_cost / amazonData.total_sales) * 100 : 0))}
-                          icon={FiPackage}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#ea580c"
-                          loading={amazonLoading}
-                        />
-                      </CompactGrid>
-                    </SectionContent>
-                  </SectionCard>
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>💰 Financial Metrics</h2>
+                    <p>Revenue, costs, and profitability</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      {/* Returns */}
+                      <ModernMetricCard
+                        title="Total Returns"
+                        value={formatCurrency(amazonReturns?.total_return_amount || amazonData?.total_returns || 0)}
+                        icon={HiTrendingDown}
+                        change="vs last period"
+                        changeType="decrease"
+                        color="#ef4444"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="Return Rate %"
+                        value={formatPercentage(amazonReturns?.return_rate_percentage || amazonData?.return_rate || 0)}
+                        icon={FiTrendingDown}
+                        change="vs last period"
+                        changeType="decrease"
+                        color="#dc2626"
+                        loading={amazonLoading}
+                      />
+                      {/* Tax */}
+                      <ModernMetricCard
+                        title="Total Tax"
+                        value={formatCurrency(amazonData?.total_tax || 0)}
+                        icon={HiCalculator}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#6366f1"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="Tax Rate %"
+                        value={formatPercentage(amazonData?.tax_rate ? amazonData.tax_rate * 100 : 0)}
+                        icon={FaCalculator}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#4f46e5"
+                        loading={amazonLoading}
+                      />
+                      {/* Expenses */}
+                      <ModernMetricCard
+                        title="COGS"
+                        value={formatCurrency(amazonData?.cogs || 0)}
+                        icon={FaBoxes}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#f59e0b"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="COGS %"
+                        value={formatPercentage(amazonData?.cogs_percentage || 0)}
+                        icon={FaChartPie}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#d97706"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost"
+                        value={formatCurrency(amazonData?.sd_cost || amazonData?.total_shipping || 0)}
+                        icon={FaShippingFast}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#f97316"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost %"
+                        value={formatPercentage(amazonData?.sd_cost_percentage || (amazonData?.sd_cost && amazonData?.total_sales ? (amazonData.sd_cost / amazonData.total_sales) * 100 : 0))}
+                        icon={FiPackage}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#ea580c"
+                        loading={amazonLoading}
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
 
-                  <SectionCard>
-                    <SectionHeader>
-                      <h2>📈 Marketing & Performance</h2>
-                      <p>ROAS, CAC, and marketing efficiency</p>
-                    </SectionHeader>
-                    <SectionContent>
-                      <CompactGrid>
-                        {/* Marketing */}
-                        <ModernMetricCard
-                          title="Total Marketing Cost"
-                          value="N/A"
-                          icon={FaBullseye}
-                          change="Amazon data not available"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        <ModernMetricCard
-                          title="Marketing Cost %"
-                          value="N/A"
-                          icon={FiTarget}
-                          change="Amazon data not available"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        {/* ROAS */}
-                        <ModernMetricCard
-                          title="Gross ROAS"
-                          value="N/A"
-                          icon={FaHandHoldingUsd}
-                          change="Needs marketing data"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        <ModernMetricCard
-                          title="Net ROAS"
-                          value="N/A"
-                          icon={FaBullseye}
-                          change="Needs marketing data"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        {/* CAC */}
-                        <ModernMetricCard
-                          title="CAC"
-                          value="N/A"
-                          icon={FaUserTie}
-                          change="Needs marketing data"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        <ModernMetricCard
-                          title="N-CAC"
-                          value="N/A"
-                          icon={FaChartLine}
-                          change="Needs marketing data"
-                          changeType="neutral"
-                          color="#64748b"
-                          loading={false}
-                        />
-                        {/* Contribution Margin */}
-                        <ModernMetricCard
-                          title="CM2"
-                          value={formatCurrency(amazonData?.cm2 || 0)}
-                          icon={HiChartBar}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#059669"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM2 %"
-                          value={formatPercentage(amazonData?.cm2_percentage || (amazonData?.cm2 && amazonData?.total_sales ? (amazonData.cm2 / amazonData.total_sales) * 100 : 0))}
-                          icon={FiBarChart}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#047857"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM3"
-                          value={formatCurrency(amazonData?.cm3 || 0)}
-                          icon={HiScale}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#0d9488"
-                          loading={amazonLoading}
-                        />
-                        <ModernMetricCard
-                          title="CM3 %"
-                          value={formatPercentage(amazonData?.cm3_percentage || (amazonData?.cm3 && amazonData?.total_sales ? (amazonData.cm3 / amazonData.total_sales) * 100 : 0))}
-                          icon={FiBarChart2}
-                          change="vs last period"
-                          changeType="increase"
-                          color="#0f766e"
-                          loading={amazonLoading}
-                        />
-                      </CompactGrid>
-                    </SectionContent>
-                  </SectionCard>
-                      </div>
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>📈 Marketing & Performance</h2>
+                    <p>ROAS, CAC, and marketing efficiency</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      {/* Marketing */}
+                      <ModernMetricCard
+                        title="Total Marketing Cost"
+                        value="N/A"
+                        icon={FaBullseye}
+                        change="Amazon data not available"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      <ModernMetricCard
+                        title="Marketing Cost %"
+                        value="N/A"
+                        icon={FiTarget}
+                        change="Amazon data not available"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      {/* ROAS */}
+                      <ModernMetricCard
+                        title="Gross ROAS"
+                        value="N/A"
+                        icon={FaHandHoldingUsd}
+                        change="Needs marketing data"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      <ModernMetricCard
+                        title="Net ROAS"
+                        value="N/A"
+                        icon={FaBullseye}
+                        change="Needs marketing data"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      {/* CAC */}
+                      <ModernMetricCard
+                        title="CAC"
+                        value="N/A"
+                        icon={FaUserTie}
+                        change="Needs marketing data"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      <ModernMetricCard
+                        title="N-CAC"
+                        value="N/A"
+                        icon={FaChartLine}
+                        change="Needs marketing data"
+                        changeType="neutral"
+                        color="#64748b"
+                        loading={false}
+                      />
+                      {/* Contribution Margin */}
+                      <ModernMetricCard
+                        title="CM2"
+                        value={formatCurrency(amazonData?.cm2 || 0)}
+                        icon={HiChartBar}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#059669"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM2 %"
+                        value={formatPercentage(amazonData?.cm2_percentage || (amazonData?.cm2 && amazonData?.total_sales ? (amazonData.cm2 / amazonData.total_sales) * 100 : 0))}
+                        icon={FiBarChart}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#047857"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM3"
+                        value={formatCurrency(amazonData?.cm3 || 0)}
+                        icon={HiScale}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#0d9488"
+                        loading={amazonLoading}
+                      />
+                      <ModernMetricCard
+                        title="CM3 %"
+                        value={formatPercentage(amazonData?.cm3_percentage || (amazonData?.cm3 && amazonData?.total_sales ? (amazonData.cm3 / amazonData.total_sales) * 100 : 0))}
+                        icon={FiBarChart2}
+                        change="vs last period"
+                        changeType="increase"
+                        color="#0f766e"
+                        loading={amazonLoading}
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
                     </div>
                   )}
                             </ModernTabContent>

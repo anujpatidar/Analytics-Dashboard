@@ -1741,7 +1741,7 @@ const ProductsPage = () => {
                     <th>Image</th>
                     <th>Name</th>
                     <th>SKU</th>
-                    <th>Total Sold</th>
+             
                   </tr>
                 </thead>
                 <tbody>
@@ -1767,7 +1767,7 @@ const ProductsPage = () => {
                         </td>
                         <td>{product.name}</td>
                         <td>{product.sku}</td>
-                        <td>{product.totalSold}</td>
+                       
                       </tr>
                     ))
                   )}

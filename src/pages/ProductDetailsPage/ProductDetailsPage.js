@@ -13,7 +13,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FiTrendingUp, 
   FiTrendingDown, 
@@ -35,77 +35,6 @@ import {
 
 import { formatCurrency } from '../../utils/formatters';
 import { getAmazonProductMetrics } from '../../api/amazonAPI';
-
-// Mock data - Replace with actual API calls
-// const mockProductData = {
-//   product: {
-//     id: 1,
-//     name: 'Premium Wireless Headphones',
-//     image: 'https://cdn.shopify.com/s/files/1/0553/0419/2034/files/products_4july-03_803b519a-125c-458b-bfab-15f0d0009fb1.jpg?v=1720861559&width=648',
-//     description: 'High-quality wireless headphones with noise cancellation',
-//     sku: 'PH-001',
-//     price: 12999,
-//     costPrice: 8000,
-//   },
-//   overview: {
-//     totalOrders: 1250,
-//     totalSales: 15623750,
-//     aov: 12500,
-//     quantitySold: 1250,
-//     grossProfit: 6249500,
-//     profitMargin: 40,
-//     refundRate: 5.2,
-//   },
-//   salesAndProfit: {
-//     totalRevenue: 15623750,
-//     marketingCost: 1250000,
-//     profitAfterMarketing: 4999500,
-//     profitPerUnit: 4000,
-//     costPricePerUnit: 8000,
-//     returnUnits: 65,
-//     returnRate: 5.2,
-//   },
-//   customerInsights: {
-//     repeatCustomerRate: 35,
-//     customerBreakdown: [
-//       { name: 'First-time', value: 65 },
-//       { name: 'Returning', value: 35 },
-//     ],
-//     one_order_customer_count: 200,
-//     two_orders_customer_count: 150,
-//     three_orders_customer_count: 100,
-//     four_plus_orders_customer_count: 50,
-//   },
-//   variants: [
-//     { name: 'Black', soldCount: 500, profit: 2000000 },
-//     { name: 'White', soldCount: 450, profit: 1800000 },
-//     { name: 'Blue', soldCount: 300, profit: 1200000 },
-//   ],
-//   salesTrend: [
-//     { date: 'Jan', sales: 1200000 },
-//     { date: 'Feb', sales: 1500000 },
-//     { date: 'Mar', sales: 1800000 },
-//     { date: 'Apr', sales: 1600000 },
-//     { date: 'May', sales: 2000000 },
-//     { date: 'Jun', sales: 2200000 },
-//   ],
-//   refundsOverTime: [
-//     { date: 'Jan', refunds: 5 },
-//     { date: 'Feb', refunds: 8 },
-//     { date: 'Mar', refunds: 6 },
-//     { date: 'Apr', refunds: 7 },
-//     { date: 'May', refunds: 4 },
-//     { date: 'Jun', refunds: 3 },
-//   ],
-//   profitVsMarketing: [
-//     { date: 'Jan', profit: 1200000, marketing: 200000 },
-//     { date: 'Feb', profit: 1500000, marketing: 250000 },
-//     { date: 'Mar', profit: 1800000, marketing: 300000 },
-//     { date: 'Apr', profit: 1600000, marketing: 200000 },
-//     { date: 'May', profit: 2000000, marketing: 250000 },
-//     { date: 'Jun', profit: 2200000, marketing: 300000 },
-//   ],
-// };
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -238,17 +167,17 @@ const safeNumberFormat = (value, fallback = 'N/A') => {
 // Modern Dashboard Container - matching DashboardPage design
 const ModernContainer = styled.div`
   min-height: 100vh;
-  padding: 1rem;
+  padding: 1rem 0 1rem 1rem; /* Remove right padding, keep left, top, bottom */
   background: #f8fafc;
   
   @media (max-width: 768px) {
-    padding: 0.5rem;
+    padding: 0.5rem 0 0.5rem 0.5rem; /* Remove right padding on mobile too */
   }
 `;
 
 const ModernContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%; /* Use full available width instead of max-width constraint */
+  margin: 0;
 `;
 
 // Modern Header Section
@@ -738,6 +667,7 @@ const ProductDetailsPage = () => {
   }, []);
 
   const { productId } = useParams();
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [amazonData, setAmazonData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -873,6 +803,7 @@ const ProductDetailsPage = () => {
       totalSales: (myfridoData.overview.totalSales || 0) + (amazonOverview.totalSales || 0),
       grossSales: (myfridoData.overview.grossSales || myfridoData.overview.totalSales || 0) + (amazonOverview.grossSales || amazonOverview.totalSales || 0),
       netSales: (myfridoData.overview.netSales || myfridoData.overview.totalSales || 0) + (amazonOverview.netSales || 0),
+      nSales: (myfridoData.overview.netSales || myfridoData.overview.totalSales || 0) + (amazonOverview.netSales || 0) - (myfridoData.overview.cogs || 0) - (amazonOverview.cogs || 0) - (myfridoData.overview.sdCost || 0) - (amazonOverview.sdCost || 0),
       totalQuantitySold: (myfridoData.overview.totalQuantitySold || 0) + (amazonOverview.totalQuantitySold || 0),
       netQuantitySold: (myfridoData.overview.netQuantitySold || 0) + (amazonOverview.netQuantitySold || 0),
       totalReturnsQuantity: (myfridoData.overview.totalReturnsQuantity || 0) + (amazonOverview.totalReturnsQuantity || 0),
@@ -880,6 +811,7 @@ const ProductDetailsPage = () => {
       totalTax: (myfridoData.overview.totalTax || 0) + (amazonOverview.totalTax || 0),
       cogs: (myfridoData.overview.cogs || 0) + (amazonOverview.cogs || 0),
       sdCost: (myfridoData.overview.sdCost || 0) + (amazonOverview.sdCost || 0),
+      marketingSpend: (myfridoData.overview.marketingSpend || 0) + (amazonOverview.marketingSpend || 0)
     };
 
     // Calculate derived metrics
@@ -890,21 +822,25 @@ const ProductDetailsPage = () => {
     combinedOverview.aov = combinedTotalOrders > 0 ? combinedTotalSales / combinedTotalOrders : 0;
     combinedOverview.netOrders = combinedTotalOrders - (amazonOverview.cancelledItems || 0);
     combinedOverview.grossSalePercentage = combinedTotalSales > 0 ? (combinedOverview.grossSales / combinedTotalSales) * 100 : 100;
-    combinedOverview.netSalePercentage = combinedOverview.grossSales > 0 ? (combinedOverview.netSales / combinedOverview.grossSales) * 100 : 100;
+    combinedOverview.netSalePercentage = combinedTotalSales > 0 ? (combinedOverview.netSales / combinedTotalSales) * 100 : 100;
     combinedOverview.totalReturnPercentage = combinedTotalQuantity > 0 ? (combinedOverview.totalReturnsQuantity / combinedTotalQuantity) * 100 : 0;
     combinedOverview.taxRate = combinedTotalSales > 0 ? (combinedOverview.totalTax / combinedTotalSales) * 100 : 0;
     combinedOverview.cogsPercentage = combinedTotalSales > 0 ? (combinedOverview.cogs / combinedTotalSales) * 100 : 0;
     combinedOverview.sdCostPercentage = combinedTotalSales > 0 ? (combinedOverview.sdCost / combinedTotalSales) * 100 : 0;
-    combinedOverview.grossRoas = combinedOverview.cogs > 0 ? combinedTotalSales / combinedOverview.cogs : 0;
-    combinedOverview.netRoas = combinedOverview.cogs > 0 ? combinedOverview.netSales / combinedOverview.cogs : 0;
-    combinedOverview.nMer = combinedTotalSales > 0 ? (combinedOverview.netSales / combinedTotalSales) * 100 : 0;
-    combinedOverview.cm2 = combinedOverview.netSales - combinedOverview.cogs;
-    combinedOverview.cm2Percentage = combinedOverview.netSales > 0 ? (combinedOverview.cm2 / combinedOverview.netSales) * 100 : 0;
-    combinedOverview.cm3 = combinedOverview.cm2 - combinedOverview.sdCost;
-    combinedOverview.cm3Percentage = combinedOverview.netSales > 0 ? (combinedOverview.cm3 / combinedOverview.netSales) * 100 : 0;
-    combinedOverview.contributionMargin = combinedOverview.cm3;
-    combinedOverview.contributionMarginPercentage = combinedOverview.cm3Percentage;
-    combinedOverview.profitMargin = combinedOverview.netSales > 0 ? ((combinedOverview.netSales - combinedOverview.cogs) / combinedOverview.netSales) * 100 : 0;
+    
+    combinedOverview.grossRoas = combinedOverview.marketingSpend > 0 ? combinedTotalSales / combinedOverview.marketingSpend : 0;
+    combinedOverview.netRoas = combinedOverview.marketingSpend > 0 ? combinedOverview.netSales / combinedOverview.marketingSpend : 0;
+    combinedOverview.nRoas = combinedOverview.marketingSpend > 0 ? combinedOverview.nSales / combinedOverview.marketingSpend : 0;
+
+    combinedOverview.grossMer = combinedOverview.totalSales > 0 ? (combinedOverview.marketingSpend / combinedOverview.totalSales) * 100 : 0;
+    combinedOverview.netMer = combinedOverview.netSales > 0 ? (combinedOverview.marketingSpend / combinedOverview.netSales) * 100 : 0;
+    combinedOverview.nMer = combinedOverview.nSales > 0 ? (combinedOverview.marketingSpend / combinedOverview.nSales) * 100 : 0;
+
+    combinedOverview.cm2 = combinedOverview.totalSales - combinedOverview.cogs - combinedOverview.marketingSpend;
+    combinedOverview.cm2Percentage = combinedOverview.totalSales > 0 ? (combinedOverview.cm2 / combinedOverview.totalSales) * 100 : 0;
+    combinedOverview.cm3 = combinedOverview.totalSales - combinedOverview.cogs - combinedOverview.sdCost - combinedOverview.marketingSpend;
+    combinedOverview.cm3Percentage = combinedOverview.totalSales > 0 ? (combinedOverview.cm3 / combinedOverview.totalSales) * 100 : 0;
+
     
     // Use existing change percentages from Myfrido (placeholder values)
     Object.keys(myfridoData.overview).forEach(key => {
@@ -923,16 +859,12 @@ const ProductDetailsPage = () => {
       targetingKeyword: 'Combined Multi-Channel Campaign'
     };
 
-    // Calculate combined marketing metrics
-    combinedMarketing.roas = combinedMarketing.adSpend > 0 ? combinedTotalSales / combinedMarketing.adSpend : 0;
-    combinedMarketing.ctr = combinedMarketing.impressions > 0 ? (combinedMarketing.clicks / combinedMarketing.impressions) * 100 : 0;
-    combinedMarketing.cpc = combinedMarketing.clicks > 0 ? combinedMarketing.adSpend / combinedMarketing.clicks : 0;
-
+   
     // Combine customer data
     const combinedCustomers = {
       totalCustomers: (myfridoData.customers?.totalCustomers || 0) + (amazonData?.customers?.totalCustomers || 0),
       repeatCustomers: (myfridoData.customers?.repeatCustomers || 0) + (amazonData?.customers?.repeatCustomers || 0),
-      avgOrdersPerCustomer: 1, // Placeholder
+      avgOrdersPerCustomer: (combinedOverview.totalOrders / combinedOverview.totalCustomers) || 0, // Placeholder
       acquisitionCost: (myfridoData.customers?.acquisitionCost || 0) + (amazonData?.customers?.acquisitionCost || 0)
     };
 
@@ -1055,6 +987,13 @@ const ProductDetailsPage = () => {
     setActiveQuickFilter(''); // Clear quick filter selection when using custom dates
     fetchProductData();
     // Amazon data will be fetched automatically via useEffect after Myfrido data is loaded
+  };
+
+  // Handle variant click navigation
+  const handleVariantClick = (variantName) => {
+    // URL encode the variant name to handle spaces and special characters
+    const encodedVariantName = encodeURIComponent(variantName);
+    navigate(`/products/${productId}/${encodedVariantName}`);
   };
 
   // Custom date formatting function
@@ -2295,6 +2234,12 @@ const ProductDetailsPage = () => {
                         icon={FiTrendingUp}
                         color="#6366f1"
                       />
+                      <ModernMetricCard
+                        title="N-ROAS"
+                        value={(data.overview.nRoas || 0).toFixed(2)}
+                        icon={FiTrendingUp}
+                        color="#6366f1"
+                      />
                     </CompactGrid>
                   </SectionContent>
                 </SectionCard>
@@ -2314,26 +2259,26 @@ const ProductDetailsPage = () => {
                         color="#ef4444"
                       />
                       <ModernMetricCard
-                        title="Paid CAC"
-                        value={formatCurrency(data.overview.paidCac || 0)}
-                        icon={FiTarget}
-                        color="#f59e0b"
-                      />
-                      <ModernMetricCard
-                        title="Organic CAC"
-                        value={formatCurrency(data.overview.organicCac || 0)}
-                        icon={FiTrendingUp}
-                        color="#10b981"
-                      />
-                      <ModernMetricCard
-                        title="Contribution Margin"
-                        value={formatCurrency(data.overview.contributionMargin || 0)}
+                        title="CM2"
+                        value={formatCurrency(data.overview.cm2 || 0)}
                         icon={FiPercent}
                         color="#8b5cf6"
                       />
                       <ModernMetricCard
-                        title="Contribution Margin %"
-                        value={formatPercentageValue(data.overview.contributionMarginPercentage || 0)}
+                        title="CM2 %"
+                        value={formatPercentageValue(data.overview.cm2Percentage || 0)}
+                        icon={FiPercent}
+                        color="#6366f1"
+                      />
+                      <ModernMetricCard
+                        title="CM3"
+                        value={formatCurrency(data.overview.cm3 || 0)}
+                        icon={FiPercent}
+                        color="#6366f1"
+                      />
+                      <ModernMetricCard
+                        title="CM3 %"
+                        value={formatPercentageValue(data.overview.cm3Percentage || 0)}
                         icon={FiPercent}
                         color="#6366f1"
                       />
@@ -2428,9 +2373,22 @@ const ProductDetailsPage = () => {
                   <SectionContent>
                     {/* Top Performing Variants */}
                     <div style={{ marginBottom: '2rem' }}>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem' }}>
-                        Top Performing Variants
-                      </h3>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '600', color: '#1e293b' }}>
+                          Top Performing Variants
+                        </h3>
+                        <div style={{ 
+                          fontSize: '0.75rem', 
+                          color: '#667eea', 
+                          fontWeight: '500',
+                          background: 'rgba(102, 126, 234, 0.1)',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '12px',
+                          border: '1px solid rgba(102, 126, 234, 0.2)'
+                        }}>
+                          💡 Click any variant for detailed analysis
+                        </div>
+                      </div>
                       
                       <div style={{
                         background: 'rgba(255, 255, 255, 0.95)',
@@ -2460,17 +2418,36 @@ const ProductDetailsPage = () => {
                         {/* Variant Rows */}
                         {data.variantInsights && data.variantInsights.length > 0 ? (
                           data.variantInsights.map((variant, index) => (
-                            <div key={index} style={{
-                              display: 'grid',
-                              gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
-                              gap: '1rem',
-                              padding: '1rem 0',
-                              borderBottom: index < data.variantInsights.length - 1 ? '1px solid #f1f5f9' : 'none',
-                              alignItems: 'center'
-                            }}>
+                            <div 
+                              key={index} 
+                              onClick={() => handleVariantClick(variant.name || variant.variant_name)}
+                              style={{
+                                display: 'grid',
+                                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                                gap: '1rem',
+                                padding: '1rem 0',
+                                borderBottom: index < data.variantInsights.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                borderRadius: '8px',
+                                margin: '0.25rem 0'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = '#f8fafc';
+                                e.currentTarget.style.transform = 'translateX(4px)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.transform = 'translateX(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                              }}
+                            >
                               <div>
-                                <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                                <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                   {variant.name || variant.variant_name || 'N/A'}
+                                  <span style={{ fontSize: '0.75rem', color: '#667eea', fontWeight: '500' }}>→</span>
                                 </div>
                                 <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
                                   SKU: {variant.sku || variant.variant_sku || 'N/A'}
