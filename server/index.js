@@ -12,6 +12,7 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const metaAdsRoutes = require('./routes/metaAdsRoutes');
 const googleAdsRoutes = require('./routes/googleAdsRoutes');
+const amazonRoutes = require('./routes/amazonRoutes');
 const sku=require('./controllers/sku.json');
 
 const app = express();
@@ -63,6 +64,7 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/meta-ads', metaAdsRoutes);
 app.use('/api/v1/google-ads', googleAdsRoutes);
+app.use('/api/v1/amazon', amazonRoutes);
 
 // Error handling
 app.use(errorHandler);

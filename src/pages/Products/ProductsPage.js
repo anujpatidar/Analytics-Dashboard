@@ -1,104 +1,193 @@
 import React, { useState, useEffect } from 'react';
-import { Line, Bar, Pie } from 'react-chartjs-2';
-import { 
-  Chart as ChartJS, 
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-} from 'chart.js';
 import { useNavigate } from 'react-router-dom';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
 import styled from 'styled-components';
-import { FiPackage, FiGrid, FiRefreshCw, FiDownload, FiMoreVertical, FiTrendingUp, FiTrendingDown, FiSearch, FiFilter, FiCalendar } from 'react-icons/fi';
-import { FaRupeeSign } from 'react-icons/fa';
-import StatCard from '../../components/Dashboard/StatCard';
+import { 
+  FiPackage, 
+  FiRefreshCw, 
+  FiDownload, 
+  FiTrendingUp, 
+  FiTrendingDown, 
+  FiCalendar,
+  FiBarChart2,
+  FiDollarSign,
+  FiTarget,
+  FiPercent,
+  FiUsers,
+  FiUserCheck
+} from 'react-icons/fi';
+import { 
+  FaRupeeSign,
+  FaBoxes,
+  FaMoneyBillWave
+} from 'react-icons/fa';
+import { 
+  HiShoppingCart,
+  HiCash,
+  HiChartBar
+} from 'react-icons/hi';
 import StoreIndicator from '../../components/Dashboard/StoreIndicator';
 import { useStore } from '../../context/StoreContext';
 import { getAllProductsList, getOverallProductMetrics } from '../../api/productsAPI';
 import './ProductsPage.css';
 import { formatCurrency } from '../../utils/formatters';
 
-// Register ChartJS components
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-  Filler
-);
-
-// Add styled components for tabs and date filters
-const DateFilterContainer = styled.div`
-  background: white;
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
-  margin-bottom: var(--spacing-xl);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
+// Modern Dashboard Container - matching DashboardPage design
+const ModernContainer = styled.div`
+  min-height: 100vh;
+  padding: 1rem;
+  background: #f8fafc;
   
   @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: stretch;
+    padding: 0.5rem;
   }
 `;
 
-const DateFilterGroup = styled.div`
+const ModernContent = styled.div`
+  max-width: 1400px;
+  margin: 0 auto;
+`;
+
+// Modern Header Section
+const ModernHeaderSection = styled.div`
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 1000;
+  
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+`;
+
+const ModernHeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+`;
+
+const ModernHeaderLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  
-  label {
-    font-weight: 600;
-    color: var(--text-secondary);
-    min-width: 80px;
+  gap: 1rem;
+  flex: 1;
+`;
+
+const ModernHeaderTitle = styled.div`
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    line-height: 1.2;
   }
   
-  input {
-    padding: var(--spacing-sm);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    font-size: 0.9rem;
-    
-    &:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  p {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.75rem;
+    margin-top: 0.125rem;
+  }
+  
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.25rem;
+    }
+    p {
+      font-size: 0.7rem;
     }
   }
 `;
 
-const FilterButton = styled.button`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--border-radius-sm);
-  font-weight: 600;
-  cursor: pointer;
+const ModernStatsQuickView = styled.div`
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  
+  @media (max-width: 968px) {
+    display: none;
+  }
+`;
+
+const ModernQuickStat = styled.div`
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+  min-width: 80px;
+  
+  .label {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 0.125rem;
+  }
+`;
+
+const ModernHeaderActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+`;
+
+const ModernActionButton = styled.button`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  transition: all 0.3s ease;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
   
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  &.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+    }
+  }
+  
+  &.secondary {
+    background: rgba(255, 255, 255, 0.9);
+    color: #64748b;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background: white;
+      color: #374151;
+      border-color: rgba(0, 0, 0, 0.2);
+    }
   }
   
   &:disabled {
@@ -108,66 +197,146 @@ const FilterButton = styled.button`
   }
 `;
 
-const QuickDateButtons = styled.div`
+// Modern Date Controls
+const ModernDateControlsSection = styled.div`
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1001;
+  margin-top: 0.75rem;
+  
+  .date-control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  }
+  
+  .date-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    .icon-wrapper {
+      width: 32px;
+      height: 32px;
+      background: rgba(102, 126, 234, 0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #667eea;
+    }
+    
+    .date-text {
+      h3 {
+        color: #1e293b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 0;
+        margin-bottom: 0.125rem;
+      }
+      
+      p {
+        color: #64748b;
+        font-size: 0.75rem;
+        margin: 0;
+      }
+    }
+  }
+  
+  .date-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    @media (max-width: 768px) {
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+`;
+
+const ModernQuickDateButtons = styled.div`
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 0.5rem;
   flex-wrap: wrap;
 `;
 
-const QuickDateButton = styled.button`
-  background: ${props => props.active ? '#3b82f6' : 'transparent'};
-  color: ${props => props.active ? 'white' : '#3b82f6'};
-  border: 1px solid #3b82f6;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  font-size: 0.8rem;
+const ModernQuickDateButton = styled.button`
+  background: ${props => props.active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'rgba(255, 255, 255, 0.9)'};
+  color: ${props => props.active ? 'white' : '#667eea'};
+  border: 1px solid ${props => props.active ? 'transparent' : '#667eea'};
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   
   &:hover {
-    background: #3b82f6;
+    background: ${props => props.active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#667eea'};
     color: white;
+    transform: translateY(-1px);
   }
 `;
 
-const TabContainer = styled.div`
-  background: white;
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
-  margin-bottom: var(--spacing-xl);
+// Modern Tab System
+const ModernTabContainer = styled.div`
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
+  z-index: 100;
 `;
 
-const TabHeader = styled.div`
+const ModernTabHeader = styled.div`
   display: flex;
-  border-bottom: 1px solid var(--border-color);
-  background: #f8f9fa;
+  background: rgba(248, 250, 252, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
-const TabButton = styled.button`
+const ModernTabButton = styled.button`
   flex: 1;
-  padding: var(--spacing-md) var(--spacing-lg);
+  min-width: 140px;
+  padding: 1rem 1.5rem;
   background: ${props => props.active ? 'white' : 'transparent'};
-  color: ${props => props.active ? '#3b82f6' : 'var(--text-secondary)'};
+  color: ${props => props.active ? '#667eea' : '#64748b'};
   border: none;
   font-weight: ${props => props.active ? '600' : '500'};
-  font-size: 1rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  border-bottom: ${props => props.active ? '3px solid #3b82f6' : '3px solid transparent'};
+  border-bottom: ${props => props.active ? '3px solid #667eea' : '3px solid transparent'};
   
   &:hover {
-    background: ${props => props.active ? 'white' : '#f0f2f5'};
-    color: #3b82f6;
+    background: ${props => props.active ? 'white' : 'rgba(102, 126, 234, 0.05)'};
+    color: #667eea;
   }
   
-  &:not(:last-child) {
-    border-right: 1px solid var(--border-color);
+  .icon {
+    margin-right: 0.5rem;
+    font-size: 1rem;
   }
   
   .tab-badge {
-    background: ${props => props.active ? '#3b82f6' : '#6b7280'};
+    background: ${props => props.active ? '#667eea' : '#6b7280'};
     color: white;
     padding: 0.25rem 0.5rem;
     border-radius: 12px;
@@ -177,16 +346,16 @@ const TabButton = styled.button`
   }
 `;
 
-const TabContent = styled.div`
-  padding: var(--spacing-lg);
+const ModernTabContent = styled.div`
+  padding: 1.5rem 2rem 2rem;
   min-height: 60px;
   
   .tab-info {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: var(--spacing-md);
-    border-radius: 8px;
-    margin-bottom: var(--spacing-lg);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
     
     .tab-title {
       font-size: 1.1rem;
@@ -198,57 +367,113 @@ const TabContent = styled.div`
     }
     
     .tab-description {
-      font-size: 0.9rem;
+      font-size: 0.875rem;
       opacity: 0.9;
-      line-height: 1.4;
+      margin: 0;
     }
   }
 `;
 
-const MetricSection = styled.div`
-  background: white;
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-md);
+// Modern Section Cards
+const ModernSectionCard = styled.div`
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
 `;
 
-const SectionTitle = styled.h3`
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-  padding-bottom: var(--spacing-xs);
-  border-bottom: 1px solid var(--border-color);
+const ModernSectionHeader = styled.div`
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    margin-bottom: 0.25rem;
+  }
+  
+  p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+  }
 `;
 
-const MetricGrid = styled.div`
+const ModernSectionContent = styled.div`
+  padding: 1.5rem 2rem 2rem;
+`;
+
+// Modern Metrics Grid
+const ModernCompactGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-sm);
+  gap: 1rem;
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  @media (min-width: 768px) and (max-width: 1199px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  @media (max-width: 767px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
-// Add new styled component for compact cards
-const CompactStatCard = styled(StatCard)`
-  padding: var(--spacing-sm);
+const ModernMiniMetricCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
   
-  .stat-title {
-    font-size: 0.8rem;
-  }
-  
-  .stat-value {
-    font-size: 1.1rem;
-  }
-  
-  .stat-change {
-    font-size: 0.7rem;
-  }
-  
-  .stat-icon {
-    width: 1.5rem;
-    height: 1.5rem;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: rgba(102, 126, 234, 0.2);
   }
 `;
+
+// Modern Metric Card Component
+const ModernMetricCard = ({ title, value, icon: Icon, change, changeType, color = '#667eea', loading }) => (
+  <ModernMiniMetricCard>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+      <div className="metric-label">{title}</div>
+      {Icon && (
+        <div 
+          className="metric-icon-container"
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
+            background: `linear-gradient(135deg, ${color}15, ${color}25)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: color,
+            boxShadow: `0 2px 8px ${color}20`
+          }}
+        >
+          <Icon size={18} />
+        </div>
+      )}
+    </div>
+    <div className="metric-value">{loading ? '...' : value}</div>
+    <div className="metric-change" style={{ 
+      color: changeType === 'increase' ? '#059669' : changeType === 'decrease' ? '#dc2626' : '#64748b' 
+    }}>
+      {change}
+    </div>
+  </ModernMiniMetricCard>
+);
 
 // Mock data - Replace with actual API calls
 const mockData = {
@@ -669,7 +894,9 @@ const ProductsPage = () => {
 
   // Custom date formatting functions
   const formatDateForDisplay = (date) => {
-    return date.toLocaleDateString('en-IN', {
+    // Handle both string and Date inputs
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-IN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -853,464 +1080,568 @@ const ProductsPage = () => {
   };
 
   return (
-    <div className="products-page">
-      <StoreIndicator />
-      
-      <div className="products-header">
-        <h1>Products Analytics</h1>
-      </div>
-
-      {/* Enhanced Date Filter Section */}
-      <DateFilterContainer>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-          <FiCalendar style={{ color: '#3b82f6' }} />
-          <span style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Date Range:</span>
-        </div>
+    <ModernContainer>
+      <ModernContent>
         
-        <DateFilterGroup>
-          <label htmlFor="startDate">From:</label>
-          <input
-            type="date"
-            id="startDate"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            max={endDate}
-          />
-        </DateFilterGroup>
         
-        <DateFilterGroup>
-          <label htmlFor="endDate">To:</label>
-          <input
-            type="date"
-            id="endDate"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            min={startDate}
-            max={new Date().toISOString().split('T')[0]}
-          />
-        </DateFilterGroup>
-        
-        <FilterButton onClick={handleDateRangeChange} disabled={isLoading}>
-          <FiFilter />
-          {isLoading ? 'Loading...' : 'Apply Filter'}
-        </FilterButton>
-        
-        <div style={{ 
-          borderLeft: '1px solid var(--border-color)', 
-          paddingLeft: 'var(--spacing-md)', 
-          marginLeft: 'var(--spacing-md)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--spacing-sm)'
-        }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            Quick filters:
-          </span>
-          <QuickDateButtons>
-            {quickDateFilters.map((filter) => (
-              <QuickDateButton
-                key={filter.value}
-                active={activeQuickFilter === filter.value}
-                onClick={() => handleQuickDateFilter(filter.value, filter.days)}
-              >
-                {filter.label}
-              </QuickDateButton>
-            ))}
-          </QuickDateButtons>
-        </div>
-      </DateFilterContainer>
-
-      {/* Add Marketplace Tab Components */}
-      <TabContainer>
-        <TabHeader>
-          {tabs.map((tab) => (
-            <TabButton
-              key={tab.id}
-              active={activeTab === tab.id}
-              onClick={() => handleTabChange(tab.id)}
-            >
-              <span>{tab.icon}</span> {tab.label}
-              {activeTab === tab.id && <span className="tab-badge">Active</span>}
-            </TabButton>
-          ))}
-        </TabHeader>
-        
-        <TabContent>
-          {tabs.map((tab) => (
-            activeTab === tab.id && (
-              <div key={tab.id}>
-                <div className="tab-info">
-                  <div className="tab-title">
-                    <span>{tab.icon}</span>
-                    {tab.label} Analytics
-                  </div>
-                  <div className="tab-description">
-                    {tab.description}
-                  </div>
-                </div>
-                
-                {/* Show placeholder for non-Myfrido tabs */}
-                {activeTab !== 'website' && activeTab !== 'all' && (
-                  <div style={{ 
-                    padding: '3rem 2rem', 
-                    background: '#f8f9fa', 
-                    borderRadius: '12px', 
-                    textAlign: 'center',
-                    border: '2px dashed #dee2e6',
-                    marginBottom: '2rem'
-                  }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{tab.icon}</div>
-                    <h3 style={{ color: '#6c757d', marginBottom: '1rem', fontSize: '1.5rem' }}>
-                      {tab.label} Analytics Coming Soon
-                    </h3>
-                    <p style={{ color: '#6c757d', fontSize: '1.1rem', margin: '0 0 1rem 0', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
-                      We're working on bringing you comprehensive {tab.label.toLowerCase()} analytics. This section will include marketplace-specific metrics, performance data, and insights.
-                    </p>
-                    <div style={{ 
-                      background: 'white', 
-                      padding: '1rem', 
-                      borderRadius: '8px', 
-                      display: 'inline-block',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}>
-                      <span style={{ color: '#6c757d', fontSize: '0.9rem' }}>
-                        📈 Sales Tracking • 📊 Performance Metrics • 🎯 ROI Analysis
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          ))}
-        </TabContent>
-      </TabContainer>
-
-      {/* Stats Grid - Only show when on active tab with data */}
-      {(activeTab === 'all' || activeTab === 'website') && (
-        <>
-          {/* Sales Metrics Section */}
-          <MetricSection>
-            <SectionTitle>Sales Metrics</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="Total Sales"
-                value={formatCurrency(data.totalSales || 0)}
-                icon={FaRupeeSign}
-                change="12%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Total sales value including all transactions before any deductions"
-              />
-              <CompactStatCard
-                title="Gross Sales"
-                value={formatCurrency(data.grossSales || 0)}
-                icon={FaRupeeSign}
-                change="+5%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Gross sales value before returns and discounts"
-              />
-              <CompactStatCard
-                title="Net Sales"
-                value={formatCurrency(data.netSales || 0)}
-                icon={FaRupeeSign}
-                change="5%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Net sales after deducting returns and discounts"
-              />
-              <CompactStatCard
-                title="Gross Sales %"
-                value={`${data.grossSalesPercentage || 0}%`}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Gross sales as percentage of total sales"
-              />
-              <CompactStatCard
-                title="Net Sales %"
-                value={`${data.netSalesPercentage || 0}%`}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Net sales as percentage of total sales"
-              />
-            </MetricGrid>
-          </MetricSection>
-
-          {/* Returns Section */}
-          <MetricSection>
-            <SectionTitle>Returns</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="Total Returns"
-                value={formatCurrency(data.totalReturns || 0)}
-                icon={FiRefreshCw}
-                change="2%"
-                changeType="decrease"
-                loading={isLoading}
-                tooltip="Total value of returned products"
-              />
-              <CompactStatCard
-                title="Return Rate"
-                value={`${data.returnRate || 0}%`}
-                icon={FiRefreshCw}
-                change="2%"
-                changeType="decrease"
-                loading={isLoading}
-                tooltip="Percentage of total sales that were returned"
-              />
-            </MetricGrid>
-          </MetricSection>
-
-          {/* Tax Section */}
-          <MetricSection>
-            <SectionTitle>Tax</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="Total Tax"
-                value={formatCurrency(data.totalTax || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Total tax collected on sales"
-              />
-              <CompactStatCard
-                title="Tax Rate"
-                value={`${data.taxRate || 0}%`}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Tax as percentage of total sales"
-              />
-            </MetricGrid>
-          </MetricSection>
-
-          {/* Expenses Section */}
-          <MetricSection>
-            <SectionTitle>Expenses</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="COGS"
-                value={formatCurrency(data.cogs || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Cost of Goods Sold"
-              />
-              <CompactStatCard
-                title="COGS %"
-                value={`${data.cogsPercentage || 0}%`}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Cost of Goods Sold as percentage of total sales"
-              />
-              <CompactStatCard
-                title="S&D Cost"
-                value={formatCurrency(data.sdCost || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Shipping and Delivery Costs"
-              />
-              <CompactStatCard
-                title="S&D Cost %"
-                value={`${data.sdCostPercentage || 0}%`}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Shipping and Delivery Costs as percentage of total sales"
-              />
-            </MetricGrid>
-          </MetricSection>
-
-          {/* Marketing Section */}
-          <MetricSection>
-            <SectionTitle>Marketing</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="Total Marketing Cost"
-                value={formatCurrency(data.totalMarketingCost || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Total marketing expenditure across all channels"
-              />
-              <CompactStatCard
-                title="Marketing Cost %"
-                value={`${data.marketingCostPercentage || 0}%`}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Marketing costs as percentage of total sales"
-              />
-            </MetricGrid>
+        {/* Modern Header */}
+        <ModernHeaderSection>
+          <ModernHeaderContent>
+            <ModernHeaderLeft>
+              <ModernHeaderTitle>
+                <h1>Products Analytics</h1>
+                <p>Track and analyze your product performance across all sales channels</p>
+              </ModernHeaderTitle>
+              
+              <ModernStatsQuickView>
+                <ModernQuickStat>
+                  <div className="label">Products</div>
+                  <div className="value">{data.totalProducts || 0}</div>
+                </ModernQuickStat>
+                <ModernQuickStat>
+                  <div className="label">Sales</div>
+                  <div className="value">{formatCurrency(data.totalSales || 0)}</div>
+                </ModernQuickStat>
+                <ModernQuickStat>
+                  <div className="label">Revenue</div>
+                  <div className="value">{formatCurrency(data.totalRevenue || 0)}</div>
+                </ModernQuickStat>
+              </ModernStatsQuickView>
+            </ModernHeaderLeft>
             
-            {/* Marketing Channel Split Table */}
-            <div className="marketing-channels-table mt-2">
-              <h4 className="text-xs font-medium text-gray-600 mb-1">Marketing Channel Split</h4>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Channel</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost (INR)</th>
-                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Percentage</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {data.marketingChannels?.map((channel, index) => (
-                      <tr key={index}>
-                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{channel.name}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{formatCurrency(channel.cost)}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-xs text-gray-900">{channel.percentage}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <ModernHeaderActions>
+              <ModernActionButton 
+                className="secondary" 
+                onClick={handleDateRangeChange}
+                disabled={isLoading}
+              >
+                <FiRefreshCw className={isLoading ? 'spin' : ''} />
+                {isLoading ? 'Loading...' : 'Refresh'}
+              </ModernActionButton>
+              <ModernActionButton className="primary">
+                <FiDownload />
+                Export
+              </ModernActionButton>
+            </ModernHeaderActions>
+          </ModernHeaderContent>
+
+          {/* Modern Date Controls */}
+          <ModernDateControlsSection>
+            <div className="date-control-header">
+              <div className="date-info">
+                <div className="icon-wrapper">
+                  <FiCalendar size={14} />
+                </div>
+                <div className="date-text">
+                  <h3>Date Range</h3>
+                  <p>{formatDateForDisplay(startDate)} - {formatDateForDisplay(endDate)}</p>
+                </div>
+              </div>
+              
+              <div className="date-controls">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  max={endDate}
+                  style={{
+                    padding: '0.375rem 0.5rem',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.9)'
+                  }}
+                />
+                <span style={{ color: '#64748b', fontSize: '0.75rem' }}>to</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate}
+                  max={new Date().toISOString().split('T')[0]}
+                  style={{
+                    padding: '0.375rem 0.5rem',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.9)'
+                  }}
+                />
+                
+                <ModernQuickDateButtons>
+                  {quickDateFilters.map((filter) => (
+                    <ModernQuickDateButton
+                      key={filter.value}
+                      active={activeQuickFilter === filter.value}
+                      onClick={() => handleQuickDateFilter(filter.value, filter.days)}
+                    >
+                      {filter.label}
+                    </ModernQuickDateButton>
+                  ))}
+                </ModernQuickDateButtons>
               </div>
             </div>
-          </MetricSection>
+          </ModernDateControlsSection>
+        </ModernHeaderSection>
 
-          {/* ROAS Section */}
-          <MetricSection>
-            <SectionTitle>ROAS</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="Gross ROAS"
-                value={data.grossRoas?.toFixed(2) || '0.00'}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Return on Ad Spend (Gross)"
-              />
-              <CompactStatCard
-                title="Gross MER"
-                value={`${data.grossMer || 0}%`}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Marketing Efficiency Ratio (Gross)"
-              />
-              <CompactStatCard
-                title="Net ROAS"
-                value={data.netRoas?.toFixed(2) || '0.00'}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Return on Ad Spend (Net)"
-              />
-              <CompactStatCard
-                title="Net MER"
-                value={`${data.netMer || 0}%`}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Marketing Efficiency Ratio (Net)"
-              />
-              <CompactStatCard
-                title="N-ROAS"
-                value={data.nRoas?.toFixed(2) || '0.00'}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Net Return on Ad Spend"
-              />
-              <CompactStatCard
-                title="N-MER"
-                value={`${data.nMer || 0}%`}
-                icon={FiTrendingUp}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Net Marketing Efficiency Ratio"
-              />
-            </MetricGrid>
-          </MetricSection>
+        {/* Modern Tab System */}
+        <ModernTabContainer>
+          <ModernTabHeader>
+            {tabs.map((tab) => (
+              <ModernTabButton
+                key={tab.id}
+                active={activeTab === tab.id}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                <span className="icon">{tab.icon}</span> {tab.label}
+                {activeTab === tab.id && <span className="tab-badge">Active</span>}
+              </ModernTabButton>
+            ))}
+          </ModernTabHeader>
+          
+          <ModernTabContent>
+            {tabs.map((tab) => (
+              activeTab === tab.id && (
+                <div key={tab.id}>
+                  <div className="tab-info">
+                    <div className="tab-title">
+                      <span>{tab.icon}</span>
+                      {tab.label} Analytics
+                    </div>
+                    <div className="tab-description">
+                      {tab.description}
+                    </div>
+                  </div>
+                  
+                  {/* Show placeholder for non-Myfrido tabs */}
+                  {activeTab !== 'website' && activeTab !== 'all' && (
+                    <div style={{ 
+                      padding: '3rem 2rem', 
+                      background: '#f8f9fa', 
+                      borderRadius: '12px', 
+                      textAlign: 'center',
+                      border: '2px dashed #dee2e6',
+                      marginBottom: '2rem'
+                    }}>
+                      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{tab.icon}</div>
+                      <h3 style={{ color: '#6c757d', marginBottom: '1rem', fontSize: '1.5rem' }}>
+                        {tab.label} Analytics Coming Soon
+                      </h3>
+                      <p style={{ color: '#6c757d', fontSize: '1.1rem', margin: '0 0 1rem 0', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
+                        We're working on bringing you comprehensive {tab.label.toLowerCase()} analytics. This section will include marketplace-specific metrics, performance data, and insights.
+                      </p>
+                      <div style={{ 
+                        background: 'white', 
+                        padding: '1rem', 
+                        borderRadius: '8px', 
+                        display: 'inline-block',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                      }}>
+                        <span style={{ color: '#6c757d', fontSize: '0.9rem' }}>
+                          📈 Sales Tracking • 📊 Performance Metrics • 🎯 ROI Analysis
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            ))}
+          </ModernTabContent>
+        </ModernTabContainer>
 
-          {/* CAC Section */}
-          <MetricSection>
-            <SectionTitle>CAC</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="CAC"
-                value={formatCurrency(data.cac || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="decrease"
-                loading={isLoading}
-                tooltip="Customer Acquisition Cost"
-              />
-              <CompactStatCard
-                title="N-CAC"
-                value={formatCurrency(data.nCac || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="decrease"
-                loading={isLoading}
-                tooltip="Net Customer Acquisition Cost"
-              />
-            </MetricGrid>
-          </MetricSection>
+        {/* Modern Stats Grid - Only show when on active tab with data */}
+        {(activeTab === 'all' || activeTab === 'website') && (
+          <>
+            {/* Sales Metrics Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>Sales Metrics</h2>
+                <p>Track your revenue, sales performance, and key financial indicators</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="Total Sales"
+                    value={formatCurrency(data.totalSales || 0)}
+                    icon={HiShoppingCart}
+                    change="12%"
+                    changeType="increase"
+                    color="#667eea"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Gross Sales"
+                    value={formatCurrency(data.grossSales || 0)}
+                    icon={FaMoneyBillWave}
+                    change="+5%"
+                    changeType="increase"
+                    color="#10b981"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Net Sales"
+                    value={formatCurrency(data.netSales || 0)}
+                    icon={HiCash}
+                    change="5%"
+                    changeType="increase"
+                    color="#059669"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Gross Sales %"
+                    value={`${data.grossSalesPercentage || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#8b5cf6"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Net Sales %"
+                    value={`${data.netSalesPercentage || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#a855f7"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Revenue Growth"
+                    value={`+${data.revenueGrowth || 0}%`}
+                    icon={FiTrendingUp}
+                    change="2%"
+                    changeType="increase"
+                    color="#ef4444"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+              </ModernSectionContent>
+            </ModernSectionCard>
 
-          {/* Contribution Margin Section */}
-          <MetricSection>
-            <SectionTitle>Contribution Margin</SectionTitle>
-            <MetricGrid>
-              <CompactStatCard
-                title="CM2"
-                value={formatCurrency(data.cm2 || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Contribution Margin Level 2"
-              />
-              <CompactStatCard
-                title="CM2 %"
-                value={`${data.cm2Percentage || 0}%`}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Contribution Margin Level 2 as percentage"
-              />
-              <CompactStatCard
-                title="CM3"
-                value={formatCurrency(data.cm3 || 0)}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Contribution Margin Level 3"
-              />
-              <CompactStatCard
-                title="CM3 %"
-                value={`${data.cm3Percentage || 0}%`}
-                icon={FaRupeeSign}
-                change="2%"
-                changeType="increase"
-                loading={isLoading}
-                tooltip="Contribution Margin Level 3 as percentage"
-              />
-            </MetricGrid>
-          </MetricSection>
+            {/* Returns Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>Returns & Refunds</h2>
+                <p>Monitor product returns and customer satisfaction</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="Total Returns"
+                    value={formatCurrency(data.totalReturns || 0)}
+                    icon={FiRefreshCw}
+                    change="2%"
+                    changeType="decrease"
+                    color="#dc2626"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Return Rate"
+                    value={`${data.returnRate || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="decrease"
+                    color="#ef4444"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Return Units"
+                    value={data.returnUnits || 0}
+                    icon={FiPackage}
+                    change="1%"
+                    changeType="decrease"
+                    color="#f59e0b"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+              </ModernSectionContent>
+            </ModernSectionCard>
+
+            {/* Tax Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>Tax & Compliance</h2>
+                <p>Track tax collection and regulatory compliance</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="Total Tax"
+                    value={formatCurrency(data.totalTax || 0)}
+                    icon={FaRupeeSign}
+                    change="2%"
+                    changeType="increase"
+                    color="#3b82f6"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Tax Rate"
+                    value={`${data.taxRate || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#1d4ed8"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="GST Collected"
+                    value={formatCurrency(data.gstCollected || 0)}
+                    icon={HiChartBar}
+                    change="3%"
+                    changeType="increase"
+                    color="#2563eb"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+              </ModernSectionContent>
+            </ModernSectionCard>
+
+            {/* Expenses Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>Expenses & Costs</h2>
+                <p>Track cost of goods sold, shipping, and operational expenses</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="COGS"
+                    value={formatCurrency(data.cogs || 0)}
+                    icon={FaBoxes}
+                    change="2%"
+                    changeType="increase"
+                    color="#f59e0b"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="COGS %"
+                    value={`${data.cogsPercentage || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#d97706"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="S&D Cost"
+                    value={formatCurrency(data.sdCost || 0)}
+                    icon={FiPackage}
+                    change="2%"
+                    changeType="increase"
+                    color="#0891b2"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="S&D Cost %"
+                    value={`${data.sdCostPercentage || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#0e7490"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+              </ModernSectionContent>
+            </ModernSectionCard>
+
+            {/* Marketing Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>Marketing & Advertising</h2>
+                <p>Monitor marketing spend and channel performance</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="Total Marketing Cost"
+                    value={formatCurrency(data.totalMarketingCost || 0)}
+                    icon={FiTarget}
+                    change="2%"
+                    changeType="increase"
+                    color="#8b5cf6"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Marketing Cost %"
+                    value={`${data.marketingCostPercentage || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#7c3aed"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+                
+                {/* Marketing Channel Split Table */}
+                <div style={{ marginTop: '1.5rem' }}>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151', marginBottom: '0.75rem' }}>Marketing Channel Split</h4>
+                  <div style={{ overflowX: 'auto', background: 'white', borderRadius: '8px', border: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                    <table style={{ width: '100%', fontSize: '0.875rem' }}>
+                      <thead style={{ background: '#f8fafc' }}>
+                        <tr>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Channel</th>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cost (INR)</th>
+                          <th style={{ padding: '0.75rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Percentage</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.marketingChannels?.map((channel, index) => (
+                          <tr key={index} style={{ borderBottom: '1px solid rgba(0, 0, 0, 0.05)' }}>
+                            <td style={{ padding: '0.75rem', color: '#1f2937' }}>{channel.name}</td>
+                            <td style={{ padding: '0.75rem', color: '#1f2937' }}>{formatCurrency(channel.cost)}</td>
+                            <td style={{ padding: '0.75rem', color: '#1f2937' }}>{channel.percentage}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </ModernSectionContent>
+            </ModernSectionCard>
+
+            {/* ROAS Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>ROAS & Marketing Efficiency</h2>
+                <p>Measure return on advertising spend and marketing performance</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="Gross ROAS"
+                    value={data.grossRoas?.toFixed(2) || '0.00'}
+                    icon={FiTrendingUp}
+                    change="2%"
+                    changeType="increase"
+                    color="#059669"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Gross MER"
+                    value={`${data.grossMer || 0}%`}
+                    icon={FiBarChart2}
+                    change="2%"
+                    changeType="increase"
+                    color="#0d9488"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Net ROAS"
+                    value={data.netRoas?.toFixed(2) || '0.00'}
+                    icon={FiTrendingUp}
+                    change="2%"
+                    changeType="increase"
+                    color="#0891b2"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="Net MER"
+                    value={`${data.netMer || 0}%`}
+                    icon={FiBarChart2}
+                    change="2%"
+                    changeType="increase"
+                    color="#0e7490"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="N-ROAS"
+                    value={data.nRoas?.toFixed(2) || '0.00'}
+                    icon={FiTrendingUp}
+                    change="2%"
+                    changeType="increase"
+                    color="#dc2626"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="N-MER"
+                    value={`${data.nMer || 0}%`}
+                    icon={FiBarChart2}
+                    change="2%"
+                    changeType="increase"
+                    color="#b91c1c"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+              </ModernSectionContent>
+            </ModernSectionCard>
+
+            {/* CAC Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>Customer Acquisition Cost</h2>
+                <p>Monitor cost to acquire new customers</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="CAC"
+                    value={formatCurrency(data.cac || 0)}
+                    icon={FiUsers}
+                    change="2%"
+                    changeType="decrease"
+                    color="#dc2626"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="N-CAC"
+                    value={formatCurrency(data.nCac || 0)}
+                    icon={FiUserCheck}
+                    change="2%"
+                    changeType="decrease"
+                    color="#b91c1c"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+              </ModernSectionContent>
+            </ModernSectionCard>
+
+            {/* Contribution Margin Section */}
+            <ModernSectionCard>
+              <ModernSectionHeader>
+                <h2>Contribution Margin</h2>
+                <p>Track contribution margins at different levels</p>
+              </ModernSectionHeader>
+              <ModernSectionContent>
+                <ModernCompactGrid>
+                  <ModernMetricCard
+                    title="CM2"
+                    value={formatCurrency(data.cm2 || 0)}
+                    icon={FiDollarSign}
+                    change="2%"
+                    changeType="increase"
+                    color="#059669"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="CM2 %"
+                    value={`${data.cm2Percentage || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#0d9488"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="CM3"
+                    value={formatCurrency(data.cm3 || 0)}
+                    icon={FiDollarSign}
+                    change="2%"
+                    changeType="increase"
+                    color="#0891b2"
+                    loading={isLoading}
+                  />
+                  <ModernMetricCard
+                    title="CM3 %"
+                    value={`${data.cm3Percentage || 0}%`}
+                    icon={FiPercent}
+                    change="2%"
+                    changeType="increase"
+                    color="#0e7490"
+                    loading={isLoading}
+                  />
+                </ModernCompactGrid>
+              </ModernSectionContent>
+            </ModernSectionCard>
 
           {/* Sales Container - Top and Least Selling Products */}
           <SalesContainer>
@@ -1475,7 +1806,8 @@ const ProductsPage = () => {
           </div>
         </>
       )}
-    </div>
+      </ModernContent>
+    </ModernContainer>
   );
 };
 

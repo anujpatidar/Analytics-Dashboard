@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,
@@ -13,9 +11,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  AreaChart,
-  Area
+  ResponsiveContainer
 } from 'recharts';
 import { useParams } from 'react-router-dom';
 import { 
@@ -34,9 +30,11 @@ import {
   FiBarChart2,
   FiActivity,
   FiCalendar,
-  FiFilter
+  FiDownload
 } from 'react-icons/fi';
-import { formatCurrency, formatNumber } from '../../utils/formatters';
+
+import { formatCurrency } from '../../utils/formatters';
+import { getAmazonProductMetrics } from '../../api/amazonAPI';
 
 // Mock data - Replace with actual API calls
 // const mockProductData = {
@@ -111,138 +109,16 @@ import { formatCurrency, formatNumber } from '../../utils/formatters';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-const PageContainer = styled.div`
-  padding: var(--spacing-lg);
-`;
-
-const PageHeader = styled.div`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: var(--spacing-xl);
-  border-radius: 16px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  margin-bottom: var(--spacing-xl);
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    z-index: 1;
-  }
-  
-  & > * {
-    position: relative;
-    z-index: 2;
-  }
-  
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xl);
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    text-align: center;
-    padding: var(--spacing-lg);
-  }
-`;
-
 const ProductImage = styled.img`
-  width: 140px;
-  height: 140px;
+  width: 80px;
+  height: 80px;
   object-fit: cover;
-  border-radius: 20px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-  border: 4px solid rgba(255, 255, 255, 0.2);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-5px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  }
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   
   @media (max-width: 768px) {
-    width: 120px;
-    height: 120px;
-  }
-`;
-
-const ProductInfo = styled.div`
-  flex: 1;
-  color: white;
-  
-  h1 {
-    font-size: 2.5rem;
-    margin-bottom: var(--spacing-sm);
-    font-weight: 700;
-    background: linear-gradient(45deg, #ffffff, #f0f0f0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    
-    @media (max-width: 768px) {
-      font-size: 2rem;
-    }
-  }
-  
-  p {
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: var(--spacing-sm);
-    font-size: 1.1rem;
-    font-weight: 500;
-    
-    &:first-of-type {
-      background: rgba(255, 255, 255, 0.2);
-      padding: var(--spacing-xs) var(--spacing-sm);
-      border-radius: 25px;
-      display: inline-block;
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      margin-bottom: var(--spacing-md);
-    }
-    
-    &:last-child {
-      font-size: 1rem;
-      line-height: 1.6;
-      max-width: 600px;
-    }
-  }
-  
-  .product-meta {
-    display: flex;
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-md);
-    
-    @media (max-width: 768px) {
-      flex-direction: column;
-      gap: var(--spacing-sm);
-    }
-  }
-  
-  .meta-item {
-    background: rgba(255, 255, 255, 0.15);
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    
-    .label {
-      font-size: 0.8rem;
-      opacity: 0.8;
-      margin-bottom: 2px;
-    }
-    
-    .value {
-      font-weight: 600;
-      font-size: 1rem;
-    }
+    width: 60px;
+    height: 60px;
   }
 `;
 
@@ -310,11 +186,6 @@ const BackgroundSection = styled.div`
   }
 `;
 
-const ChartContainer = styled.div`
-  height: 300px;
-  margin-top: var(--spacing-lg);
-`;
-
 const VariantsTable = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -335,170 +206,7 @@ const formatPercentage = (value) => {
   return `${value?.toFixed(1)}%`;
 };
 
-const DateFilterContainer = styled.div`
-  background: white;
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
-  margin-bottom: var(--spacing-xl);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-`;
 
-const DateFilterGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  
-  label {
-    font-weight: 600;
-    color: var(--text-secondary);
-    min-width: 80px;
-  }
-  
-  input {
-    padding: var(--spacing-sm);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-sm);
-    font-size: 0.9rem;
-    
-    &:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-    }
-  }
-`;
-
-const FilterButton = styled.button`
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-lg);
-  border-radius: var(--border-radius-sm);
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-`;
-
-const QuickDateButtons = styled.div`
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-`;
-
-const QuickDateButton = styled.button`
-  background: ${props => props.active ? '#3b82f6' : 'transparent'};
-  color: ${props => props.active ? 'white' : '#3b82f6'};
-  border: 1px solid #3b82f6;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: #3b82f6;
-    color: white;
-  }
-`;
-
-// Add Marketplace Tab Components
-const TabContainer = styled.div`
-  background: white;
-  border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow);
-  margin-bottom: var(--spacing-xl);
-  overflow: hidden;
-`;
-
-const TabHeader = styled.div`
-  display: flex;
-  border-bottom: 1px solid var(--border-color);
-  background: #f8f9fa;
-`;
-
-const TabButton = styled.button`
-  flex: 1;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: ${props => props.active ? 'white' : 'transparent'};
-  color: ${props => props.active ? '#3b82f6' : 'var(--text-secondary)'};
-  border: none;
-  font-weight: ${props => props.active ? '600' : '500'};
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  border-bottom: ${props => props.active ? '3px solid #3b82f6' : '3px solid transparent'};
-  
-  &:hover {
-    background: ${props => props.active ? 'white' : '#f0f2f5'};
-    color: #3b82f6;
-  }
-  
-  &:not(:last-child) {
-    border-right: 1px solid var(--border-color);
-  }
-  
-  .tab-badge {
-    background: ${props => props.active ? '#3b82f6' : '#6b7280'};
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    margin-left: 0.5rem;
-    font-weight: 500;
-  }
-`;
-
-const TabContent = styled.div`
-  padding: var(--spacing-lg);
-  min-height: 60px;
-  
-  .tab-info {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: var(--spacing-md);
-    border-radius: 8px;
-    margin-bottom: var(--spacing-lg);
-    
-    .tab-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    
-    .tab-description {
-      font-size: 0.9rem;
-      opacity: 0.9;
-      line-height: 1.4;
-    }
-  }
-`;
 
 // Add helper function to safely display values
 const safeDisplayValue = (value, fallback = 'N/A', formatter = null) => {
@@ -527,11 +235,515 @@ const safeNumberFormat = (value, fallback = 'N/A') => {
   return parseInt(value).toLocaleString();
 };
 
+// Modern Dashboard Container - matching DashboardPage design
+const ModernContainer = styled.div`
+  min-height: 100vh;
+  padding: 1rem;
+  background: #f8fafc;
+  
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+  }
+`;
+
+const ModernContent = styled.div`
+  max-width: 1400px;
+  margin: 0 auto;
+`;
+
+// Modern Header Section
+const ModernHeaderSection = styled.div`
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 1000;
+  
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+`;
+
+
+
+const ModernHeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+`;
+
+const ModernHeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+`;
+
+const ModernHeaderTitle = styled.div`
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    line-height: 1.2;
+  }
+  
+  p {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.75rem;
+    margin-top: 0.125rem;
+  }
+  
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.25rem;
+    }
+    p {
+      font-size: 0.7rem;
+    }
+  }
+`;
+
+const ModernStatsQuickView = styled.div`
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  
+  @media (max-width: 968px) {
+    display: none;
+  }
+`;
+
+const ModernQuickStat = styled.div`
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+  min-width: 80px;
+  
+  .label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+  }
+  
+  .value {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1e293b;
+  }
+`;
+
+const ModernHeaderActions = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+`;
+
+const ModernActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  
+  &.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  
+  &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+  }
+  
+  &.secondary {
+    background: rgba(255, 255, 255, 0.9);
+    color: #64748b;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background: white;
+      color: #1e293b;
+      border-color: rgba(102, 126, 234, 0.3);
+    }
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+  
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const ModernDateControlsSection = styled.div`
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  
+  .date-control-header {
+  display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  }
+  
+  .date-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    .icon-wrapper {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(102, 126, 234, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #667eea;
+    }
+    
+    .date-text {
+      h3 {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+      }
+      
+      p {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin: 0;
+      }
+    }
+  }
+  
+  .date-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    @media (max-width: 768px) {
+  flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+`;
+
+const ModernQuickDateButtons = styled.div`
+  display: flex;
+  gap: 0.375rem;
+  margin-left: 0.75rem;
+  
+  @media (max-width: 768px) {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+`;
+
+const ModernQuickDateButton = styled.button`
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  background: ${props => props.active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'rgba(255, 255, 255, 0.9)'};
+  color: ${props => props.active ? 'white' : '#667eea'};
+  
+  &:hover {
+    background: ${props => props.active ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#667eea'};
+    color: white;
+    border-color: #667eea;
+  }
+`;
+
+// Section Cards - matching dashboard design
+const SectionCard = styled.div`
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+`;
+
+const SectionHeader = styled.div`
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    margin-bottom: 0.25rem;
+  }
+  
+  p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+  }
+`;
+
+const SectionTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+`;
+
+const SectionDescription = styled.p`
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+`;
+
+const SectionContent = styled.div`
+  padding: 1.5rem 2rem 2rem;
+`;
+
+// Responsive Metrics Grid for more compact layout
+const CompactGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  @media (min-width: 768px) and (max-width: 1199px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  @media (max-width: 767px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;
+
+const MiniMetricCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+  
+  .metric-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+      margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .metric-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+  }
+  
+  .metric-change {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: #64748b;
+  }
+`;
+
+// Helper functions for formatting values
+const formatMetricValue = (value, formatter = formatCurrency) => {
+  if (value === undefined || value === null) return 'NA';
+    return formatter(value);
+};
+
+const formatPercentageValue = (value) => {
+  if (value === undefined || value === null) return 'NA';
+  if (typeof value === 'number') {
+    return `${value.toFixed(2)}%`;
+  }
+  return `${value}%`;
+};
+
+// Create a modern compact metric component with icons - matching dashboard
+const ModernMetricCard = ({ title, value, icon: Icon, change, changeType, color = '#667eea', loading }) => (
+  <MiniMetricCard>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+      <div className="metric-label">{title}</div>
+      {Icon && (
+        <div 
+          className="metric-icon-container"
+          style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '10px',
+            background: `linear-gradient(135deg, ${color}15, ${color}25)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: color,
+            boxShadow: `0 2px 8px ${color}20`
+          }}
+        >
+          <Icon size={18} />
+        </div>
+      )}
+    </div>
+    <div className="metric-value">{loading ? '...' : value}</div>
+    <div className="metric-change" style={{ 
+      color: changeType === 'increase' ? '#059669' : changeType === 'decrease' ? '#dc2626' : '#64748b' 
+    }}>
+      {change}
+    </div>
+  </MiniMetricCard>
+);
+
+// Add CSS for animations
+const GlobalStyles = `
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+// Modern Tab System - matching DashboardPage exactly
+const ModernTabContainer = styled.div`
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  position: relative;
+  z-index: 100;
+`;
+
+const ModernTabHeader = styled.div`
+  display: flex;
+  background: rgba(248, 250, 252, 0.8);
+  padding: 0.5rem;
+  border-radius: 16px 16px 0 0;
+`;
+
+const ModernTabButton = styled.button`
+  flex: 1;
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+  
+  ${props => props.active ? `
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transform: translateY(-2px);
+  ` : `
+    background: transparent;
+    color: #64748b;
+  
+  &:hover {
+      background: rgba(102, 126, 234, 0.1);
+      color: #475569;
+    }
+  `}
+  
+  .icon {
+    font-size: 1.25rem;
+  }
+`;
+
+const ModernTabContent = styled.div`
+  padding: 2rem;
+`;
+
 const ProductDetailsPage = () => {
+  // Inject CSS styles for animations
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = GlobalStyles;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
   const { productId } = useParams();
   const [data, setData] = useState(null);
+  const [amazonData, setAmazonData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAmazonLoading, setIsAmazonLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [amazonError, setAmazonError] = useState(null);
   
   // Date filter state
   const [startDate, setStartDate] = useState(() => {
@@ -544,8 +756,8 @@ const ProductDetailsPage = () => {
   });
   const [activeQuickFilter, setActiveQuickFilter] = useState('30d');
 
-  // Marketplace tab state
-  const [activeTab, setActiveTab] = useState('all');
+  // Add marketplace tab state - matching dashboard exactly
+  const [activeTab, setActiveTab] = useState('overall');
 
   const quickDateFilters = [
     { label: '7D', value: '7d', days: 7 },
@@ -555,16 +767,17 @@ const ProductDetailsPage = () => {
     { label: '1Y', value: '1y', days: 365 }
   ];
 
-  // Tab configuration
+  // Tab configuration - exactly matching dashboard
   const tabs = [
     { 
-      id: 'all', 
-      label: 'All Combined', 
+      id: 'overall', 
+      label: 'Overall', 
       icon: '🌐',
       description: 'Aggregate data from all marketplaces and sales channels combined'
     },
+    
     { 
-      id: 'website', 
+      id: 'myfrido', 
       label: 'Myfrido', 
       icon: '🏪',
       description: 'Performance data specifically from your website/direct sales'
@@ -608,7 +821,7 @@ const ProductDetailsPage = () => {
       
       const result = await response.json();
       setData(result.data);
-      console.log(result.data);
+      console.log('Myfrido data:', result.data);
     } catch (error) {
       console.error('Error fetching product data:', error);
       setError(error.message);
@@ -617,855 +830,2670 @@ const ProductDetailsPage = () => {
     }
   };
 
+  const fetchAmazonData = async () => {
+    if (!data || !data.product || !data.product.sku) {
+      console.log('Cannot fetch Amazon data: No SKU available');
+      setIsAmazonLoading(false);
+      return;
+    }
+
+    try {
+      setIsAmazonLoading(true);
+      setAmazonError(null);
+      
+      console.log('Fetching Amazon data for SKU:', data.product.sku);
+      
+      const result = await getAmazonProductMetrics(
+        data.product.sku,
+        startDate,
+        endDate,
+        'amazon'
+      );
+      
+      setAmazonData(result.data);
+      console.log('Amazon data:', result.data);
+    } catch (error) {
+      console.error('Error fetching Amazon data:', error);
+      setAmazonError(error.message);
+    } finally {
+      setIsAmazonLoading(false);
+    }
+  };
+
+  // Function to combine Myfrido and Amazon data for the Overall tab
+  const getCombinedData = () => {
+    if (!data) return null;
+    
+    const myfridoData = data;
+    const amazonOverview = amazonData?.overview || {};
+    
+    // Combine financial metrics
+    const combinedOverview = {
+      totalOrders: (myfridoData.overview.totalOrders || 0) + (amazonOverview.totalOrders || 0),
+      totalSales: (myfridoData.overview.totalSales || 0) + (amazonOverview.totalSales || 0),
+      grossSales: (myfridoData.overview.grossSales || myfridoData.overview.totalSales || 0) + (amazonOverview.grossSales || amazonOverview.totalSales || 0),
+      netSales: (myfridoData.overview.netSales || myfridoData.overview.totalSales || 0) + (amazonOverview.netSales || 0),
+      totalQuantitySold: (myfridoData.overview.totalQuantitySold || 0) + (amazonOverview.totalQuantitySold || 0),
+      netQuantitySold: (myfridoData.overview.netQuantitySold || 0) + (amazonOverview.netQuantitySold || 0),
+      totalReturnsQuantity: (myfridoData.overview.totalReturnsQuantity || 0) + (amazonOverview.totalReturnsQuantity || 0),
+      totalReturns: (myfridoData.overview.totalReturns || 0) + (amazonOverview.totalReturns || 0),
+      totalTax: (myfridoData.overview.totalTax || 0) + (amazonOverview.totalTax || 0),
+      cogs: (myfridoData.overview.cogs || 0) + (amazonOverview.cogs || 0),
+      sdCost: (myfridoData.overview.sdCost || 0) + (amazonOverview.sdCost || 0),
+    };
+
+    // Calculate derived metrics
+    const combinedTotalSales = combinedOverview.totalSales;
+    const combinedTotalOrders = combinedOverview.totalOrders;
+    const combinedTotalQuantity = combinedOverview.totalQuantitySold;
+    
+    combinedOverview.aov = combinedTotalOrders > 0 ? combinedTotalSales / combinedTotalOrders : 0;
+    combinedOverview.netOrders = combinedTotalOrders - (amazonOverview.cancelledItems || 0);
+    combinedOverview.grossSalePercentage = combinedTotalSales > 0 ? (combinedOverview.grossSales / combinedTotalSales) * 100 : 100;
+    combinedOverview.netSalePercentage = combinedOverview.grossSales > 0 ? (combinedOverview.netSales / combinedOverview.grossSales) * 100 : 100;
+    combinedOverview.totalReturnPercentage = combinedTotalQuantity > 0 ? (combinedOverview.totalReturnsQuantity / combinedTotalQuantity) * 100 : 0;
+    combinedOverview.taxRate = combinedTotalSales > 0 ? (combinedOverview.totalTax / combinedTotalSales) * 100 : 0;
+    combinedOverview.cogsPercentage = combinedTotalSales > 0 ? (combinedOverview.cogs / combinedTotalSales) * 100 : 0;
+    combinedOverview.sdCostPercentage = combinedTotalSales > 0 ? (combinedOverview.sdCost / combinedTotalSales) * 100 : 0;
+    combinedOverview.grossRoas = combinedOverview.cogs > 0 ? combinedTotalSales / combinedOverview.cogs : 0;
+    combinedOverview.netRoas = combinedOverview.cogs > 0 ? combinedOverview.netSales / combinedOverview.cogs : 0;
+    combinedOverview.nMer = combinedTotalSales > 0 ? (combinedOverview.netSales / combinedTotalSales) * 100 : 0;
+    combinedOverview.cm2 = combinedOverview.netSales - combinedOverview.cogs;
+    combinedOverview.cm2Percentage = combinedOverview.netSales > 0 ? (combinedOverview.cm2 / combinedOverview.netSales) * 100 : 0;
+    combinedOverview.cm3 = combinedOverview.cm2 - combinedOverview.sdCost;
+    combinedOverview.cm3Percentage = combinedOverview.netSales > 0 ? (combinedOverview.cm3 / combinedOverview.netSales) * 100 : 0;
+    combinedOverview.contributionMargin = combinedOverview.cm3;
+    combinedOverview.contributionMarginPercentage = combinedOverview.cm3Percentage;
+    combinedOverview.profitMargin = combinedOverview.netSales > 0 ? ((combinedOverview.netSales - combinedOverview.cogs) / combinedOverview.netSales) * 100 : 0;
+    
+    // Use existing change percentages from Myfrido (placeholder values)
+    Object.keys(myfridoData.overview).forEach(key => {
+      if (key.includes('ChangePercentage') || key.includes('Change')) {
+        combinedOverview[key] = myfridoData.overview[key] || 0;
+      }
+    });
+
+    // Combine marketing data
+    const combinedMarketing = {
+      adSpend: (myfridoData.marketing?.adSpend || 0) + (amazonData?.marketing?.adSpend || 0),
+      impressions: (myfridoData.marketing?.impressions || 0) + (amazonData?.marketing?.impressions || 0),
+      clicks: (myfridoData.marketing?.clicks || 0) + (amazonData?.marketing?.clicks || 0),
+      purchases: (myfridoData.marketing?.purchases || 0) + (amazonData?.marketing?.purchases || 0),
+      purchaseValue: (myfridoData.marketing?.purchaseValue || 0) + (amazonData?.marketing?.purchaseValue || 0),
+      targetingKeyword: 'Combined Multi-Channel Campaign'
+    };
+
+    // Calculate combined marketing metrics
+    combinedMarketing.roas = combinedMarketing.adSpend > 0 ? combinedTotalSales / combinedMarketing.adSpend : 0;
+    combinedMarketing.ctr = combinedMarketing.impressions > 0 ? (combinedMarketing.clicks / combinedMarketing.impressions) * 100 : 0;
+    combinedMarketing.cpc = combinedMarketing.clicks > 0 ? combinedMarketing.adSpend / combinedMarketing.clicks : 0;
+
+    // Combine customer data
+    const combinedCustomers = {
+      totalCustomers: (myfridoData.customers?.totalCustomers || 0) + (amazonData?.customers?.totalCustomers || 0),
+      repeatCustomers: (myfridoData.customers?.repeatCustomers || 0) + (amazonData?.customers?.repeatCustomers || 0),
+      avgOrdersPerCustomer: 1, // Placeholder
+      acquisitionCost: (myfridoData.customers?.acquisitionCost || 0) + (amazonData?.customers?.acquisitionCost || 0)
+    };
+
+    combinedCustomers.repeatRate = combinedCustomers.totalCustomers > 0 ? 
+      (combinedCustomers.repeatCustomers / combinedCustomers.totalCustomers) * 100 : 0;
+
+    // Combine variants data
+    const combinedVariants = [
+      ...(myfridoData.variants || []),
+      ...(amazonData?.variants || [])
+    ];
+
+    return {
+      product: myfridoData.product,
+      overview: combinedOverview,
+      marketing: combinedMarketing,
+      customers: combinedCustomers,
+      variants: combinedVariants,
+      charts: myfridoData.charts // Use Myfrido charts as base
+    };
+  };
+
   useEffect(() => {
     fetchProductData();
   }, [productId]);
 
+  // Fetch Amazon data after Myfrido data is loaded
+  useEffect(() => {
+    if (data && data.product && data.product.sku) {
+      fetchAmazonData();
+    }
+  }, [data, startDate, endDate]);
+
   const handleApplyFilter = () => {
     setActiveQuickFilter(''); // Clear quick filter selection when using custom dates
     fetchProductData();
+    // Amazon data will be fetched automatically via useEffect after Myfrido data is loaded
+  };
+
+  // Custom date formatting function
+  const formatDateForDisplay = (date) => {
+    // Handle both string and Date inputs
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   if (isLoading) {
     return (
-      <PageContainer>
-        <div>Loading product details...</div>
-      </PageContainer>
-    );
-  }
-
-  if (error) {
-    return (
-      <PageContainer>
-        <div>Error loading product details: {error}</div>
-      </PageContainer>
-    );
-  }
-
-  if (!data) {
-    return (
-      <PageContainer>
-        <div>No product data found</div>
-      </PageContainer>
-    );
-  }
-
-  return (
-    <PageContainer>
-      <PageHeader>
-        <ProductImage src={data.product.image} alt={data.product.name} />
-        <ProductInfo>
-          <h1>{data.product.name}</h1>
-          <p>SKU: {data.product.sku}</p>
-          <div className="product-meta">
-            <div className="meta-item">
-              <div className="label">Price</div>
-              <div className="value">{formatCurrency(data.product.price)}</div>
-            </div>
-            <div className="meta-item">
-              <div className="label">Cost Price</div>
-              <div className="value">{formatCurrency(data.product.costPrice)}</div>
-            </div>
-            <div className="meta-item">
-              <div className="label">Profit Margin</div>
-              <div className="value">{formatPercentage(data.overview.profitMargin)}</div>
+      <ModernContainer>
+        <ModernContent>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '50vh',
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '20px',
+            backdropFilter: 'blur(20px)'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <FiRefreshCw size={48} className="spin" style={{ color: '#667eea', marginBottom: '1rem' }} />
+              <h2 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>Loading Product Data</h2>
+              <p style={{ color: '#64748b' }}>Please wait while we fetch the analytics...</p>
+              {isAmazonLoading && (
+                <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+                  Also fetching Amazon data...
+                </p>
+              )}
             </div>
           </div>
-        </ProductInfo>
-      </PageHeader>
+        </ModernContent>
+      </ModernContainer>
+    );
+  }
 
-      {/* Date Filter Section */}
-      <DateFilterContainer>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-          <FiCalendar style={{ color: '#3b82f6' }} />
-          <span style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>Date Range:</span>
-        </div>
-        
-        <DateFilterGroup>
-          <label htmlFor="startDate">From:</label>
+  if (error || !data) {
+    return (
+      <ModernContainer>
+        <ModernContent>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '50vh',
+            background: 'rgba(255, 255, 255, 0.95)',
+            borderRadius: '20px',
+            backdropFilter: 'blur(20px)'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😔</div>
+              <h2 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>Unable to Load Data</h2>
+              <p style={{ color: '#64748b', marginBottom: '1rem' }}>{error || 'Product data not found'}</p>
+              <ModernActionButton className="primary" onClick={fetchProductData}>
+                <FiRefreshCw />
+                Try Again
+              </ModernActionButton>
+            </div>
+          </div>
+        </ModernContent>
+      </ModernContainer>
+    );
+  }
+
+    return (
+    <ModernContainer>
+      <ModernContent>
+        {/* Modern Header */}
+        <ModernHeaderSection>
+          <ModernHeaderContent>
+            <ModernHeaderLeft>
+        <ProductImage src={data.product.image} alt={data.product.name} />
+              <ModernHeaderTitle>
+          <h1>{data.product.name}</h1>
+                <p>SKU: {data.product.sku} • Detailed product analytics and insights</p>
+              </ModernHeaderTitle>
+              
+              <ModernStatsQuickView>
+                <ModernQuickStat>
+              <div className="label">Price</div>
+              <div className="value">{formatCurrency(data.product.price)}</div>
+                </ModernQuickStat>
+                <ModernQuickStat>
+                  <div className="label">Orders</div>
+                  <div className="value">{data.overview.totalOrders || 0}</div>
+                </ModernQuickStat>
+                <ModernQuickStat>
+                  <div className="label">Profit</div>
+                  <div className="value">{formatPercentage(data.overview.profitMargin)}%</div>
+                </ModernQuickStat>
+              </ModernStatsQuickView>
+            </ModernHeaderLeft>
+            
+            <ModernHeaderActions>
+              <ModernActionButton 
+                className="secondary" 
+                onClick={handleApplyFilter}
+                disabled={isLoading}
+              >
+                <FiRefreshCw className={isLoading ? 'spin' : ''} />
+                {isLoading ? 'Loading...' : 'Refresh'}
+              </ModernActionButton>
+              <ModernActionButton className="primary">
+                <FiDownload />
+                Export
+              </ModernActionButton>
+            </ModernHeaderActions>
+          </ModernHeaderContent>
+
+          {/* Modern Date Controls */}
+          <ModernDateControlsSection>
+            <div className="date-control-header">
+              <div className="date-info">
+                <div className="icon-wrapper">
+                  <FiCalendar size={14} />
+            </div>
+                <div className="date-text">
+                  <h3>Date Range</h3>
+                  <p>{formatDateForDisplay(startDate)} - {formatDateForDisplay(endDate)}</p>
+            </div>
+            </div>
+              
+              <div className="date-controls">
           <input
             type="date"
-            id="startDate"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             max={endDate}
-          />
-        </DateFilterGroup>
-        
-        <DateFilterGroup>
-          <label htmlFor="endDate">To:</label>
+                  style={{
+                    padding: '0.375rem 0.5rem',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.9)'
+                  }}
+                />
+                <span style={{ color: '#64748b', fontSize: '0.75rem' }}>to</span>
           <input
             type="date"
-            id="endDate"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
             min={startDate}
             max={new Date().toISOString().split('T')[0]}
-          />
-        </DateFilterGroup>
-        
-        <FilterButton onClick={handleApplyFilter} disabled={isLoading}>
-          <FiFilter />
-          {isLoading ? 'Loading...' : 'Apply Filter'}
-        </FilterButton>
-        
-        <div style={{ borderLeft: '1px solid var(--border-color)', paddingLeft: 'var(--spacing-md)', marginLeft: 'var(--spacing-md)' }}>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginRight: 'var(--spacing-sm)' }}>
-            Quick filters:
-          </span>
-          <QuickDateButtons>
+                  style={{
+                    padding: '0.375rem 0.5rem',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.9)'
+                  }}
+                />
+                
+                <ModernQuickDateButtons>
             {quickDateFilters.map((filter) => (
-              <QuickDateButton
+                    <ModernQuickDateButton
                 key={filter.value}
                 active={activeQuickFilter === filter.value}
                 onClick={() => handleQuickDateFilter(filter.value, filter.days)}
               >
                 {filter.label}
-              </QuickDateButton>
+                    </ModernQuickDateButton>
             ))}
-          </QuickDateButtons>
+                </ModernQuickDateButtons>
         </div>
-      </DateFilterContainer>
+            </div>
+          </ModernDateControlsSection>
+        </ModernHeaderSection>
 
-      {/* Add Marketplace Tab Components */}
-      <TabContainer>
-        <TabHeader>
+        {/* Modern Tab System - matching DashboardPage */}
+        <ModernTabContainer>
+          <ModernTabHeader>
           {tabs.map((tab) => (
-            <TabButton
+              <ModernTabButton
               key={tab.id}
               active={activeTab === tab.id}
               onClick={() => handleTabChange(tab.id)}
             >
-              <span>{tab.icon}</span> {tab.label}
-              {activeTab === tab.id && <span className="tab-badge">Active</span>}
-            </TabButton>
-          ))}
-        </TabHeader>
-        
-        <TabContent>
-          {tabs.map((tab) => (
-            activeTab === tab.id && (
-              <div key={tab.id}>
-                <div className="tab-info">
-                  <div className="tab-title">
-                    <span>{tab.icon}</span>
-                    {tab.label} Analytics
-                  </div>
-                  <div className="tab-description">
-                    {tab.description}
-                  </div>
-                </div>
-                
-                {/* Show placeholder for non-Myfrido tabs */}
-                {activeTab !== 'website' && (
-                  <div style={{ 
-                    padding: '3rem 2rem', 
-                    background: '#f8f9fa', 
-                    borderRadius: '12px', 
-                    textAlign: 'center',
-                    border: '2px dashed #dee2e6',
-                    marginBottom: '2rem'
-                  }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{tab.icon}</div>
-                    <h3 style={{ color: '#6c757d', marginBottom: '1rem', fontSize: '1.5rem' }}>
-                      {tab.label} Analytics Coming Soon
-                    </h3>
-                    <p style={{ color: '#6c757d', fontSize: '1.1rem', margin: '0 0 1rem 0', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>
-                      We're working on bringing you comprehensive {tab.label.toLowerCase()} analytics. This section will include marketplace-specific metrics, performance data, and insights.
-                    </p>
-                    <div style={{ 
-                      background: 'white', 
-                      padding: '1.5rem', 
-                      borderRadius: '8px',
-                      marginTop: '2rem',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}>
-                      <p style={{ color: '#495057', fontSize: '0.95rem', margin: '0', fontWeight: '500' }}>
-                        🚀 <strong>Coming Features:</strong> Sales metrics, profit analysis, customer insights, and performance trends specific to {tab.label}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          ))}
-        </TabContent>
-      </TabContainer>
+                <span className="icon">{tab.icon}</span>
+                {tab.label}
+              </ModernTabButton>
+            ))}
+          </ModernTabHeader>
+          
+                    <ModernTabContent>
+                        {/* Overall Tab Content */}
+            {activeTab === 'overall' && (
+              <div>
+                {(() => {
+                  const combinedData = getCombinedData();
+                  if (!combinedData) return <div>Loading combined data...</div>;
 
-      {/* All existing data sections - Only show for Myfrido tab */}
-      {activeTab === 'website' && (
-        <>
-          {/* Sales Matrices Section */}
-          <Section>
-            <h2>Sales Matrices</h2>
-            
-            {/* Sales Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#3b82f6' }}>Sales</h3>
-              <StatsGrid>
-                <StatCard
-                  title="Total Sales (INR)"
-                  value={formatCurrency(data.overview.totalSales)}
-                  icon={FiDollarSign}
-                  color="#3b82f6"
-                />
-                <StatCard
-                  title="Gross Sales (INR)"
-                  value={formatCurrency(data.overview.grossSales || data.overview.totalSales)}
-                  icon={FiDollarSign}
-                  color="#10b981"
-                />
-                <StatCard
-                  title="Net Sales (INR)"
-                  value={formatCurrency(data.overview.netSales || 0)}
-                  icon={FiDollarSign}
-                  color="#f59e0b"
-                />
-                <StatCard
-                  title="AOV (Average Order Value)"
-                  value={formatCurrency(data.overview.aov)}
-                  icon={FiCreditCard}
-                  color="#8b5cf6"
-                />
-                <StatCard
-                  title="Gross Sale as % of Total Sales"
-                  value={formatPercentage(data.overview.grossSalePercentage || 100)}
-                  icon={FiPercent}
-                  color="#dc2626"
-                />
-                <StatCard
-                  title="Net Sale as % of Total Sales"
-                  value={formatPercentage(data.overview.netSalePercentage || 100)}
-                  icon={FiPercent}
-                  color="#6366f1"
-                />
-              </StatsGrid>
-            </div>
+                  return (
+                    <>
+                      {/* Data Source Information */}
+                      <div style={{ 
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        border: '1px solid rgba(59, 130, 246, 0.2)',
+                        borderRadius: '12px', 
+                        padding: '1rem 1.5rem',
+                        marginBottom: '1.5rem',
+                        color: '#1e293b'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          <span style={{ fontSize: '1.25rem' }}>ℹ️</span>
+                          <strong>Combined Data Sources</strong>
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: '#475569' }}>
+                          Showing combined analytics from Myfrido and Amazon. 
+                          {!amazonData && ' (Amazon data unavailable - showing Myfrido only)'}
+                          {amazonError && ` (Amazon error: ${amazonError})`}
+                        </p>
+                      </div>
 
-            {/* Orders & Quantity Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#059669' }}>Orders & Quantity</h3>
-              <StatsGrid>
-                <StatCard
-                  title="Total Orders"
-                  value={safeNumberFormat(data.overview.totalOrders)}
-                  icon={FiShoppingCart}
-                  color="#059669"
-                />
-                <StatCard
-                  title="Net Orders"
-                  value={safeNumberFormat(data.overview.netOrders)}
-                  icon={FiShoppingCart}
-                  color="#10b981"
-                />
-                <StatCard
-                  title="Total Quantity"
-                  value={safeNumberFormat(data.overview.totalQuantitySold)}
-                  icon={FiPackage}
-                  color="#f59e0b"
-                />
-                <StatCard
-                  title="Net Quantity"
-                  value={safeNumberFormat(data.overview.netQuantitySold)}
-                  icon={FiPackage}
-                  color="#8b5cf6"
-                />
-                <StatCard
-                  title="Total Returns Quantity"
-                  value={safeNumberFormat(data.overview.totalReturnsQuantity || 0)}
-                  icon={FiRefreshCw}
-                  color="#ef4444"
-                />
-              </StatsGrid>
-            </div>
+                      {/* Sales Matrices Section */}
+                      <SectionCard>
+                        <SectionHeader>
+                          <SectionTitle>
+                            <FiDollarSign size={20} style={{ color: '#10b981' }} />
+                            Overall Sales Metrics
+                          </SectionTitle>
+                          <SectionDescription>Combined sales performance across all channels</SectionDescription>
+                        </SectionHeader>
+                        <SectionContent>
+                          <CompactGrid>
+                            <ModernMetricCard
+                              title="Total Sales"
+                              value={formatCurrency(combinedData.overview.totalSales)}
+                              icon={FiDollarSign}
+                              change={combinedData.overview.revenueChangePercentage}
+                              changeType="positive"
+                              color="#10b981"
+                            />
+                            <ModernMetricCard
+                              title="Gross Sales"
+                              value={formatCurrency(combinedData.overview.grossSales)}
+                              icon={FiTrendingUp}
+                              change={combinedData.overview.grossSalesChangePercentage}
+                              changeType="positive"
+                              color="#3b82f6"
+                            />
+                            <ModernMetricCard
+                              title="Net Sales"
+                              value={formatCurrency(combinedData.overview.netSales)}
+                              icon={FiBarChart2}
+                              change={combinedData.overview.netSalesChangePercentage}
+                              changeType="positive"
+                              color="#8b5cf6"
+                            />
+                            <ModernMetricCard
+                              title="AOV"
+                              value={formatCurrency(combinedData.overview.aov)}
+                              icon={FiShoppingCart}
+                              change={combinedData.overview.aovChangePercentage}
+                              changeType="positive"
+                              color="#f59e0b"
+                            />
+                            <ModernMetricCard
+                              title="Gross Sale %"
+                              value={formatPercentageValue(combinedData.overview.grossSalePercentage)}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#ef4444"
+                            />
+                            <ModernMetricCard
+                              title="Net Sale %"
+                              value={formatPercentageValue(combinedData.overview.netSalePercentage)}
+                              icon={FiTarget}
+                              change="N/A"
+                              changeType="info"
+                              color="#84cc16"
+                            />
+                          </CompactGrid>
+                        </SectionContent>
+                      </SectionCard>
 
-            {/* Returns Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#ef4444' }}>Returns</h3>
-              <StatsGrid>
-                <StatCard
-                  title="Total Returns (INR)"
-                  value={formatCurrency(data.overview.totalReturns || 0)}
-                  icon={FiRefreshCw}
-                  color="#ef4444"
-                />
-                <StatCard
-                  title="Total Return (%)"
-                  value={formatPercentage(data.overview.totalReturnPercentage || 0)}
-                  icon={FiPercent}
-                  color="#dc2626"
-                />
-              </StatsGrid>
-            </div>
+                      {/* Orders & Quantity Section */}
+                      <SectionCard>
+                        <SectionHeader>
+                          <SectionTitle>
+                            <FiPackage size={20} style={{ color: '#3b82f6' }} />
+                            Overall Orders & Quantity
+                          </SectionTitle>
+                          <SectionDescription>Combined order volume and quantity performance metrics</SectionDescription>
+                        </SectionHeader>
+                        <SectionContent>
+                          <CompactGrid>
+                            <ModernMetricCard
+                              title="Total Orders"
+                              value={safeNumberFormat(combinedData.overview.totalOrders)}
+                              icon={FiShoppingCart}
+                              change={combinedData.overview.ordersChangePercentage}
+                              changeType="positive"
+                              color="#3b82f6"
+                            />
+                            <ModernMetricCard
+                              title="Net Orders"
+                              value={safeNumberFormat(combinedData.overview.netOrders)}
+                              icon={FiActivity}
+                              change="N/A"
+                              changeType="info"
+                              color="#10b981"
+                            />
+                            <ModernMetricCard
+                              title="Units Sold"
+                              value={safeNumberFormat(combinedData.overview.totalQuantitySold)}
+                              icon={FiPackage}
+                              change="N/A"
+                              changeType="info"
+                              color="#f59e0b"
+                            />
+                            <ModernMetricCard
+                              title="Net Units"
+                              value={safeNumberFormat(combinedData.overview.netQuantitySold)}
+                              icon={FiTarget}
+                              change="N/A"
+                              changeType="info"
+                              color="#8b5cf6"
+                            />
+                            <ModernMetricCard
+                              title="Returned Units"
+                              value={safeNumberFormat(combinedData.overview.totalReturnsQuantity)}
+                              icon={FiTrendingDown}
+                              change="N/A"
+                              changeType="info"
+                              color="#ef4444"
+                            />
+                          </CompactGrid>
+                        </SectionContent>
+                                              </SectionCard>
 
-            {/* Tax Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#059669' }}>Tax</h3>
-              <StatsGrid>
-                <StatCard
-                  title="Total Tax (INR)"
-                  value={formatCurrency(data.overview.totalTax || 0)}
-                  icon={FiDollarSign}
-                  color="#059669"
-                />
-                <StatCard
-                  title="Total Tax (%)"
-                  value={(data.overview.taxRate || 0)}
-                  icon={FiPercent}
-                  color="#10b981"
-                />
-              </StatsGrid>
-            </div>
+                      {/* Returns & Tax Section */}
+                      <SectionCard>
+                        <SectionHeader>
+                          <SectionTitle>
+                            <FiTrendingDown size={20} style={{ color: '#ef4444' }} />
+                            Overall Returns & Tax
+                          </SectionTitle>
+                          <SectionDescription>Combined return analysis and tax calculations</SectionDescription>
+                        </SectionHeader>
+                        <SectionContent>
+                          <CompactGrid>
+                            <ModernMetricCard
+                              title="Total Returns"
+                              value={formatCurrency(combinedData.overview.totalReturns)}
+                              icon={FiTrendingDown}
+                              change={combinedData.overview.returnsChangePercentage}
+                              changeType="negative"
+                              color="#ef4444"
+                            />
+                            <ModernMetricCard
+                              title="Return Rate"
+                              value={formatPercentageValue(combinedData.overview.totalReturnPercentage)}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#f59e0b"
+                            />
+                            <ModernMetricCard
+                              title="Total Tax"
+                              value={formatCurrency(combinedData.overview.totalTax)}
+                              icon={FiDollarSign}
+                              change={combinedData.overview.taxChangePercentage}
+                              changeType="neutral"
+                              color="#6b7280"
+                            />
+                            <ModernMetricCard
+                              title="Tax Rate"
+                              value={`${combinedData.overview.taxRate.toFixed(1)}%`}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#84cc16"
+                            />
+                          </CompactGrid>
+                        </SectionContent>
+                      </SectionCard>
 
-            {/* Expenses Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#f59e0b' }}>Expenses</h3>
-              <StatsGrid>
-                <StatCard
-                  title="COGS (INR)"
-                  value={formatCurrency(data.overview.cogs || 0)}
-                  icon={FiPackage}
-                  color="#f59e0b"
-                />
-                <StatCard
-                  title="COGS (%)"
-                  value={formatPercentage(data.overview.cogsPercentage || 0)}
-                  icon={FiPercent}
-                  color="#8b5cf6"
-                />
-                <StatCard
-                  title="S&D Cost (INR)"
-                  value={formatCurrency(data.overview.sdCost || 0)}
-                  icon={FiTarget}
-                  color="#6366f1"
-                />
-                <StatCard
-                  title="S&D Cost (%)"
-                  value={formatPercentage(data.overview.sdCostPercentage || 0)}
-                  icon={FiPercent}
-                  color="#3b82f6"
-                />
-              </StatsGrid>
-            </div>
+                      {/* Expenses & ROAS Section */}
+                      <SectionCard>
+                        <SectionHeader>
+                          <SectionTitle>
+                            <FiCreditCard size={20} style={{ color: '#8b5cf6' }} />
+                            Overall Expenses & ROAS
+                          </SectionTitle>
+                          <SectionDescription>Combined cost analysis and return on ad spend calculations</SectionDescription>
+                        </SectionHeader>
+                        <SectionContent>
+                          <CompactGrid>
+                            <ModernMetricCard
+                              title="COGS"
+                              value={formatCurrency(combinedData.overview.cogs)}
+                              icon={FiPackage}
+                              change="N/A"
+                              changeType="info"
+                              color="#ef4444"
+                            />
+                            <ModernMetricCard
+                              title="COGS %"
+                              value={formatPercentageValue(combinedData.overview.cogsPercentage)}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#f59e0b"
+                            />
+                            <ModernMetricCard
+                              title="SD Cost"
+                              value={formatCurrency(combinedData.overview.sdCost)}
+                              icon={FiTrendingUp}
+                              change="N/A"
+                              changeType="info"
+                              color="#3b82f6"
+                            />
+                            <ModernMetricCard
+                              title="SD Cost %"
+                              value={formatPercentageValue(combinedData.overview.sdCostPercentage)}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#10b981"
+                            />
+                            <ModernMetricCard
+                              title="Gross ROAS"
+                              value={combinedData.overview.grossRoas.toFixed(2)}
+                              icon={FiBarChart2}
+                              change="N/A"
+                              changeType="info"
+                              color="#8b5cf6"
+                            />
+                            <ModernMetricCard
+                              title="Net ROAS"
+                              value={combinedData.overview.netRoas.toFixed(2)}
+                              icon={FiActivity}
+                              change="N/A"
+                              changeType="info"
+                              color="#84cc16"
+                            />
+                            <ModernMetricCard
+                              title="N-MER %"
+                              value={formatPercentageValue(combinedData.overview.nMer)}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#ec4899"
+                            />
+                          </CompactGrid>
+                        </SectionContent>
+                      </SectionCard>
 
-            {/* ROAS Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#8b5cf6' }}>ROAS</h3>
-              <StatsGrid>
-                <StatCard
-                  title="Gross ROAS"
-                  value={(data.overview.grossRoas || 0).toFixed(2)}
-                  icon={FiTrendingUp}
-                  color="#8b5cf6"
-                />
-                <StatCard
-                  title="Gross MER (%)"
-                  value={formatPercentage(data.overview.grossMer || 0)}
-                  icon={FiPercent}
-                  color="#6366f1"
-                />
-                <StatCard
-                  title="Net ROAS"
-                  value={(data.overview.netRoas || 0).toFixed(2)}
-                  icon={FiTrendingUp}
-                  color="#10b981"
-                />
-                <StatCard
-                  title="Net MER (%)"
-                  value={formatPercentage(data.overview.netMer || 0)}
-                  icon={FiPercent}
-                  color="#059669"
-                />
-                <StatCard
-                  title="N-ROAS"
-                  value={(data.overview.nRoas || 0).toFixed(2)}
-                  icon={FiTrendingUp}
-                  color="#f59e0b"
-                />
-                <StatCard
-                  title="N-MER (%)"
-                  value={formatPercentage(data.overview.nMer || 0)}
-                  icon={FiPercent}
-                  color="#dc2626"
-                />
-              </StatsGrid>
-            </div>
+                      {/* CAC & Contribution Margin Section */}
+                      <SectionCard>
+                        <SectionHeader>
+                          <SectionTitle>
+                            <FiUsers size={20} style={{ color: '#10b981' }} />
+                            Overall CAC & Contribution Margin
+                          </SectionTitle>
+                          <SectionDescription>Combined customer acquisition cost and profit margin analysis</SectionDescription>
+                        </SectionHeader>
+                        <SectionContent>
+                          <CompactGrid>
+                            <ModernMetricCard
+                              title="CAC"
+                              value={formatCurrency(data.overview.cac || 0)}
+                              icon={FiUsers}
+                              change="N/A"
+                              changeType="info"
+                              color="#3b82f6"
+                            />
+                            <ModernMetricCard
+                              title="CM2"
+                              value={formatCurrency(combinedData.overview.cm2)}
+                              icon={FiTrendingUp}
+                              change="N/A"
+                              changeType="info"
+                              color="#10b981"
+                            />
+                            <ModernMetricCard
+                              title="CM2 %"
+                              value={formatPercentageValue(combinedData.overview.cm2Percentage)}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#f59e0b"
+                            />
+                            <ModernMetricCard
+                              title="CM3"
+                              value={formatCurrency(combinedData.overview.cm3)}
+                              icon={FiBarChart2}
+                              change="N/A"
+                              changeType="info"
+                              color="#8b5cf6"
+                            />
+                            <ModernMetricCard
+                              title="CM3 %"
+                              value={formatPercentageValue(combinedData.overview.cm3Percentage)}
+                              icon={FiPercent}
+                              change="N/A"
+                              changeType="info"
+                              color="#6366f1"
+                            />
+                          </CompactGrid>
+                                                </SectionContent>
+                      </SectionCard>
 
-            {/* CAC Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#ef4444' }}>CAC</h3>
-              <StatsGrid>
-                <StatCard
-                  title="CAC"
-                  value={formatCurrency(data.overview.cac || 0)}
-                  icon={FiCreditCard}
-                  color="#ef4444"
-                />
-                <StatCard
-                  title="N-CAC"
-                  value={formatCurrency(data.overview.nCac || 0)}
-                  icon={FiCreditCard}
-                  color="#dc2626"
-                />
-              </StatsGrid>
-            </div>
-
-            {/* Contribution Margin Metrics */}
-            <div style={{ marginBottom: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#059669' }}>Contribution Margin</h3>
-              <StatsGrid>
-                <StatCard
-                  title="CM2 (INR)"
-                  value={formatCurrency(data.overview.cm2 || 0)}
-                  icon={FiTrendingUp}
-                  color="#059669"
-                />
-                <StatCard
-                  title="CM2 (%)"
-                  value={formatPercentage(data.overview.cm2Percentage || 0)}
-                  icon={FiPercent}
-                  color="#10b981"
-                />
-                <StatCard
-                  title="CM3 (INR)"
-                  value={formatCurrency(data.overview.cm3 || 0)}
-                  icon={FiTrendingUp}
-                  color="#8b5cf6"
-                />
-                <StatCard
-                  title="CM3 (%)"
-                  value={formatPercentage(data.overview.cm3Percentage || 0)}
-                  icon={FiPercent}
-                  color="#6366f1"
-                />
-              </StatsGrid>
-            </div>
-          </Section>
-
-          {/* Marketing Overview */}
-          <BackgroundSection>
-            <h2>Meta Ads Marketing Analytics</h2>
-            
-            <div style={{ marginBottom: '2rem' }}>
+                      {/* Marketing Analytics Section */}
+                      <SectionCard>
+                        <SectionHeader>
+                          <SectionTitle>
+                            <FiTarget size={20} style={{ color: '#f59e0b' }} />
+                            Overall Marketing Analytics
+                          </SectionTitle>
+                          <SectionDescription>Combined marketing performance across all channels</SectionDescription>
+                        </SectionHeader>
+              <SectionContent>
               <div style={{ 
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 color: 'white',
-                padding: '1.5rem',
-                borderRadius: '12px',
-                marginBottom: '1.5rem'
-              }}>
-                <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem' }}>
-                  Targeting Keyword: <span style={{ fontWeight: 'bold', color: '#ffd700' }}>"{data.marketing.keyword || 'N/A'}"</span>
+                  padding: '1.5rem 2rem',
+                  borderRadius: '16px',
+                  marginBottom: '2rem'
+                }}>
+                  <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem', fontWeight: '700' }}>
+                    Targeting Keyword: <span style={{ fontWeight: 'bold', color: '#ffd700' }}>"{data.marketing?.keyword || 'N/A'}"</span>
                 </h3>
                 <p style={{ margin: '0 0 0.5rem 0', opacity: '0.9' }}>
-                  Found {data.marketing.campaignCount} active campaigns for this product
+                    Found {data.marketing?.campaignCount || 0} active campaigns for this product
                 </p>
                 <p style={{ margin: '0', opacity: '0.8', fontSize: '0.9rem' }}>
-                  📅 Marketing data for: {new Date(data.dateFilter.startDate).toLocaleDateString()} - {new Date(data.dateFilter.endDate).toLocaleDateString()}
+                    📅 Marketing data for: {new Date(data.dateFilter?.startDate).toLocaleDateString()} - {new Date(data.dateFilter?.endDate).toLocaleDateString()}
                 </p>
-              </div>
             </div>
 
-            {/* Marketing Metrics */}
-            <StatsGrid>
-              <StatCard
+                <CompactGrid>
+                  <ModernMetricCard
                 title="Total Ad Spend"
-                value={formatCurrency(data.marketing.totalSpend)}
+                    value={formatCurrency(data.marketing?.totalSpend || 0)}
                 icon={FiDollarSign}
                 color="#ef4444"
               />
-              <StatCard
+                  <ModernMetricCard
                 title="Total Impressions"
-                value={safeNumberFormat(data.marketing.totalImpressions)} 
+                    value={safeNumberFormat(data.marketing?.totalImpressions || 0)} 
                 icon={FiEye}
                 color="#3b82f6"
               />
-              <StatCard
+                  <ModernMetricCard
                 title="Total Clicks"
-                value={safeNumberFormat(data.marketing.totalClicks)}
+                    value={safeNumberFormat(data.marketing?.totalClicks || 0)}
                 icon={FiMousePointer}
                 color="#10b981"
               />
-              <StatCard
+                  <ModernMetricCard
                 title="Total Purchases"
-                value={safeNumberFormat(data.marketing.totalPurchases)}
+                    value={safeNumberFormat(data.marketing?.totalPurchases || 0)}
                 icon={FiShoppingCart}
                 color="#8b5cf6"
               />
-              <StatCard
+                  <ModernMetricCard
                 title="Purchase Value"
-                value={formatCurrency(data.marketing.totalPurchaseValue)}
+                    value={formatCurrency(data.marketing?.totalPurchaseValue || 0)}
                 icon={FiDollarSign}
                 color="#059669"
               />
-              <StatCard
+                  <ModernMetricCard
                 title="ROAS"
-                value={formatPercentage(data.marketing.averageRoas)}
+                    value={formatPercentageValue(data.marketing?.averageRoas || 0)}
                 icon={FiTrendingUp}
                 color="#10b981"
               />
-              <StatCard
+                  <ModernMetricCard
                 title="Cost Per Click"
-                value={formatCurrency(data.marketing.averageCpc)}
+                    value={formatCurrency(data.marketing?.averageCpc || 0)}
                 icon={FiTarget}
                 color="#f59e0b"
               />
-              <StatCard
+                  <ModernMetricCard
                 title="Click-Through Rate"
-                value={formatPercentage(data.marketing.averageCtr)}
+                    value={formatPercentageValue(data.marketing?.averageCtr || 0)}
                 icon={FiActivity}
                 color="#6366f1"
               />
-            </StatsGrid>
+                </CompactGrid>
+              </SectionContent>
+            </SectionCard>
 
-            {/* Performance Metrics */}
-            <div style={{ marginTop: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem' }}>Performance Insights</h3>
-              <StatsGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
-                <StatCard
-                  title="Cost Per Purchase"
-                  value={formatCurrency(data.marketing.performanceMetrics.costPerPurchase)}
-                  icon={FiTarget}
-                  color="#ef4444"
-                />
-                <StatCard
-                  title="Conversion Rate"
-                  value={formatPercentage(data.marketing.performanceMetrics.conversionRate)}
-                  icon={FiPercent}
-                  color="#10b981"
-                />
-                <StatCard
-                  title="Profit from Ads"
-                  value={formatCurrency(data.marketing.performanceMetrics.profitFromAds)}
-                  icon={FiTrendingUp}
-                  color={data.marketing.performanceMetrics.profitFromAds > 0 ? "#059669" : "#dc2626"}
-                />
-              </StatsGrid>
+                {/* Variants Analysis */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Overall Variants Analysis</h2>
+                    <p>Combined performance breakdown across all channels (Currently: Myfrido only)</p>
+                  </SectionHeader>
+              <SectionContent>
+                <CompactGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', marginBottom: '2rem' }}>
+                  <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4ECDC4' }}>
+                      {safeNumberFormat(data.variantInsights?.length || 0)}
             </div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Total Variants</div>
+                  </div>
+                  <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FF6B6B' }}>
+                      {safeDisplayValue(data.variantInsights?.[0]?.name || data.variantInsights?.[0]?.variant_name)}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Top Performing</div>
+                  </div>
+                </CompactGrid>
 
-
-
-            {/* No Campaigns Found Message */}
-            {(!data.marketing.campaigns || data.marketing.campaigns.length === 0) && (
+                {/* Variants Table */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#1e293b', fontWeight: '600' }}>Product Variants List</h3>
               <div style={{ 
-                textAlign: 'center', 
-                padding: '3rem 2rem',
-                background: '#f8f9fa',
-                borderRadius: '8px',
-                marginTop: '2rem'
-              }}>
-                <FiBarChart2 size={48} style={{ color: '#6c757d', marginBottom: '1rem' }} />
-                <h3 style={{ color: '#6c757d', marginBottom: '0.5rem' }}>No Campaign Data Available</h3>
-                <p style={{ color: '#6c757d', margin: '0' }}>
-                  No Meta Ads campaigns found for the keyword "{data.marketing.keyword}" or the keyword is not configured for marketing campaigns.
-                </p>
+                    background: 'white', 
+                    borderRadius: '16px', 
+                    overflow: 'hidden',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <div style={{ 
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      padding: '1rem 1.5rem',
+                      fontWeight: '600',
+                      display: 'grid',
+                      gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                      gap: '1rem',
+                      alignItems: 'center'
+                    }}>
+                      <div>Variant Details</div>
+                      <div style={{ textAlign: 'center' }}>Units Sold</div>
+                      <div style={{ textAlign: 'center' }}>Revenue</div>
+                      <div style={{ textAlign: 'center' }}>Avg Price</div>
+                      <div style={{ textAlign: 'center' }}>Orders</div>
+                      <div style={{ textAlign: 'center' }}>Performance</div>
               </div>
-            )}
-          </BackgroundSection>
-
-          {/* Variants Summary */}
-          <BackgroundSection>
-            <h2>Variants Performance Analysis</h2>
-            
-            {/* Variants Overview Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-                  {safeNumberFormat(data.variantInsights.length)}
+                    
+                    {data.variantInsights && data.variantInsights.length > 0 ? (
+                      data.variantInsights.map((variant, index) => (
+                        <div key={index} style={{ 
+                          padding: '1rem 1.5rem',
+                          borderBottom: index < data.variantInsights.length - 1 ? '1px solid #f1f5f9' : 'none',
+                          display: 'grid',
+                          gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                          gap: '1rem',
+                          alignItems: 'center',
+                          ':hover': {
+                            background: '#f8fafc'
+                          }
+                        }}>
+                          <div>
+                            <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                              {variant.name || variant.variant_name || 'N/A'}
+                            </div>
+                            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                              SKU: {variant.sku || variant.variant_sku || 'N/A'}
+                            </div>
+                            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                              Units: {safeNumberFormat(variant.soldCount || variant.total_units_sold)} | 
+                              Share: {formatPercentageValue(variant.unitsPercentage || variant.units_sold_percentage)}
+                            </div>
+                          </div>
+                          
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                              {safeNumberFormat(variant.soldCount || variant.total_units_sold)}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Total Variants</div>
               </div>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-                  {safeDisplayValue(data.variantInsights[0]?.variant_name)}
+                          
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: '600', color: '#059669' }}>
+                              {formatCurrency(variant.salesAmount || variant.total_sales_amount)}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Top Performing</div>
               </div>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#45B7D1' }}>
-                  {formatCurrency(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseFloat(variant.total_sales_amount), 0) / data.variantInsights.length))}
+                          
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                              {formatCurrency((variant.salesAmount || variant.total_sales_amount) / (variant.soldCount || variant.total_units_sold || 1))}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Revenue/Variant</div>
               </div>
-              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#96CEB4' }}>
-                  {safeNumberFormat(Math.round(data.variantInsights.reduce((sum, variant) => sum + parseInt(variant.total_units_sold), 0) / data.variantInsights.length))}
+                          
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                              {safeNumberFormat(variant.soldCount || variant.total_units_sold)}
                 </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Avg Units/Variant</div>
+                          </div>
+                          
+                          <div style={{ textAlign: 'center' }}>
+                            <div style={{ 
+                              display: 'inline-block',
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: index === 0 ? '#dcfce7' : index === 1 ? '#fef3c7' : '#f1f5f9',
+                              color: index === 0 ? '#15803d' : index === 1 ? '#d97706' : '#64748b'
+                            }}>
+                              {index === 0 ? 'Top Performer' : index === 1 ? 'Good' : 'Average'}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ 
+                        padding: '2rem',
+                        textAlign: 'center',
+                        color: '#64748b'
+                      }}>
+                        No variant data available
+                      </div>
+                    )}
               </div>
             </div>
 
             {/* Charts Section */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-              {/* Units Sold Distribution */}
-              <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Units Sold Distribution</h3>
-                <div style={{ height: '250px' }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '20px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                        Units Sold Distribution
+                      </h3>
+                      <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                        Performance breakdown by variants
+                      </p>
+                    </div>
+                    <div style={{ 
+                      height: '280px',
+                      background: 'rgba(248, 250, 252, 0.5)',
+                      borderRadius: '16px',
+                      padding: '1rem',
+                      border: '1px solid rgba(226, 232, 240, 0.5)'
+                    }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={data.variantInsights.map(variant => ({
-                          name: variant.variant_title,
-                          value: parseInt(variant.total_units_sold),
-                          percentage: parseFloat(variant.units_sold_percentage)
-                        }))}
+                            data={data.variantInsights?.map(variant => ({
+                              name: variant.name || variant.variant_name || 'Unknown',
+                              value: parseInt(variant.soldCount || variant.total_units_sold),
+                            })) || []}
                         cx="50%"
                         cy="50%"
-                        outerRadius={80}
+                            outerRadius={90}
+                            innerRadius={40}
                         fill="#8884d8"
                         dataKey="value"
-                        label={({ name, percentage }) => `${name} (${percentage}%)`}
                       >
-                        {data.variantInsights.map((entry, index) => (
+                            {data.variantInsights?.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [value.toLocaleString(), 'Units Sold']} />
+                          <Tooltip 
+                            formatter={(value) => [value.toLocaleString(), 'Units Sold']}
+                            contentStyle={{
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(20px)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              borderRadius: '12px'
+                            }}
+                          />
+                          <Legend 
+                            wrapperStyle={{
+                              fontSize: '0.875rem',
+                              color: '#64748b'
+                            }}
+                          />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Revenue Distribution */}
-              <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Revenue Distribution</h3>
-                <div style={{ height: '250px' }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '20px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                        Revenue Distribution
+                      </h3>
+                      <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                        Sales value by variant performance
+                      </p>
+                    </div>
+                    <div style={{ 
+                      height: '280px',
+                      background: 'rgba(248, 250, 252, 0.5)',
+                      borderRadius: '16px',
+                      padding: '1rem',
+                      border: '1px solid rgba(226, 232, 240, 0.5)'
+                    }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={data.variantInsights.map(variant => ({
-                        name: variant.variant_title,
-                        revenue: parseFloat(variant.total_sales_amount),
-                        units: parseInt(variant.total_units_sold)
-                      }))}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'revenue' ? formatCurrency(value) : value.toLocaleString(),
-                        name === 'revenue' ? 'Revenue' : 'Units'
-                      ]} />
-                      <Legend />
-                      <Bar dataKey="revenue" fill="#8884d8" name="Revenue" />
+                          data={data.variantInsights?.map(variant => ({
+                            name: variant.name || variant.variant_name || 'Unknown',
+                            revenue: parseFloat(variant.salesAmount || variant.total_sales_amount),
+                          })) || []}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
+                          <XAxis 
+                            dataKey="name" 
+                            tick={{ fontSize: 12, fill: '#64748b' }}
+                            axisLine={{ stroke: '#e2e8f0' }}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 12, fill: '#64748b' }}
+                            axisLine={{ stroke: '#e2e8f0' }}
+                          />
+                          <Tooltip 
+                            formatter={(value) => [formatCurrency(value), 'Revenue']}
+                            contentStyle={{
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(20px)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              borderRadius: '12px'
+                            }}
+                          />
+                          <Legend 
+                            wrapperStyle={{
+                              fontSize: '0.875rem',
+                              color: '#64748b'
+                            }}
+                          />
+                          <Bar 
+                            dataKey="revenue" 
+                            fill="url(#revenueGradient)" 
+                            name="Revenue"
+                            radius={[8, 8, 0, 0]}
+                          />
+                          <defs>
+                            <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#10b981" />
+                              <stop offset="100%" stopColor="#059669" />
+                            </linearGradient>
+                          </defs>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
+              </SectionContent>
+            </SectionCard>
 
-
-
-            {/* Detailed Variants Table */}
-            <div>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Detailed Variant Analysis</h3>
-              <VariantsTable>
-                <thead>
-                  <tr>
-                    <th>Variant</th>
-                    <th>Units Sold</th>
-                    <th>Market Share</th>
-                    <th>Total Revenue</th>
-                    <th>Avg Price per Unit</th>
-                    <th>Performance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.variantInsights.map((variant, index) => {
-                    const avgPrice = parseFloat(variant.total_sales_amount) / parseInt(variant.total_units_sold);
-                    const totalUnits = data.variantInsights.reduce((sum, v) => sum + parseInt(v.total_units_sold), 0);
-                    const performance = parseFloat(variant.units_sold_percentage);
-                    
-                    return (
-                      <tr key={index}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div 
-                              style={{ 
-                                width: '12px', 
-                                height: '12px', 
-                                borderRadius: '50%', 
-                                backgroundColor: COLORS[index % COLORS.length] 
-                              }}
-                            ></div>
-                            <strong>{safeDisplayValue(variant.variant_name)}</strong>
-                          </div>
-                        </td>
-                        <td>{safeNumberFormat(parseInt(variant.total_units_sold))}</td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{ 
-                              width: '60px', 
-                              height: '8px', 
-                              backgroundColor: '#e0e0e0', 
-                              borderRadius: '4px',
-                              overflow: 'hidden'
-                            }}>
-                              <div style={{ 
-                                width: `${performance}%`, 
-                                height: '100%', 
-                                backgroundColor: COLORS[index % COLORS.length],
-                                borderRadius: '4px'
-                              }}></div>
-                            </div>
-                            <span>{formatPercentage(performance)}</span>
-                          </div>
-                        </td>
-                        <td>{formatCurrency(parseFloat(variant.total_sales_amount))}</td>
-                        <td>{formatCurrency(avgPrice)}</td>
-                        <td>
-                          <span style={{ 
-                            padding: '0.25rem 0.5rem', 
-                            borderRadius: '12px', 
-                            fontSize: '0.8rem',
-                            backgroundColor: performance > 20 ? '#d4edda' : performance > 10 ? '#fff3cd' : '#f8d7da',
-                            color: performance > 20 ? '#155724' : performance > 10 ? '#856404' : '#721c24'
-                          }}>
-                            {performance > 20 ? 'Excellent' : performance > 10 ? 'Good' : 'Average'}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </VariantsTable>
-            </div>
-          </BackgroundSection>
-
-            {/* Customer Insights */}
-            <BackgroundSection>
-            <h2>Customer Insights</h2>
-            
-            {/* Customer Overview Stats */}
-            <StatsGrid>
-              <StatCard
+                {/* Customer Insights */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Overall Customer Insights</h2>
+                    <p>Combined customer behavior across all channels (Currently: Myfrido only)</p>
+                  </SectionHeader>
+              <SectionContent>
+                <CompactGrid>
+                  <ModernMetricCard
                 title="Total Customers"
-                value={safeNumberFormat(data.customerInsights.totalCustomers)}
+                    value={safeNumberFormat(data.customerInsights?.totalCustomers || 0)}
                 icon={FiUsers}
                 color="#3b82f6"
-                change={12.5}
               />
-              <StatCard
+                  <ModernMetricCard
                 title="Repeat Customers"
-                value={safeNumberFormat(data.customerInsights.repeatCustomers)}
+                    value={safeNumberFormat(data.customerInsights?.repeatCustomers || 0)}
                 icon={FiUsers}
-                color="#3b82f6"
-                change={8.3}
-              />
-              <StatCard
-                title="Repeat Customer Rate"
-                value={data?.customerInsights?.repeatCustomerRate?.toFixed(2)}
+                    color="#10b981"
+                  />
+                  <ModernMetricCard
+                    title="Repeat Rate"
+                    value={formatPercentageValue(data.customerInsights?.repeatCustomerRate || 0)}
                 icon={FiPercent}
-                color="#dc2626"
-                change={1.2}
-              />
-              <StatCard
-                title="Avg. Orders per Customer"
-                value={data?.customerInsights?.avgOrdersPerCustomer?.toFixed(2)}
+                    color="#8b5cf6"
+                  />
+                  <ModernMetricCard
+                    title="Avg Orders/Customer"
+                    value={(data.customerInsights?.avgOrdersPerCustomer || 0).toFixed(2)}
                 icon={FiUsers}
-                color="#3b82f6"
-                change={5.1}
-              />
-              <StatCard
-                title="Customer Acquisition Cost"
-                value={formatCurrency(data.customerInsights.customerAcquisitionCost)}
+                    color="#f59e0b"
+                  />
+                  <ModernMetricCard
+                    title="Acquisition Cost"
+                    value={formatCurrency(data.customerInsights?.customerAcquisitionCost || 0)}
                 icon={FiCreditCard}
                 color="#ef4444"
               />
-            </StatsGrid>
+                </CompactGrid>
 
-            {/* Customer Breakdown Charts */}
+                {/* Customer Charts */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
-              {/* Customer Type Distribution */}
-              <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Customer Type Distribution</h3>
-                <div style={{ height: '250px' }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '20px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                        Customer Type Distribution
+                      </h3>
+                      <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                        First-time vs returning customers
+                      </p>
+                    </div>
+                    <div style={{ 
+                      height: '280px',
+                      background: 'rgba(248, 250, 252, 0.5)',
+                      borderRadius: '16px',
+                      padding: '1rem',
+                      border: '1px solid rgba(226, 232, 240, 0.5)'
+                    }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={[
-                          { name: 'First-time Customers', value: data.customerInsights.firstTimeCustomers}, // TODO: Replace with actual data
-                          { name: 'Repeat Customers', value: data.customerInsights.repeatCustomers} // TODO: Replace with actual data
+                              { name: 'First-time', value: data.customerInsights?.firstTimeCustomers || 0},
+                              { name: 'Returning', value: data.customerInsights?.repeatCustomers || 0}
                         ]}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
+                            innerRadius={70}
+                            outerRadius={110}
                         fill="#8884d8"
-                        paddingAngle={2}
                         dataKey="value"
+                            paddingAngle={5}
                       >
-                        <Cell fill="#FF6B6B" />
-                        <Cell fill="#4ECDC4" />
+                            <Cell fill="url(#firstTimeGradient)" />
+                            <Cell fill="url(#returningGradient)" />
                       </Pie>
-                      <Tooltip formatter={(value) => [value.toLocaleString(), '']} />
-                      <Legend />
+                          <Tooltip 
+                            formatter={(value) => [value.toLocaleString(), 'Customers']}
+                            contentStyle={{
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(20px)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              borderRadius: '12px'
+                            }}
+                          />
+                          <Legend 
+                            wrapperStyle={{
+                              fontSize: '0.875rem',
+                              color: '#64748b'
+                            }}
+                          />
+                          <defs>
+                            <linearGradient id="firstTimeGradient" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#FF6B6B" />
+                              <stop offset="100%" stopColor="#ee5a52" />
+                            </linearGradient>
+                            <linearGradient id="returningGradient" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0%" stopColor="#4ECDC4" />
+                              <stop offset="100%" stopColor="#44b3ac" />
+                            </linearGradient>
+                          </defs>
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Customer Segments by Value */}
-              <div>
-                <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Customer Segments by Value</h3>
-                <div style={{ height: '250px' }}>
+                  <div style={{
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    borderRadius: '20px',
+                    padding: '1.5rem',
+                    border: '1px solid rgba(255, 255, 255, 0.2)'
+                  }}>
+                    <div style={{ marginBottom: '1.5rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                        Order Frequency
+                      </h3>
+                      <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                        Customer purchase behavior patterns
+                      </p>
+                    </div>
+                    <div style={{ 
+                      height: '280px',
+                      background: 'rgba(248, 250, 252, 0.5)',
+                      borderRadius: '16px',
+                      padding: '1rem',
+                      border: '1px solid rgba(226, 232, 240, 0.5)'
+                    }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={[
-                        { segment: 'High Value', customers: data.customerInsights.highValueCustomers.customerCount, percentage: data.customerInsights.highValueCustomers.customerPercentage }, // TODO: Replace with actual data
-                        { segment: 'Medium Value', customers: data.customerInsights.mediumValueCustomers.customerCount, percentage: data.customerInsights.mediumValueCustomers.customerPercentage }, // TODO: Replace with actual data
-                        { segment: 'Low Value', customers: data.customerInsights.lowValueCustomers.customerCount, percentage: data.customerInsights.lowValueCustomers.customerPercentage } // TODO: Replace with actual data
-                      ]}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="segment" />
-                      <YAxis />
-                      <Tooltip formatter={(value, name) => [
-                        name === 'customers' ? value.toLocaleString() : `${value}%`,
-                        name === 'customers' ? 'Customers' : 'Percentage'
-                      ]} />
-                      <Legend />
-                      <Bar dataKey="customers" fill="#8884d8" />
+                            { name: '1 Order', customers: parseInt(data.customerInsights?.frequencyDistribution?.oneOrderCustomers?.customerCount || '0') },
+                            { name: '2 Orders', customers: parseInt(data.customerInsights?.frequencyDistribution?.twoOrdersCustomers?.customerCount || '0') },
+                            { name: '3 Orders', customers: parseInt(data.customerInsights?.frequencyDistribution?.threeOrdersCustomers?.customerCount || '0') },
+                            { name: '4+ Orders', customers: parseInt(data.customerInsights?.frequencyDistribution?.fourOrdersCustomers?.customerCount || '0') },
+                          ]}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
+                          <XAxis 
+                            dataKey="name" 
+                            tick={{ fontSize: 12, fill: '#64748b' }}
+                            axisLine={{ stroke: '#e2e8f0' }}
+                          />
+                          <YAxis 
+                            tick={{ fontSize: 12, fill: '#64748b' }}
+                            axisLine={{ stroke: '#e2e8f0' }}
+                          />
+                          <Tooltip 
+                            formatter={(value) => [value.toLocaleString(), 'Customers']}
+                            contentStyle={{
+                              background: 'rgba(255, 255, 255, 0.95)',
+                              backdropFilter: 'blur(20px)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              borderRadius: '12px'
+                            }}
+                          />
+                          <Legend 
+                            wrapperStyle={{
+                              fontSize: '0.875rem',
+                              color: '#64748b'
+                            }}
+                          />
+                          <Bar 
+                            dataKey="customers" 
+                            fill="url(#frequencyGradient)" 
+                            name="Customers"
+                            radius={[8, 8, 0, 0]}
+                          />
+                          <defs>
+                            <linearGradient id="frequencyGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#8b5cf6" />
+                              <stop offset="100%" stopColor="#7c3aed" />
+                            </linearGradient>
+                          </defs>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
-
-            {/* Customer Order Frequency Chart */}
-            <div style={{ marginTop: '2rem' }}>
-              <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>Customer Order Frequency</h3>
-              <div style={{ height: '300px' }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={[
-                      { name: '1 Order', customers: parseInt(data.customerInsights.frequencyDistribution.oneOrderCustomers.customerCount || '0') },
-                      { name: '2 Orders', customers: parseInt(data.customerInsights.frequencyDistribution.twoOrdersCustomers.customerCount || '0') },
-                      { name: '3 Orders', customers: parseInt(data.customerInsights.frequencyDistribution.threeOrdersCustomers.customerCount || '0') },
-                      { name: '4+ Orders', customers: parseInt(data.customerInsights.frequencyDistribution.fourOrdersCustomers.customerCount || '0') },
-                    ]}
-                    margin={{
-                      top: 20, right: 30, left: 20, bottom: 5,
-                    }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [value.toLocaleString(), 'Customers']} />
-                    <Legend />
-                    <Bar dataKey="customers" fill="#4ECDC4" name="Number of Customers" />
-                  </BarChart>
-                </ResponsiveContainer>
+              </SectionContent>
+            </SectionCard>
+                    </>
+                  );
+                })()}
               </div>
-            </div>
+            )}
 
-          </BackgroundSection>
+            {/* Myfrido Tab Content */}
+            {activeTab === 'myfrido' && (
+              <div>
+                {/* Sales Matrices Section */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido Sales Metrics</h2>
+                    <p>Comprehensive sales performance analysis for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    {/* Sales Metrics */}
+                    <CompactGrid>
+                      <ModernMetricCard
+                        title="Total Sales"
+                        value={formatCurrency(data.overview.totalSales)}
+                        icon={FiDollarSign}
+                        color="#3b82f6"
+                      />
+                      <ModernMetricCard
+                        title="Gross Sales"
+                        value={formatCurrency(data.overview.grossSales || data.overview.totalSales)}
+                        icon={FiDollarSign}
+                        color="#10b981"
+                      />
+                      <ModernMetricCard
+                        title="Net Sales"
+                        value={formatCurrency(data.overview.netSales || 0)}
+                        icon={FiDollarSign}
+                        color="#f59e0b"
+                      />
+                      <ModernMetricCard
+                        title="AOV"
+                        value={formatCurrency(data.overview.aov)}
+                        icon={FiCreditCard}
+                        color="#8b5cf6"
+                      />
+                      <ModernMetricCard
+                        title="Gross Sale %"
+                        value={formatPercentageValue(data.overview.grossSalePercentage || 100)}
+                        icon={FiPercent}
+                        color="#dc2626"
+                      />
+                      <ModernMetricCard
+                        title="Net Sale %"
+                        value={formatPercentageValue(data.overview.netSalePercentage || 100)}
+                        icon={FiPercent}
+                        color="#6366f1"
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
 
+                {/* Orders & Quantity Metrics */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido Orders & Quantity</h2>
+                    <p>Order volume and quantity analysis for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      <ModernMetricCard
+                        title="Total Orders"
+                        value={safeNumberFormat(data.overview.totalOrders)}
+                        icon={FiShoppingCart}
+                        color="#059669"
+                      />
+                      <ModernMetricCard
+                        title="Net Orders"
+                        value={safeNumberFormat(data.overview.netOrders)}
+                        icon={FiShoppingCart}
+                        color="#10b981"
+                      />
+                      <ModernMetricCard
+                        title="Total Quantity"
+                        value={safeNumberFormat(data.overview.totalQuantitySold)}
+                        icon={FiPackage}
+                        color="#f59e0b"
+                      />
+                      <ModernMetricCard
+                        title="Net Quantity"
+                        value={safeNumberFormat(data.overview.netQuantitySold)}
+                        icon={FiPackage}
+                        color="#8b5cf6"
+                      />
+                      <ModernMetricCard
+                        title="Returns Quantity"
+                        value={safeNumberFormat(data.overview.totalReturnsQuantity || 0)}
+                        icon={FiRefreshCw}
+                        color="#ef4444"
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
 
-          
-          
-        </>
-      )}
-    </PageContainer>
+                {/* Add all other sections for Myfrido */}
+                {/* Returns & Tax Metrics */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido Returns & Tax</h2>
+                    <p>Return rates and tax analysis for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      <ModernMetricCard
+                        title="Total Returns"
+                        value={formatCurrency(data.overview.totalReturns || 0)}
+                        icon={FiRefreshCw}
+                        color="#ef4444"
+                      />
+                      <ModernMetricCard
+                        title="Return Rate"
+                        value={formatPercentageValue(data.overview.totalReturnPercentage || 0)}
+                        icon={FiPercent}
+                        color="#dc2626"
+                      />
+                      <ModernMetricCard
+                        title="Total Tax"
+                        value={formatCurrency(data.overview.totalTax || 0)}
+                        icon={FiDollarSign}
+                        color="#059669"
+                      />
+                      <ModernMetricCard
+                        title="Tax Rate"
+                        value={`${data.overview.taxRate || 0}%`}
+                        icon={FiPercent}
+                        color="#10b981"
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
+
+                {/* Expenses & ROAS Metrics */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido Expenses & ROAS</h2>
+                    <p>Cost analysis and return on ad spend for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      <ModernMetricCard
+                        title="COGS"
+                        value={formatCurrency(data.overview.cogs || 0)}
+                        icon={FiPackage}
+                        color="#f59e0b"
+                      />
+                      <ModernMetricCard
+                        title="COGS %"
+                        value={formatPercentageValue(data.overview.cogsPercentage || 0)}
+                        icon={FiPercent}
+                        color="#8b5cf6"
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost"
+                        value={formatCurrency(data.overview.sdCost || 0)}
+                        icon={FiTarget}
+                        color="#6366f1"
+                      />
+                      <ModernMetricCard
+                        title="S&D Cost %"
+                        value={formatPercentageValue(data.overview.sdCostPercentage || 0)}
+                        icon={FiPercent}
+                        color="#3b82f6"
+                      />
+                      <ModernMetricCard
+                        title="Gross ROAS"
+                        value={(data.overview.grossRoas || 0).toFixed(2)}
+                        icon={FiTrendingUp}
+                        color="#8b5cf6"
+                      />
+                      <ModernMetricCard
+                        title="Net ROAS"
+                        value={(data.overview.netRoas || 0).toFixed(2)}
+                        icon={FiTrendingUp}
+                        color="#6366f1"
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
+
+                {/* CAC & Contribution Margin Metrics */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido CAC & Contribution Margin</h2>
+                    <p>Customer acquisition cost and profitability metrics for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      <ModernMetricCard
+                        title="Total CAC"
+                        value={formatCurrency(data.overview.cac || 0)}
+                        icon={FiDollarSign}
+                        color="#ef4444"
+                      />
+                      <ModernMetricCard
+                        title="Paid CAC"
+                        value={formatCurrency(data.overview.paidCac || 0)}
+                        icon={FiTarget}
+                        color="#f59e0b"
+                      />
+                      <ModernMetricCard
+                        title="Organic CAC"
+                        value={formatCurrency(data.overview.organicCac || 0)}
+                        icon={FiTrendingUp}
+                        color="#10b981"
+                      />
+                      <ModernMetricCard
+                        title="Contribution Margin"
+                        value={formatCurrency(data.overview.contributionMargin || 0)}
+                        icon={FiPercent}
+                        color="#8b5cf6"
+                      />
+                      <ModernMetricCard
+                        title="Contribution Margin %"
+                        value={formatPercentageValue(data.overview.contributionMarginPercentage || 0)}
+                        icon={FiPercent}
+                        color="#6366f1"
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
+                
+                {/* Marketing Analytics */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido Marketing Analytics</h2>
+                    <p>Meta Ads performance and insights for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <div style={{ 
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      padding: '1.5rem 2rem',
+                      borderRadius: '16px',
+                      marginBottom: '2rem'
+                    }}>
+                      <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.2rem', fontWeight: '700' }}>
+                        Targeting Keyword: <span style={{ fontWeight: 'bold', color: '#ffd700' }}>"{data.marketing?.keyword || 'N/A'}"</span>
+                      </h3>
+                      <p style={{ margin: '0 0 0.5rem 0', opacity: '0.9' }}>
+                        Found {data.marketing?.campaignCount || 0} active campaigns for this product
+                      </p>
+                      <p style={{ margin: '0', opacity: '0.8', fontSize: '0.9rem' }}>
+                        📅 Marketing data for: {new Date(data.dateFilter?.startDate).toLocaleDateString()} - {new Date(data.dateFilter?.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <CompactGrid>
+                      <ModernMetricCard
+                        title="Total Ad Spend"
+                        value={formatCurrency(data.marketing?.totalSpend || 0)}
+                        icon={FiDollarSign}
+                        color="#ef4444"
+                      />
+                      <ModernMetricCard
+                        title="Total Impressions"
+                        value={safeNumberFormat(data.marketing?.totalImpressions || 0)} 
+                        icon={FiEye}
+                        color="#3b82f6"
+                      />
+                      <ModernMetricCard
+                        title="Total Clicks"
+                        value={safeNumberFormat(data.marketing?.totalClicks || 0)}
+                        icon={FiMousePointer}
+                        color="#10b981"
+                      />
+                      <ModernMetricCard
+                        title="Total Purchases"
+                        value={safeNumberFormat(data.marketing?.totalPurchases || 0)}
+                        icon={FiShoppingCart}
+                        color="#8b5cf6"
+                      />
+                      <ModernMetricCard
+                        title="Purchase Value"
+                        value={formatCurrency(data.marketing?.totalPurchaseValue || 0)}
+                        icon={FiDollarSign}
+                        color="#059669"
+                      />
+                      <ModernMetricCard
+                        title="ROAS"
+                        value={formatPercentageValue(data.marketing?.averageRoas || 0)}
+                        icon={FiTrendingUp}
+                        color="#6366f1"
+                      />
+                      <ModernMetricCard
+                        title="CTR"
+                        value={formatPercentageValue(data.marketing?.averageCtr || 0)}
+                        icon={FiMousePointer}
+                        color="#f59e0b"
+                      />
+                      <ModernMetricCard
+                        title="CPC"
+                        value={formatCurrency(data.marketing?.averageCpc || 0)}
+                        icon={FiDollarSign}
+                        color="#dc2626"
+                      />
+                    </CompactGrid>
+                  </SectionContent>
+                </SectionCard>
+
+                {/* Variants Analysis */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido Variants Analysis</h2>
+                    <p>Performance breakdown by product variants for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    {/* Top Performing Variants */}
+                    <div style={{ marginBottom: '2rem' }}>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1e293b', marginBottom: '1rem' }}>
+                        Top Performing Variants
+                      </h3>
+                      
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        borderRadius: '16px',
+                        padding: '1.5rem',
+                        border: '1px solid rgba(0, 0, 0, 0.05)'
+                      }}>
+                        {/* Headers */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                          gap: '1rem',
+                          padding: '1rem 0',
+                          borderBottom: '2px solid #e2e8f0',
+                          fontWeight: '600',
+                          color: '#64748b',
+                          fontSize: '0.875rem'
+                        }}>
+                          <div>Variant</div>
+                          <div style={{ textAlign: 'center' }}>Units Sold</div>
+                          <div style={{ textAlign: 'center' }}>Revenue</div>
+                          <div style={{ textAlign: 'center' }}>Avg Price</div>
+                          <div style={{ textAlign: 'center' }}>Stock</div>
+                          <div style={{ textAlign: 'center' }}>Performance</div>
+                        </div>
+                        
+                        {/* Variant Rows */}
+                        {data.variantInsights && data.variantInsights.length > 0 ? (
+                          data.variantInsights.map((variant, index) => (
+                            <div key={index} style={{
+                              display: 'grid',
+                              gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                              gap: '1rem',
+                              padding: '1rem 0',
+                              borderBottom: index < data.variantInsights.length - 1 ? '1px solid #f1f5f9' : 'none',
+                              alignItems: 'center'
+                            }}>
+                              <div>
+                                <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                                  {variant.name || variant.variant_name || 'N/A'}
+                                </div>
+                                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                  SKU: {variant.sku || variant.variant_sku || 'N/A'}
+                                </div>
+                                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                  Units: {safeNumberFormat(variant.soldCount || variant.total_units_sold)} | 
+                                  Share: {formatPercentageValue(variant.unitsPercentage || variant.units_sold_percentage)}
+                                </div>
+                              </div>
+                              
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                  {safeNumberFormat(variant.soldCount || variant.total_units_sold)}
+                                </div>
+                              </div>
+                              
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: '600', color: '#059669' }}>
+                                  {formatCurrency(variant.salesAmount || variant.total_sales_amount)}
+                                </div>
+                              </div>
+                              
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                  {formatCurrency((variant.salesAmount || variant.total_sales_amount) / (variant.soldCount || variant.total_units_sold || 1))}
+                                </div>
+                              </div>
+                              
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                  {safeNumberFormat(variant.soldCount || variant.total_units_sold)}
+                                </div>
+                              </div>
+                              
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ 
+                                  display: 'inline-block',
+                                  padding: '0.25rem 0.75rem',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  background: index === 0 ? '#dcfce7' : index === 1 ? '#fef3c7' : '#f1f5f9',
+                                  color: index === 0 ? '#15803d' : index === 1 ? '#d97706' : '#64748b'
+                                }}>
+                                  {index === 0 ? 'Top Performer' : index === 1 ? 'Good' : 'Average'}
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div style={{ 
+                            padding: '2rem',
+                            textAlign: 'center',
+                            color: '#64748b'
+                          }}>
+                            No variant data available
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Charts Section */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: '20px',
+                        padding: '1.5rem',
+                        border: '1px solid rgba(255, 255, 255, 0.2)'
+                      }}>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                            Units Sold Distribution
+                          </h3>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                            Performance breakdown by variants
+                          </p>
+                        </div>
+                        <div style={{ 
+                          height: '280px',
+                          background: 'rgba(248, 250, 252, 0.5)',
+                          borderRadius: '16px',
+                          padding: '1rem',
+                          border: '1px solid rgba(226, 232, 240, 0.5)'
+                        }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={data.variantInsights?.map(variant => ({
+                                  name: variant.name || variant.variant_name || 'Unknown',
+                                  value: parseInt(variant.soldCount || variant.total_units_sold),
+                                })) || []}
+                                cx="50%"
+                                cy="50%"
+                                outerRadius={90}
+                                innerRadius={40}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {data.variantInsights?.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip 
+                                formatter={(value) => [value.toLocaleString(), 'Units Sold']}
+                                contentStyle={{
+                                  background: 'rgba(255, 255, 255, 0.95)',
+                                  backdropFilter: 'blur(20px)',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  borderRadius: '12px'
+                                }}
+                              />
+                              <Legend 
+                                wrapperStyle={{
+                                  fontSize: '0.875rem',
+                                  color: '#64748b'
+                                }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: '20px',
+                        padding: '1.5rem',
+                        border: '1px solid rgba(255, 255, 255, 0.2)'
+                      }}>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                            Revenue Distribution
+                          </h3>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                            Sales value by variant performance
+                          </p>
+                        </div>
+                        <div style={{ 
+                          height: '280px',
+                          background: 'rgba(248, 250, 252, 0.5)',
+                          borderRadius: '16px',
+                          padding: '1rem',
+                          border: '1px solid rgba(226, 232, 240, 0.5)'
+                        }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={data.variantInsights?.map(variant => ({
+                                name: variant.name || variant.variant_name || 'Unknown',
+                                revenue: parseFloat(variant.salesAmount || variant.total_sales_amount),
+                              })) || []}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
+                              <XAxis 
+                                dataKey="name" 
+                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                              />
+                              <YAxis 
+                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                              />
+                              <Tooltip 
+                                formatter={(value) => [formatCurrency(value), 'Revenue']}
+                                contentStyle={{
+                                  background: 'rgba(255, 255, 255, 0.95)',
+                                  backdropFilter: 'blur(20px)',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  borderRadius: '12px'
+                                }}
+                              />
+                              <Legend 
+                                wrapperStyle={{
+                                  fontSize: '0.875rem',
+                                  color: '#64748b'
+                                }}
+                              />
+                              <Bar 
+                                dataKey="revenue" 
+                                fill="url(#revenueGradient)" 
+                                name="Revenue"
+                                radius={[8, 8, 0, 0]}
+                              />
+                              <defs>
+                                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#10b981" />
+                                  <stop offset="100%" stopColor="#059669" />
+                                </linearGradient>
+                              </defs>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+                  </SectionContent>
+                </SectionCard>
+
+                {/* Customer Insights */}
+                <SectionCard>
+                  <SectionHeader>
+                    <h2>Myfrido Customer Insights</h2>
+                    <p>Customer behavior and acquisition metrics for Myfrido</p>
+                  </SectionHeader>
+                  <SectionContent>
+                    <CompactGrid>
+                      <ModernMetricCard
+                        title="Total Customers"
+                        value={safeNumberFormat(data.customerInsights?.totalCustomers || 0)}
+                        icon={FiUsers}
+                        color="#3b82f6"
+                      />
+                      <ModernMetricCard
+                        title="Repeat Customers"
+                        value={safeNumberFormat(data.customerInsights?.repeatCustomers || 0)}
+                        icon={FiUsers}
+                        color="#10b981"
+                      />
+                      <ModernMetricCard
+                        title="Repeat Rate"
+                        value={formatPercentageValue(data.customerInsights?.repeatCustomerRate || 0)}
+                        icon={FiPercent}
+                        color="#8b5cf6"
+                      />
+                      <ModernMetricCard
+                        title="Avg Orders/Customer"
+                        value={(data.customerInsights?.avgOrdersPerCustomer || 0).toFixed(2)}
+                        icon={FiUsers}
+                        color="#f59e0b"
+                      />
+                      <ModernMetricCard
+                        title="Acquisition Cost"
+                        value={formatCurrency(data.customerInsights?.customerAcquisitionCost || 0)}
+                        icon={FiCreditCard}
+                        color="#ef4444"
+                      />
+                    </CompactGrid>
+
+                    {/* Customer Charts */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: '20px',
+                        padding: '1.5rem',
+                        border: '1px solid rgba(255, 255, 255, 0.2)'
+                      }}>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                            Customer Type Distribution
+                          </h3>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                            First-time vs returning customers
+                          </p>
+                        </div>
+                        <div style={{ 
+                          height: '280px',
+                          background: 'rgba(248, 250, 252, 0.5)',
+                          borderRadius: '16px',
+                          padding: '1rem',
+                          border: '1px solid rgba(226, 232, 240, 0.5)'
+                        }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <Pie
+                                data={[
+                                  { name: 'First-time', value: data.customerInsights?.firstTimeCustomers || 0},
+                                  { name: 'Returning', value: data.customerInsights?.repeatCustomers || 0}
+                                ]}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={70}
+                                outerRadius={110}
+                                fill="#8884d8"
+                                dataKey="value"
+                                paddingAngle={5}
+                              >
+                                <Cell fill="url(#firstTimeGradient)" />
+                                <Cell fill="url(#returningGradient)" />
+                              </Pie>
+                              <Tooltip 
+                                formatter={(value) => [value.toLocaleString(), 'Customers']}
+                                contentStyle={{
+                                  background: 'rgba(255, 255, 255, 0.95)',
+                                  backdropFilter: 'blur(20px)',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  borderRadius: '12px'
+                                }}
+                              />
+                              <Legend 
+                                wrapperStyle={{
+                                  fontSize: '0.875rem',
+                                  color: '#64748b'
+                                }}
+                              />
+                              <defs>
+                                <linearGradient id="firstTimeGradient" x1="0" y1="0" x2="1" y2="1">
+                                  <stop offset="0%" stopColor="#FF6B6B" />
+                                  <stop offset="100%" stopColor="#ee5a52" />
+                                </linearGradient>
+                                <linearGradient id="returningGradient" x1="0" y1="0" x2="1" y2="1">
+                                  <stop offset="0%" stopColor="#4ECDC4" />
+                                  <stop offset="100%" stopColor="#44b3ac" />
+                                </linearGradient>
+                              </defs>
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      <div style={{
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(20px)',
+                        borderRadius: '20px',
+                        padding: '1.5rem',
+                        border: '1px solid rgba(255, 255, 255, 0.2)'
+                      }}>
+                        <div style={{ marginBottom: '1.5rem' }}>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                            Order Frequency
+                          </h3>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                            Customer purchase behavior patterns
+                          </p>
+                        </div>
+                        <div style={{ 
+                          height: '280px',
+                          background: 'rgba(248, 250, 252, 0.5)',
+                          borderRadius: '16px',
+                          padding: '1rem',
+                          border: '1px solid rgba(226, 232, 240, 0.5)'
+                        }}>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                              data={[
+                                { name: '1 Order', customers: parseInt(data.customerInsights?.frequencyDistribution?.oneOrderCustomers?.customerCount || '0') },
+                                { name: '2 Orders', customers: parseInt(data.customerInsights?.frequencyDistribution?.twoOrdersCustomers?.customerCount || '0') },
+                                { name: '3 Orders', customers: parseInt(data.customerInsights?.frequencyDistribution?.threeOrdersCustomers?.customerCount || '0') },
+                                { name: '4+ Orders', customers: parseInt(data.customerInsights?.frequencyDistribution?.fourOrdersCustomers?.customerCount || '0') },
+                              ]}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
+                              <XAxis 
+                                dataKey="name" 
+                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                              />
+                              <YAxis 
+                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                axisLine={{ stroke: '#e2e8f0' }}
+                              />
+                              <Tooltip 
+                                formatter={(value) => [value.toLocaleString(), 'Customers']}
+                                contentStyle={{
+                                  background: 'rgba(255, 255, 255, 0.95)',
+                                  backdropFilter: 'blur(20px)',
+                                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                                  borderRadius: '12px'
+                                }}
+                              />
+                              <Legend 
+                                wrapperStyle={{
+                                  fontSize: '0.875rem',
+                                  color: '#64748b'
+                                }}
+                              />
+                              <Bar 
+                                dataKey="customers" 
+                                fill="url(#frequencyGradient)" 
+                                name="Customers"
+                                radius={[8, 8, 0, 0]}
+                              />
+                              <defs>
+                                <linearGradient id="frequencyGradient" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#8b5cf6" />
+                                  <stop offset="100%" stopColor="#7c3aed" />
+                                </linearGradient>
+                              </defs>
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+                  </SectionContent>
+                </SectionCard>
+              </div>
+            )}
+
+            {/* Amazon Tab Content */}
+            {activeTab === 'amazon' && (
+              <div>
+                {isAmazonLoading ? (
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    height: '300px',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    borderRadius: '20px',
+                    backdropFilter: 'blur(20px)'
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <FiRefreshCw size={32} className="spin" style={{ color: '#667eea', marginBottom: '1rem' }} />
+                      <h3 style={{ color: '#1e293b', marginBottom: '0.5rem' }}>Loading Amazon Data</h3>
+                      <p style={{ color: '#64748b' }}>Fetching metrics from Amazon marketplace...</p>
+                    </div>
+                  </div>
+                ) : amazonError ? (
+                  <div style={{ 
+                    padding: '3rem 2rem', 
+                    background: 'rgba(239, 68, 68, 0.1)', 
+                    borderRadius: '12px', 
+                    textAlign: 'center',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    marginBottom: '2rem'
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😔</div>
+                    <h3 style={{ color: '#dc2626', marginBottom: '1rem', fontSize: '1.5rem' }}>
+                      Unable to Load Amazon Data
+                    </h3>
+                    <p style={{ color: '#7f1d1d', fontSize: '1rem', margin: '0 0 1rem 0' }}>
+                      {amazonError}
+                    </p>
+                    <button 
+                      onClick={fetchAmazonData}
+                      style={{
+                        background: '#ef4444',
+                        color: 'white',
+                        border: 'none',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.875rem',
+                        fontWeight: '500'
+                      }}
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : !amazonData ? (
+                  <div style={{ 
+                    padding: '3rem 2rem', 
+                    background: 'rgba(59, 130, 246, 0.1)', 
+                    borderRadius: '12px', 
+                    textAlign: 'center',
+                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    marginBottom: '2rem'
+                  }}>
+                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</div>
+                    <h3 style={{ color: '#2563eb', marginBottom: '1rem', fontSize: '1.5rem' }}>
+                      No Amazon Data Found
+                    </h3>
+                    <p style={{ color: '#1e40af', fontSize: '1rem', margin: '0 0 1rem 0' }}>
+                      No Amazon sales data found for SKU: {data?.product?.sku} in the selected date range.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    {/* Sales Matrices Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiDollarSign size={20} style={{ color: '#10b981' }} />
+                          Amazon Sales Metrics
+                        </SectionTitle>
+                        <SectionDescription>Current sales performance and revenue analysis</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        <CompactGrid>
+                          <ModernMetricCard
+                            title="Total Sales"
+                            value={formatCurrency(amazonData.overview.totalSales)}
+                            icon={FiDollarSign}
+                            change={amazonData.overview.revenueChangePercentage}
+                            changeType="positive"
+                            color="#10b981"
+                          />
+                          <ModernMetricCard
+                            title="Gross Sales"
+                            value={formatCurrency(amazonData.overview.grossSales || amazonData.overview.totalSales)}
+                            icon={FiTrendingUp}
+                            change={amazonData.overview.grossSalesChangePercentage}
+                            changeType="positive"
+                            color="#3b82f6"
+                          />
+                          <ModernMetricCard
+                            title="Net Sales"
+                            value={formatCurrency(amazonData.overview.netSales || 0)}
+                            icon={FiBarChart2}
+                            change={amazonData.overview.netSalesChangePercentage}
+                            changeType="positive"
+                            color="#8b5cf6"
+                          />
+                          <ModernMetricCard
+                            title="AOV"
+                            value={formatCurrency(amazonData.overview.aov)}
+                            icon={FiShoppingCart}
+                            change={amazonData.overview.aovChangePercentage}
+                            changeType="positive"
+                            color="#f59e0b"
+                          />
+                          <ModernMetricCard
+                            title="Gross Sale %"
+                            value={formatPercentageValue(amazonData.overview.grossSalePercentage || 100)}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#ef4444"
+                          />
+                          <ModernMetricCard
+                            title="Net Sale %"
+                            value={formatPercentageValue(amazonData.overview.netSalePercentage || 100)}
+                            icon={FiTarget}
+                            change="N/A"
+                            changeType="info"
+                            color="#84cc16"
+                          />
+                        </CompactGrid>
+                      </SectionContent>
+                    </SectionCard>
+
+                    {/* Orders & Quantity Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiPackage size={20} style={{ color: '#3b82f6' }} />
+                          Amazon Orders & Quantity
+                        </SectionTitle>
+                        <SectionDescription>Order volume and quantity performance metrics</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        <CompactGrid>
+                          <ModernMetricCard
+                            title="Total Orders"
+                            value={safeNumberFormat(amazonData.overview.totalOrders)}
+                            icon={FiShoppingCart}
+                            change={amazonData.overview.ordersChangePercentage}
+                            changeType="positive"
+                            color="#3b82f6"
+                          />
+                          <ModernMetricCard
+                            title="Net Orders"
+                            value={safeNumberFormat(amazonData.overview.netOrders)}
+                            icon={FiActivity}
+                            change="N/A"
+                            changeType="info"
+                            color="#10b981"
+                          />
+                          <ModernMetricCard
+                            title="Units Sold"
+                            value={safeNumberFormat(amazonData.overview.totalQuantitySold)}
+                            icon={FiPackage}
+                            change="N/A"
+                            changeType="info"
+                            color="#f59e0b"
+                          />
+                          <ModernMetricCard
+                            title="Net Units"
+                            value={safeNumberFormat(amazonData.overview.netQuantitySold)}
+                            icon={FiTarget}
+                            change="N/A"
+                            changeType="info"
+                            color="#8b5cf6"
+                          />
+                          <ModernMetricCard
+                            title="Returned Units"
+                            value={safeNumberFormat(amazonData.overview.totalReturnsQuantity || 0)}
+                            icon={FiTrendingDown}
+                            change="N/A"
+                            changeType="info"
+                            color="#ef4444"
+                          />
+                        </CompactGrid>
+                      </SectionContent>
+                    </SectionCard>
+
+                    {/* Returns & Tax Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiTrendingDown size={20} style={{ color: '#ef4444' }} />
+                          Amazon Returns & Tax
+                        </SectionTitle>
+                        <SectionDescription>Return analysis and tax calculations</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        <CompactGrid>
+                          <ModernMetricCard
+                            title="Total Returns"
+                            value={formatCurrency(amazonData.overview.totalReturns || 0)}
+                            icon={FiTrendingDown}
+                            change={amazonData.overview.returnsChangePercentage}
+                            changeType="negative"
+                            color="#ef4444"
+                          />
+                          <ModernMetricCard
+                            title="Return Rate"
+                            value={formatPercentageValue(amazonData.overview.totalReturnPercentage || 0)}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#f59e0b"
+                          />
+                          <ModernMetricCard
+                            title="Total Tax"
+                            value={formatCurrency(amazonData.overview.totalTax || 0)}
+                            icon={FiDollarSign}
+                            change={amazonData.overview.taxChangePercentage}
+                            changeType="neutral"
+                            color="#6b7280"
+                          />
+                          <ModernMetricCard
+                            title="Tax Rate"
+                            value={`${amazonData.overview.taxRate || 0}%`}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#84cc16"
+                          />
+                        </CompactGrid>
+                      </SectionContent>
+                    </SectionCard>
+
+                    {/* Expenses & ROAS Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiCreditCard size={20} style={{ color: '#8b5cf6' }} />
+                          Amazon Expenses & ROAS
+                        </SectionTitle>
+                        <SectionDescription>Cost analysis and return on ad spend calculations</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        <CompactGrid>
+                          <ModernMetricCard
+                            title="COGS"
+                            value={formatCurrency(amazonData.overview.cogs || 0)}
+                            icon={FiPackage}
+                            change="N/A"
+                            changeType="info"
+                            color="#ef4444"
+                          />
+                          <ModernMetricCard
+                            title="COGS %"
+                            value={formatPercentageValue(amazonData.overview.cogsPercentage || 0)}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#f59e0b"
+                          />
+                          <ModernMetricCard
+                            title="SD Cost"
+                            value={formatCurrency(amazonData.overview.sdCost || 0)}
+                            icon={FiTrendingUp}
+                            change="N/A"
+                            changeType="info"
+                            color="#3b82f6"
+                          />
+                          <ModernMetricCard
+                            title="SD Cost %"
+                            value={formatPercentageValue(amazonData.overview.sdCostPercentage || 0)}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#10b981"
+                          />
+                          <ModernMetricCard
+                            title="Gross ROAS"
+                            value={(amazonData.overview.grossRoas || 0).toFixed(2)}
+                            icon={FiBarChart2}
+                            change="N/A"
+                            changeType="info"
+                            color="#8b5cf6"
+                          />
+                          <ModernMetricCard
+                            title="Net ROAS"
+                            value={(amazonData.overview.netRoas || 0).toFixed(2)}
+                            icon={FiActivity}
+                            change="N/A"
+                            changeType="info"
+                            color="#84cc16"
+                          />
+                        </CompactGrid>
+                      </SectionContent>
+                    </SectionCard>
+
+                    {/* CAC & Contribution Margin Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiUsers size={20} style={{ color: '#10b981' }} />
+                          Amazon CAC & Contribution Margin
+                        </SectionTitle>
+                        <SectionDescription>Customer acquisition cost and profit margin analysis</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        <CompactGrid>
+                          <ModernMetricCard
+                            title="CAC"
+                            value={formatCurrency(amazonData.overview.cac || 0)}
+                            icon={FiUsers}
+                            change="N/A"
+                            changeType="info"
+                            color="#3b82f6"
+                          />
+                          <ModernMetricCard
+                            title="Paid CAC"
+                            value={formatCurrency(amazonData.overview.paidCac || 0)}
+                            icon={FiCreditCard}
+                            change="N/A"
+                            changeType="info"
+                            color="#ef4444"
+                          />
+                          <ModernMetricCard
+                            title="Organic CAC"
+                            value={formatCurrency(amazonData.overview.organicCac || 0)}
+                            icon={FiTrendingUp}
+                            change="N/A"
+                            changeType="info"
+                            color="#10b981"
+                          />
+                          <ModernMetricCard
+                            title="Contribution Margin"
+                            value={formatCurrency(amazonData.overview.contributionMargin || 0)}
+                            icon={FiBarChart2}
+                            change="N/A"
+                            changeType="info"
+                            color="#8b5cf6"
+                          />
+                          <ModernMetricCard
+                            title="CM %"
+                            value={formatPercentageValue(amazonData.overview.contributionMarginPercentage || 0)}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#f59e0b"
+                          />
+                        </CompactGrid>
+                      </SectionContent>
+                    </SectionCard>
+
+                    {/* Marketing Analytics Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiTarget size={20} style={{ color: '#f59e0b' }} />
+                          Amazon Marketing Analytics
+                        </SectionTitle>
+                        <SectionDescription>Amazon advertising performance and metrics</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        {/* Targeting Keyword Banner */}
+                        <div style={{
+                          background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                          borderRadius: '16px',
+                          padding: '1.5rem',
+                          marginBottom: '2rem',
+                          color: 'white',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '1rem'
+                        }}>
+                          <FiTarget size={24} />
+                          <div>
+                            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>
+                              Targeting Keyword
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '0.875rem', opacity: 0.9 }}>
+                              {amazonData.marketing?.targetingKeyword || 'Amazon Product Ads'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <CompactGrid>
+                          <ModernMetricCard
+                            title="Ad Spend"
+                            value={formatCurrency(amazonData.marketing?.adSpend || 0)}
+                            icon={FiDollarSign}
+                            change="N/A"
+                            changeType="info"
+                            color="#ef4444"
+                          />
+                          <ModernMetricCard
+                            title="Impressions"
+                            value={safeNumberFormat(amazonData.marketing?.impressions || 0)}
+                            icon={FiEye}
+                            change="N/A"
+                            changeType="info"
+                            color="#3b82f6"
+                          />
+                          <ModernMetricCard
+                            title="Clicks"
+                            value={safeNumberFormat(amazonData.marketing?.clicks || 0)}
+                            icon={FiMousePointer}
+                            change="N/A"
+                            changeType="info"
+                            color="#10b981"
+                          />
+                          <ModernMetricCard
+                            title="Purchases"
+                            value={safeNumberFormat(amazonData.marketing?.purchases || 0)}
+                            icon={FiShoppingCart}
+                            change="N/A"
+                            changeType="info"
+                            color="#8b5cf6"
+                          />
+                          <ModernMetricCard
+                            title="Purchase Value"
+                            value={formatCurrency(amazonData.marketing?.purchaseValue || 0)}
+                            icon={FiDollarSign}
+                            change="N/A"
+                            changeType="info"
+                            color="#f59e0b"
+                          />
+                          <ModernMetricCard
+                            title="ROAS"
+                            value={(amazonData.marketing?.roas || 0).toFixed(2)}
+                            icon={FiBarChart2}
+                            change="N/A"
+                            changeType="info"
+                            color="#84cc16"
+                          />
+                          <ModernMetricCard
+                            title="CTR"
+                            value={`${(amazonData.marketing?.ctr || 0).toFixed(2)}%`}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#06b6d4"
+                          />
+                          <ModernMetricCard
+                            title="CPC"
+                            value={formatCurrency(amazonData.marketing?.cpc || 0)}
+                            icon={FiCreditCard}
+                            change="N/A"
+                            changeType="info"
+                            color="#ec4899"
+                          />
+                        </CompactGrid>
+                      </SectionContent>
+                    </SectionCard>
+
+                    {/* Variants Analysis Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiPackage size={20} style={{ color: '#8b5cf6' }} />
+                          Amazon Variants Analysis
+                        </SectionTitle>
+                        <SectionDescription>Performance breakdown by product variants</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        {/* Top Performing Variants Table */}
+                        <div style={{
+                          background: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(20px)',
+                          borderRadius: '20px',
+                          padding: '1.5rem',
+                          marginBottom: '2rem',
+                          border: '1px solid rgba(255, 255, 255, 0.2)'
+                        }}>
+                          <div style={{ marginBottom: '1.5rem' }}>
+                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                              Top Performing Variants
+                            </h3>
+                            <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                              Best selling variants with detailed performance metrics
+                            </p>
+                          </div>
+                          
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(6, 1fr)',
+                            gap: '1rem',
+                            padding: '1rem',
+                            background: 'rgba(248, 250, 252, 0.8)',
+                            borderRadius: '12px',
+                            fontSize: '0.875rem',
+                            fontWeight: '600',
+                            color: '#64748b',
+                            marginBottom: '1rem'
+                          }}>
+                            <div>Variant</div>
+                            <div>SKU</div>
+                            <div>Units Sold</div>
+                            <div>Revenue</div>
+                            <div>Avg Price</div>
+                            <div>Performance</div>
+                          </div>
+                          
+                          {amazonData.variants && amazonData.variants.length > 0 ? (
+                            amazonData.variants.map((variant, index) => (
+                              <div key={index} style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(6, 1fr)',
+                                gap: '1rem',
+                                padding: '1rem',
+                                background: 'rgba(255, 255, 255, 0.8)',
+                                borderRadius: '12px',
+                                marginBottom: '0.5rem',
+                                border: '1px solid rgba(226, 232, 240, 0.5)',
+                                fontSize: '0.875rem'
+                              }}>
+                                <div style={{ fontWeight: '600', color: '#1e293b' }}>{variant.name}</div>
+                                <div style={{ color: '#64748b', fontFamily: 'monospace' }}>{variant.sku}</div>
+                                <div style={{ color: '#059669', fontWeight: '600' }}>{variant.unitsSold?.toLocaleString() || 0}</div>
+                                <div style={{ color: '#dc2626', fontWeight: '600' }}>{formatCurrency(variant.revenue || 0)}</div>
+                                <div style={{ color: '#7c3aed' }}>{formatCurrency(variant.avgPrice || 0)}</div>
+                                <div>
+                                  <span style={{
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: variant.performance === 'Good' ? '#dcfdf7' : variant.performance === 'Average' ? '#fef3c7' : '#fee2e2',
+                                    color: variant.performance === 'Good' ? '#065f46' : variant.performance === 'Average' ? '#92400e' : '#991b1b'
+                                  }}>
+                                    {variant.performance || 'N/A'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div style={{
+                              padding: '2rem',
+                              textAlign: 'center',
+                              color: '#64748b',
+                              background: 'rgba(248, 250, 252, 0.5)',
+                              borderRadius: '12px'
+                            }}>
+                              No variant data available
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Charts */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                          <div style={{
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '20px',
+                            padding: '1.5rem',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                          }}>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                                Units Sold Distribution
+                              </h3>
+                              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                                Breakdown by variant performance
+                              </p>
+                            </div>
+                            <div style={{ 
+                              height: '280px',
+                              background: 'rgba(248, 250, 252, 0.5)',
+                              borderRadius: '16px',
+                              padding: '1rem',
+                              border: '1px solid rgba(226, 232, 240, 0.5)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#64748b'
+                            }}>
+                              Chart data not available
+                            </div>
+                          </div>
+
+                          <div style={{
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '20px',
+                            padding: '1.5rem',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                          }}>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                                Revenue Distribution
+                              </h3>
+                              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                                Revenue contribution by variant
+                              </p>
+                            </div>
+                            <div style={{ 
+                              height: '280px',
+                              background: 'rgba(248, 250, 252, 0.5)',
+                              borderRadius: '16px',
+                              padding: '1rem',
+                              border: '1px solid rgba(226, 232, 240, 0.5)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#64748b'
+                            }}>
+                              Chart data not available
+                            </div>
+                          </div>
+                        </div>
+                      </SectionContent>
+                    </SectionCard>
+
+                    {/* Customer Insights Section */}
+                    <SectionCard>
+                      <SectionHeader>
+                        <SectionTitle>
+                          <FiUsers size={20} style={{ color: '#06b6d4' }} />
+                          Amazon Customer Insights
+                        </SectionTitle>
+                        <SectionDescription>Customer behavior and acquisition metrics</SectionDescription>
+                      </SectionHeader>
+                      <SectionContent>
+                        <CompactGrid>
+                          <ModernMetricCard
+                            title="Total Customers"
+                            value={safeNumberFormat(amazonData.customers?.totalCustomers || 0)}
+                            icon={FiUsers}
+                            change="N/A"
+                            changeType="info"
+                            color="#3b82f6"
+                          />
+                          <ModernMetricCard
+                            title="Repeat Customers"
+                            value={safeNumberFormat(amazonData.customers?.repeatCustomers || 0)}
+                            icon={FiTrendingUp}
+                            change="N/A"
+                            changeType="info"
+                            color="#10b981"
+                          />
+                          <ModernMetricCard
+                            title="Repeat Rate"
+                            value={`${(amazonData.customers?.repeatRate || 0).toFixed(1)}%`}
+                            icon={FiPercent}
+                            change="N/A"
+                            changeType="info"
+                            color="#f59e0b"
+                          />
+                          <ModernMetricCard
+                            title="Avg Orders per Customer"
+                            value={(amazonData.customers?.avgOrdersPerCustomer || 0).toFixed(1)}
+                            icon={FiShoppingCart}
+                            change="N/A"
+                            changeType="info"
+                            color="#8b5cf6"
+                          />
+                          <ModernMetricCard
+                            title="Acquisition Cost"
+                            value={formatCurrency(amazonData.customers?.acquisitionCost || 0)}
+                            icon={FiCreditCard}
+                            change="N/A"
+                            changeType="info"
+                            color="#ef4444"
+                          />
+                        </CompactGrid>
+
+                        {/* Customer Charts */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
+                          <div style={{
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '20px',
+                            padding: '1.5rem',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                          }}>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                                Customer Type Distribution
+                              </h3>
+                              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                                First-time vs returning customers
+                              </p>
+                            </div>
+                            <div style={{ 
+                              height: '280px',
+                              background: 'rgba(248, 250, 252, 0.5)',
+                              borderRadius: '16px',
+                              padding: '1rem',
+                              border: '1px solid rgba(226, 232, 240, 0.5)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#64748b'
+                            }}>
+                              Chart data not available
+                            </div>
+                          </div>
+
+                          <div style={{
+                            background: 'rgba(255, 255, 255, 0.95)',
+                            backdropFilter: 'blur(20px)',
+                            borderRadius: '20px',
+                            padding: '1.5rem',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                          }}>
+                            <div style={{ marginBottom: '1.5rem' }}>
+                              <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
+                                Order Frequency Analysis
+                              </h3>
+                              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                                Customer purchase behavior patterns
+                              </p>
+                            </div>
+                            <div style={{ 
+                              height: '280px',
+                              background: 'rgba(248, 250, 252, 0.5)',
+                              borderRadius: '16px',
+                              padding: '1rem',
+                              border: '1px solid rgba(226, 232, 240, 0.5)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#64748b'
+                            }}>
+                              Chart data not available
+                            </div>
+                          </div>
+                        </div>
+                      </SectionContent>
+                    </SectionCard>
+                  </div>
+                )}
+              </div>
+            )}
+          </ModernTabContent>
+        </ModernTabContainer>
+
+        
+      </ModernContent>
+    </ModernContainer>
   );
 };
 

@@ -24,8 +24,364 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronDown, ChevronUp, ArrowUpDown, DollarSign, Tag, Filter, SortAsc, AlertCircle, ChevronsUp, ChevronsDown, Download } from 'lucide-react';
 import { FaRupeeSign } from 'react-icons/fa';
+import { 
+  FiRefreshCw, 
+  FiDownload, 
+  FiFilter,
+  FiCalendar,
+  FiPackage,
+  FiPercent,
+  FiTrendingUp,
+  FiTrendingDown,
+  FiTarget
+} from 'react-icons/fi';
+import { 
+  HiShoppingCart,
+  HiCash,
+  HiChartBar
+} from 'react-icons/hi';
+import styled from 'styled-components';
 import axios from 'axios';
 import { formatCurrency } from '../../utils/formatters';
+
+// Modern Dashboard Container - matching DashboardPage design
+const ModernContainer = styled.div`
+  min-height: 100vh;
+  padding: 1rem;
+  background: #f8fafc;
+  
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+  }
+`;
+
+const ModernContent = styled.div`
+  max-width: 1400px;
+  margin: 0 auto;
+`;
+
+// Modern Header Section
+const ModernHeaderSection = styled.div`
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  position: relative;
+  z-index: 1000;
+  
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+  }
+`;
+
+const ModernHeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+`;
+
+const ModernHeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+`;
+
+const ModernHeaderTitle = styled.div`
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0;
+    line-height: 1.2;
+  }
+  
+  p {
+    color: #64748b;
+    margin: 0;
+    font-size: 0.75rem;
+    margin-top: 0.125rem;
+  }
+  
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.25rem;
+    }
+    p {
+      font-size: 0.7rem;
+    }
+  }
+`;
+
+const ModernStatsQuickView = styled.div`
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  
+  @media (max-width: 968px) {
+    display: none;
+  }
+`;
+
+const ModernQuickStat = styled.div`
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(102, 126, 234, 0.08);
+  border-radius: 8px;
+  min-width: 80px;
+  
+  .label {
+    font-size: 0.65rem;
+    color: #64748b;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .value {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-top: 0.125rem;
+  }
+`;
+
+const ModernHeaderActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: center;
+  }
+`;
+
+const ModernActionButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &.primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
+    }
+  }
+  
+  &.secondary {
+    background: rgba(255, 255, 255, 0.9);
+    color: #64748b;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    
+    &:hover {
+      background: white;
+      color: #374151;
+      border-color: rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+// Modern Controls Section
+const ModernControlsSection = styled.div`
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  backdrop-filter: blur(10px);
+  position: relative;
+  z-index: 1001;
+  margin-top: 0.75rem;
+  
+  .controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+  }
+  
+  .controls-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    
+    .icon-wrapper {
+      width: 32px;
+      height: 32px;
+      background: rgba(102, 126, 234, 0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #667eea;
+    }
+    
+    .controls-text {
+      h3 {
+        color: #1e293b;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 0;
+        margin-bottom: 0.125rem;
+      }
+      
+      p {
+        color: #64748b;
+        font-size: 0.75rem;
+        margin: 0;
+      }
+    }
+  }
+  
+  .controls-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    
+    @media (max-width: 768px) {
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+`;
+
+const ModernSelectButton = styled.select`
+  background: rgba(255, 255, 255, 0.9);
+  color: #374151;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: white;
+    border-color: rgba(0, 0, 0, 0.2);
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+  }
+`;
+
+// Modern Section Cards
+const ModernSectionCard = styled.div`
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+`;
+
+const ModernSectionHeader = styled.div`
+  padding: 1.5rem 2rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    margin-bottom: 0.25rem;
+  }
+  
+  p {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin: 0;
+  }
+`;
+
+const ModernSectionContent = styled.div`
+  padding: 1.5rem 2rem 2rem;
+`;
+
+// Modern Table Styles
+const ModernTable = styled.div`
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+`;
+
+const TableHeader = styled.div`
+  background: #f8fafc;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+`;
+
+const TableRow = styled.div`
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  
+  &:hover {
+    background: #f8fafc;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+const ProductCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: rgba(102, 126, 234, 0.2);
+  }
+`;
 
 const MarketPlacePrices = () => {
   const [products, setProducts] = useState([]);
@@ -291,34 +647,73 @@ const MarketPlacePrices = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-
-      
-      {/* Filter and sort controls */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
-        <div className="flex sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center space-x-3">
-            <Filter className="h-5 w-5 text-gray-500" />
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700">Filter:</span>
-              <select 
-                className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                value={filterOption}
-                onChange={(e) => setFilterOption(e.target.value)}
+    <ModernContainer>
+      <ModernContent>
+        {/* Modern Header */}
+        <ModernHeaderSection>
+          <ModernHeaderContent>
+            <ModernHeaderLeft>
+              <ModernHeaderTitle>
+                <h1>Marketplace Prices</h1>
+                <p>Compare product prices across different marketplaces and platforms</p>
+              </ModernHeaderTitle>
+              
+              <ModernStatsQuickView>
+                <ModernQuickStat>
+                  <div className="label">Products</div>
+                  <div className="value">{processedProducts.length}</div>
+                </ModernQuickStat>
+                <ModernQuickStat>
+                  <div className="label">Overpriced</div>
+                  <div className="value">{processedProducts.filter(p => p.hasShopifyHigher).length}</div>
+                </ModernQuickStat>
+                <ModernQuickStat>
+                  <div className="label">Best Deals</div>
+                  <div className="value">{processedProducts.filter(p => p.hasAmazonHigher).length}</div>
+                </ModernQuickStat>
+              </ModernStatsQuickView>
+            </ModernHeaderLeft>
+            
+            <ModernHeaderActions>
+              <ModernActionButton 
+                className="secondary" 
+                onClick={fetchProducts}
+                disabled={loading}
               >
-                <option value="all">All Products</option>
-                <option value="amazon-higher">Amazon Price &gt; Shopify</option>
-                <option value="shopify-higher">Shopify Price &gt; Amazon</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <SortAsc className="h-5 w-5 text-gray-500" />
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700">Sort by:</span>
-                <select 
-                  className="border border-gray-200 rounded-lg p-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                <FiRefreshCw className={loading ? 'spin' : ''} />
+                {loading ? 'Loading...' : 'Refresh'}
+              </ModernActionButton>
+              <ModernActionButton className="primary" onClick={downloadCSV}>
+                <FiDownload />
+                Export CSV
+              </ModernActionButton>
+            </ModernHeaderActions>
+          </ModernHeaderContent>
+
+          {/* Modern Controls */}
+          <ModernControlsSection>
+            <div className="controls-header">
+              <div className="controls-info">
+                <div className="icon-wrapper">
+                  <FiFilter size={14} />
+                </div>
+                <div className="controls-text">
+                  <h3>Filters & Sorting</h3>
+                  <p>Filter by price differences and sort by various criteria</p>
+                </div>
+              </div>
+              
+              <div className="controls-actions">
+                <ModernSelectButton
+                  value={filterOption}
+                  onChange={(e) => setFilterOption(e.target.value)}
+                >
+                  <option value="all">All Products</option>
+                  <option value="amazon-higher">Amazon Price &gt; Shopify</option>
+                  <option value="shopify-higher">Shopify Price &gt; Amazon</option>
+                </ModernSelectButton>
+                
+                <ModernSelectButton
                   value={sortOption}
                   onChange={(e) => setSortOption(e.target.value)}
                 >
@@ -328,27 +723,39 @@ const MarketPlacePrices = () => {
                   <option value="amazon-shopify-diff">Amazon - Shopify Difference</option>
                   <option value="shopify-amazon-diff">Shopify - Amazon Difference</option>
                   <option value="max-diff">Max Price Difference</option>
-                </select>
+                </ModernSelectButton>
+                
+                <ModernActionButton 
+                  className="secondary"
+                  onClick={handleToggleAll}
+                >
+                  {products.every(product => expandedProducts[product.product_id]) ? (
+                    <>
+                      <ChevronsUp className="h-4 w-4" />
+                      Collapse All
+                    </>
+                  ) : (
+                    <>
+                      <ChevronsDown className="h-4 w-4" />
+                      Expand All
+                    </>
+                  )}
+                </ModernActionButton>
               </div>
             </div>
-            <button
-              onClick={downloadCSV}
-              className="flex items-center space-x-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              <Download className="h-4 w-4" />
-              <span className="text-sm font-medium">Download CSV</span>
-            </button>
-          </div>
-        </div>
-      </div>
+          </ModernControlsSection>
+        </ModernHeaderSection>
       
-      {/* Product list */}
-      <div className="space-y-4">
-        {processedProducts.map(product => (
-          <div 
-            key={product.product_id} 
-            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-          >
+        {/* Modern Product List */}
+        <ModernSectionCard>
+          <ModernSectionHeader>
+            <h2>Product Price Comparison</h2>
+            <p>Compare prices across marketplaces and identify the best deals</p>
+          </ModernSectionHeader>
+          <ModernSectionContent>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {processedProducts.map(product => (
+                <ProductCard key={product.product_id}>
             {/* Product header */}
             <div 
               className="flex justify-between items-center p-6 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
@@ -476,35 +883,13 @@ const MarketPlacePrices = () => {
                 </div>
               </div>
             )}
-          </div>
-        ))}
-      </div>
-
-      {/* Sticky Toggle Button */}
-      <div className="fixed bottom-6 right-6">
-        <button
-          onClick={handleToggleAll}
-          className={`p-3 rounded-full shadow-lg transition-all duration-200 flex items-center gap-2 ${
-            products.every(product => expandedProducts[product.product_id])
-              ? 'bg-gray-500 hover:bg-gray-600'
-              : 'bg-blue-500 hover:bg-blue-600'
-          } text-white`}
-          title={products.every(product => expandedProducts[product.product_id]) ? "Collapse All" : "Expand All"}
-        >
-          {products.every(product => expandedProducts[product.product_id]) ? (
-            <>
-              <ChevronsUp className="h-5 w-5" />
-              <span className="hidden sm:inline">Collapse All</span>
-            </>
-          ) : (
-            <>
-              <ChevronsDown className="h-5 w-5" />
-              <span className="hidden sm:inline">Expand All</span>
-            </>
-          )}
-        </button>
-      </div>
-    </div>
+                </ProductCard>
+              ))}
+            </div>
+          </ModernSectionContent>
+        </ModernSectionCard>
+      </ModernContent>
+    </ModernContainer>
   );
 };
 
