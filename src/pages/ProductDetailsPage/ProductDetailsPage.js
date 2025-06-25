@@ -939,11 +939,96 @@ const ProductDetailsPage = () => {
     combinedCustomers.repeatRate = combinedCustomers.totalCustomers > 0 ? 
       (combinedCustomers.repeatCustomers / combinedCustomers.totalCustomers) * 100 : 0;
 
-    // Combine variants data
-    const combinedVariants = [
-      ...(myfridoData.variants || []),
-      ...(amazonData?.variants || [])
-    ];
+    // Combine variants data by SKU
+    const combinedVariants = [];
+    const variantMap = new Map();
+    
+    // Add MyFrido variants first
+    if (myfridoData.variantInsights && Array.isArray(myfridoData.variantInsights)) {
+      myfridoData.variantInsights.forEach(variant => {
+        const sku = variant.sku || variant.variant_sku;
+        if (sku) {
+          variantMap.set(sku.toLowerCase(), {
+            name: variant.name || variant.variant_name || 'Unknown Variant',
+            sku: sku,
+            // MyFrido data
+            myfridoUnitsSold: parseInt(variant.soldCount || variant.total_units_sold) || 0,
+            myfridoRevenue: parseFloat(variant.salesAmount || variant.total_sales_amount) || 0,
+            myfridoOrders: parseInt(variant.soldCount || variant.total_units_sold) || 0, // Approximation
+            // Combined totals (start with MyFrido)
+            unitsSold: parseInt(variant.soldCount || variant.total_units_sold) || 0,
+            revenue: parseFloat(variant.salesAmount || variant.total_sales_amount) || 0,
+            orders: parseInt(variant.soldCount || variant.total_units_sold) || 0, // Approximation
+            // Amazon data (default to 0)
+            amazonUnitsSold: 0,
+            amazonRevenue: 0,
+            amazonOrders: 0,
+            returnQuantity: 0,
+            returnRate: 0,
+            asin: 'N/A'
+          });
+        }
+      });
+    }
+    
+    // Add/merge Amazon variants
+    if (amazonData?.variants && Array.isArray(amazonData.variants)) {
+      amazonData.variants.forEach(variant => {
+        const sku = variant.sku;
+        if (sku) {
+          const existing = variantMap.get(sku.toLowerCase());
+          if (existing) {
+            // Merge with existing MyFrido data
+            existing.amazonUnitsSold = parseInt(variant.unitsSold) || 0;
+            existing.amazonRevenue = parseFloat(variant.revenue) || 0;
+            existing.amazonOrders = parseInt(variant.orders) || 0;
+            existing.returnQuantity = parseFloat(variant.returnQuantity) || 0;
+            existing.returnRate = parseFloat(variant.returnRate) || 0;
+            existing.asin = variant.asin || 'N/A';
+            // Update combined totals
+            existing.unitsSold = existing.myfridoUnitsSold + existing.amazonUnitsSold;
+            existing.revenue = existing.myfridoRevenue + existing.amazonRevenue;
+            existing.orders = existing.myfridoOrders + existing.amazonOrders;
+          } else {
+            // Add new Amazon-only variant
+            variantMap.set(sku.toLowerCase(), {
+              name: variant.name || 'Unknown Variant',
+              sku: sku,
+              // Amazon data
+              amazonUnitsSold: parseInt(variant.unitsSold) || 0,
+              amazonRevenue: parseFloat(variant.revenue) || 0,
+              amazonOrders: parseInt(variant.orders) || 0,
+              returnQuantity: parseFloat(variant.returnQuantity) || 0,
+              returnRate: parseFloat(variant.returnRate) || 0,
+              asin: variant.asin || 'N/A',
+              // MyFrido data (default to 0)
+              myfridoUnitsSold: 0,
+              myfridoRevenue: 0,
+              myfridoOrders: 0,
+              // Combined totals
+              unitsSold: parseInt(variant.unitsSold) || 0,
+              revenue: parseFloat(variant.revenue) || 0,
+              orders: parseInt(variant.orders) || 0
+            });
+          }
+        }
+      });
+    }
+    
+    // Convert map to array and calculate additional metrics
+    Array.from(variantMap.values()).forEach((variant, index) => {
+      variant.avgPrice = variant.unitsSold > 0 ? variant.revenue / variant.unitsSold : 0;
+      // Determine performance based on combined revenue
+      if (index === 0) variant.performance = 'Top Performer';
+      else if (index === 1) variant.performance = 'Good';
+      else if (variant.revenue < (combinedTotalSales * 0.1)) variant.performance = 'Low';
+      else variant.performance = 'Average';
+      
+      combinedVariants.push(variant);
+    });
+    
+    // Sort by combined revenue (descending)
+    combinedVariants.sort((a, b) => b.revenue - a.revenue);
 
     return {
       product: myfridoData.product,
@@ -1565,27 +1650,39 @@ const ProductDetailsPage = () => {
                 <SectionCard>
                   <SectionHeader>
                     <h2>Overall Variants Analysis</h2>
-                    <p>Combined performance breakdown across all channels (Currently: Myfrido only)</p>
+                    <p>Combined performance breakdown across MyFrido + Amazon channels</p>
                   </SectionHeader>
               <SectionContent>
                 <CompactGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', marginBottom: '2rem' }}>
                   <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#4ECDC4' }}>
-                      {safeNumberFormat(data.variantInsights?.length || 0)}
+                      {safeNumberFormat(getCombinedData()?.variants?.length || 0)}
             </div>
                     <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Total Variants</div>
                   </div>
                   <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#FF6B6B' }}>
-                      {safeDisplayValue(data.variantInsights?.[0]?.name || data.variantInsights?.[0]?.variant_name)}
+                      {safeDisplayValue(getCombinedData()?.variants?.[0]?.name)}
                     </div>
                     <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Top Performing</div>
                   </div>
+                  <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981' }}>
+                      {formatCurrency(getCombinedData()?.variants?.reduce((sum, v) => sum + (v.revenue || 0), 0) || 0)}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Total Revenue</div>
+                  </div>
+                  <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>
+                      {safeNumberFormat(getCombinedData()?.variants?.reduce((sum, v) => sum + (v.unitsSold || 0), 0) || 0)}
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: '500' }}>Total Units</div>
+                  </div>
                 </CompactGrid>
 
-                {/* Variants Table */}
+                {/* Combined Variants Table */}
                 <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#1e293b', fontWeight: '600' }}>Product Variants List</h3>
+                  <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#1e293b', fontWeight: '600' }}>Combined Product Variants (MyFrido + Amazon)</h3>
               <div style={{ 
                     background: 'white', 
                     borderRadius: '16px', 
@@ -1611,54 +1708,58 @@ const ProductDetailsPage = () => {
                       <div style={{ textAlign: 'center' }}>Performance</div>
               </div>
                     
-                    {data.variantInsights && data.variantInsights.length > 0 ? (
-                      data.variantInsights.map((variant, index) => (
+                    {getCombinedData()?.variants && getCombinedData().variants.length > 0 ? (
+                      getCombinedData().variants.map((variant, index) => (
                         <div key={index} style={{ 
                           padding: '1rem 1.5rem',
-                          borderBottom: index < data.variantInsights.length - 1 ? '1px solid #f1f5f9' : 'none',
+                          borderBottom: index < getCombinedData().variants.length - 1 ? '1px solid #f1f5f9' : 'none',
                           display: 'grid',
                           gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
                           gap: '1rem',
-                          alignItems: 'center',
-                          ':hover': {
-                            background: '#f8fafc'
-                          }
+                          alignItems: 'center'
                         }}>
                           <div>
                             <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
-                              {variant.name || variant.variant_name || 'N/A'}
+                              {variant.name || 'N/A'}
                             </div>
                             <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                              SKU: {variant.sku || variant.variant_sku || 'N/A'}
+                              SKU: {variant.sku || 'N/A'}
                             </div>
-                            <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                              Units: {safeNumberFormat(variant.soldCount || variant.total_units_sold)} | 
-                              Share: {formatPercentageValue(variant.unitsPercentage || variant.units_sold_percentage)}
+                            <div style={{ fontSize: '0.875rem', color: '#64748b', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                              <span style={{ color: '#059669' }}>MyFrido: {variant.myfridoUnitsSold}</span>
+                              <span style={{ color: '#f59e0b' }}>Amazon: {variant.amazonUnitsSold}</span>
+                              {variant.asin !== 'N/A' && <span style={{ color: '#64748b' }}>ASIN: {variant.asin}</span>}
                             </div>
                           </div>
                           
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontWeight: '600', color: '#1e293b' }}>
-                              {safeNumberFormat(variant.soldCount || variant.total_units_sold)}
-                </div>
-              </div>
+                              {safeNumberFormat(variant.unitsSold)}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              Combined Total
+                            </div>
+                          </div>
                           
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontWeight: '600', color: '#059669' }}>
-                              {formatCurrency(variant.salesAmount || variant.total_sales_amount)}
-                </div>
-              </div>
+                              {formatCurrency(variant.revenue)}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              Combined Total
+                            </div>
+                          </div>
                           
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontWeight: '600', color: '#1e293b' }}>
-                              {formatCurrency((variant.salesAmount || variant.total_sales_amount) / (variant.soldCount || variant.total_units_sold || 1))}
-                </div>
-              </div>
+                              {formatCurrency(variant.avgPrice)}
+                            </div>
+                          </div>
                           
                           <div style={{ textAlign: 'center' }}>
                             <div style={{ fontWeight: '600', color: '#1e293b' }}>
-                              {safeNumberFormat(variant.soldCount || variant.total_units_sold)}
-                </div>
+                              {safeNumberFormat(variant.orders)}
+                            </div>
                           </div>
                           
                           <div style={{ textAlign: 'center' }}>
@@ -1668,10 +1769,12 @@ const ProductDetailsPage = () => {
                               borderRadius: '9999px',
                               fontSize: '0.75rem',
                               fontWeight: '600',
-                              background: index === 0 ? '#dcfce7' : index === 1 ? '#fef3c7' : '#f1f5f9',
-                              color: index === 0 ? '#15803d' : index === 1 ? '#d97706' : '#64748b'
+                              background: variant.performance === 'Top Performer' ? '#dcfce7' : 
+                                         variant.performance === 'Good' ? '#fef3c7' : '#f1f5f9',
+                              color: variant.performance === 'Top Performer' ? '#15803d' : 
+                                     variant.performance === 'Good' ? '#d97706' : '#64748b'
                             }}>
-                              {index === 0 ? 'Top Performer' : index === 1 ? 'Good' : 'Average'}
+                              {variant.performance || 'Average'}
                             </div>
                           </div>
                         </div>
@@ -1715,9 +1818,9 @@ const ProductDetailsPage = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                            data={data.variantInsights?.map(variant => ({
-                              name: variant.name || variant.variant_name || 'Unknown',
-                              value: parseInt(variant.soldCount || variant.total_units_sold),
+                            data={getCombinedData()?.variants?.map(variant => ({
+                              name: variant.name || 'Unknown',
+                              value: parseInt(variant.unitsSold),
                             })) || []}
                         cx="50%"
                         cy="50%"
@@ -1774,9 +1877,9 @@ const ProductDetailsPage = () => {
                     }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                          data={data.variantInsights?.map(variant => ({
-                            name: variant.name || variant.variant_name || 'Unknown',
-                            revenue: parseFloat(variant.salesAmount || variant.total_sales_amount),
+                          data={getCombinedData()?.variants?.map(variant => ({
+                            name: variant.name || 'Unknown',
+                            revenue: parseFloat(variant.revenue),
                           })) || []}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
@@ -3219,73 +3322,101 @@ const ProductDetailsPage = () => {
                         <SectionDescription>Performance breakdown by product variants</SectionDescription>
                       </SectionHeader>
                       <SectionContent>
-                        {/* Top Performing Variants Table */}
-                        <div style={{
-                          background: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(20px)',
-                          borderRadius: '20px',
-                          padding: '1.5rem',
-                          marginBottom: '2rem',
-                          border: '1px solid rgba(255, 255, 255, 0.2)'
-                        }}>
-                          <div style={{ marginBottom: '1.5rem' }}>
-                            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b', fontWeight: '700', marginBottom: '0.25rem' }}>
-                              Top Performing Variants
-                            </h3>
-                            <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                              Best selling variants with detailed performance metrics
-                            </p>
-                          </div>
-                          
-                          <div style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(6, 1fr)',
-                            gap: '1rem',
-                            padding: '1rem',
-                            background: 'rgba(248, 250, 252, 0.8)',
-                            borderRadius: '12px',
-                            fontSize: '0.875rem',
-                            fontWeight: '600',
-                            color: '#64748b',
-                            marginBottom: '1rem'
+                        {/* Amazon Variants Table */}
+                        <div style={{ marginBottom: '2rem' }}>
+                          <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', color: '#1e293b', fontWeight: '600' }}>Amazon Product Variants List</h3>
+                          <div style={{ 
+                            background: 'white', 
+                            borderRadius: '16px', 
+                            overflow: 'hidden',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                            border: '1px solid rgba(255, 255, 255, 0.2)'
                           }}>
-                            <div>Variant</div>
-                            <div>SKU</div>
-                            <div>Units Sold</div>
-                            <div>Revenue</div>
-                            <div>Avg Price</div>
-                            <div>Performance</div>
+                          
+                          <div style={{ 
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            padding: '1rem 1.5rem',
+                            fontWeight: '600',
+                            display: 'grid',
+                            gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
+                            gap: '1rem',
+                            alignItems: 'center'
+                          }}>
+                            <div>Variant Details</div>
+                            <div style={{ textAlign: 'center' }}>Units Sold</div>
+                            <div style={{ textAlign: 'center' }}>Revenue</div>
+                            <div style={{ textAlign: 'center' }}>Avg Price</div>
+                            <div style={{ textAlign: 'center' }}>Returns</div>
+                            <div style={{ textAlign: 'center' }}>Performance</div>
                           </div>
                           
                           {amazonData.variants && amazonData.variants.length > 0 ? (
                             amazonData.variants.map((variant, index) => (
-                              <div key={index} style={{
+                              <div key={index} style={{ 
+                                padding: '1rem 1.5rem',
+                                borderBottom: index < amazonData.variants.length - 1 ? '1px solid #f1f5f9' : 'none',
                                 display: 'grid',
-                                gridTemplateColumns: 'repeat(6, 1fr)',
+                                gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr',
                                 gap: '1rem',
-                                padding: '1rem',
-                                background: 'rgba(255, 255, 255, 0.8)',
-                                borderRadius: '12px',
-                                marginBottom: '0.5rem',
-                                border: '1px solid rgba(226, 232, 240, 0.5)',
-                                fontSize: '0.875rem'
+                                alignItems: 'center'
                               }}>
-                                <div style={{ fontWeight: '600', color: '#1e293b' }}>{variant.name}</div>
-                                <div style={{ color: '#64748b', fontFamily: 'monospace' }}>{variant.sku}</div>
-                                <div style={{ color: '#059669', fontWeight: '600' }}>{variant.unitsSold?.toLocaleString() || 0}</div>
-                                <div style={{ color: '#dc2626', fontWeight: '600' }}>{formatCurrency(variant.revenue || 0)}</div>
-                                <div style={{ color: '#7c3aed' }}>{formatCurrency(variant.avgPrice || 0)}</div>
                                 <div>
-                                  <span style={{
+                                  <div style={{ fontWeight: '600', color: '#1e293b', marginBottom: '0.25rem' }}>
+                                    {variant.name}
+                                  </div>
+                                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                    SKU: {variant.sku}
+                                  </div>
+                                  <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                    ASIN: {variant.asin || 'N/A'} | 
+                                    Units: {safeNumberFormat(variant.unitsSold)}
+                                  </div>
+                                </div>
+                                
+                                <div style={{ textAlign: 'center' }}>
+                                  <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                    {safeNumberFormat(variant.unitsSold)}
+                                  </div>
+                                </div>
+                                
+                                <div style={{ textAlign: 'center' }}>
+                                  <div style={{ fontWeight: '600', color: '#059669' }}>
+                                    {formatCurrency(variant.revenue || 0)}
+                                  </div>
+                                </div>
+                                
+                                <div style={{ textAlign: 'center' }}>
+                                  <div style={{ fontWeight: '600', color: '#1e293b' }}>
+                                    {formatCurrency(variant.avgPrice || 0)}
+                                  </div>
+                                </div>
+                                
+                                <div style={{ textAlign: 'center' }}>
+                                  <div style={{ fontWeight: '600', color: '#ef4444' }}>
+                                    {variant.returnQuantity > 0 ? variant.returnQuantity.toLocaleString() : '0'}
+                                  </div>
+                                  {variant.returnRate > 0 && (
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                      {variant.returnRate.toFixed(1)}% rate
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div style={{ textAlign: 'center' }}>
+                                  <div style={{ 
+                                    display: 'inline-block',
                                     padding: '0.25rem 0.75rem',
-                                    borderRadius: '12px',
+                                    borderRadius: '9999px',
                                     fontSize: '0.75rem',
                                     fontWeight: '600',
-                                    background: variant.performance === 'Good' ? '#dcfdf7' : variant.performance === 'Average' ? '#fef3c7' : '#fee2e2',
-                                    color: variant.performance === 'Good' ? '#065f46' : variant.performance === 'Average' ? '#92400e' : '#991b1b'
+                                    background: variant.performance === 'Top Performer' ? '#dcfce7' : 
+                                               variant.performance === 'Good' ? '#fef3c7' : '#f1f5f9',
+                                    color: variant.performance === 'Top Performer' ? '#15803d' : 
+                                           variant.performance === 'Good' ? '#d97706' : '#64748b'
                                   }}>
                                     {variant.performance || 'N/A'}
-                                  </span>
+                                  </div>
                                 </div>
                               </div>
                             ))
@@ -3300,6 +3431,7 @@ const ProductDetailsPage = () => {
                               No variant data available
                             </div>
                           )}
+                          </div>
                         </div>
 
                         {/* Charts */}
@@ -3324,13 +3456,55 @@ const ProductDetailsPage = () => {
                               background: 'rgba(248, 250, 252, 0.5)',
                               borderRadius: '16px',
                               padding: '1rem',
-                              border: '1px solid rgba(226, 232, 240, 0.5)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#64748b'
+                              border: '1px solid rgba(226, 232, 240, 0.5)'
                             }}>
-                              Chart data not available
+                              {amazonData.variants && amazonData.variants.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <PieChart>
+                                    <Pie
+                                      data={amazonData.variants.map(variant => ({
+                                        name: variant.name || 'Unknown',
+                                        value: parseInt(variant.unitsSold) || 0,
+                                      }))}
+                                      cx="50%"
+                                      cy="50%"
+                                      outerRadius={90}
+                                      innerRadius={40}
+                                      fill="#8884d8"
+                                      dataKey="value"
+                                    >
+                                      {amazonData.variants.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                      ))}
+                                    </Pie>
+                                    <Tooltip 
+                                      formatter={(value) => [value.toLocaleString(), 'Units Sold']}
+                                      contentStyle={{
+                                        background: 'rgba(255, 255, 255, 0.95)',
+                                        backdropFilter: 'blur(20px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        borderRadius: '12px'
+                                      }}
+                                    />
+                                    <Legend 
+                                      wrapperStyle={{
+                                        fontSize: '0.875rem',
+                                        color: '#64748b'
+                                      }}
+                                    />
+                                  </PieChart>
+                                </ResponsiveContainer>
+                              ) : (
+                                <div style={{ 
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  height: '100%',
+                                  color: '#64748b'
+                                }}>
+                                  No variant data available
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -3354,13 +3528,55 @@ const ProductDetailsPage = () => {
                               background: 'rgba(248, 250, 252, 0.5)',
                               borderRadius: '16px',
                               padding: '1rem',
-                              border: '1px solid rgba(226, 232, 240, 0.5)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: '#64748b'
+                              border: '1px solid rgba(226, 232, 240, 0.5)'
                             }}>
-                              Chart data not available
+                              {amazonData.variants && amazonData.variants.length > 0 ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                  <BarChart
+                                    data={amazonData.variants.map(variant => ({
+                                      name: variant.name || 'Unknown',
+                                      revenue: parseFloat(variant.revenue) || 0,
+                                    }))}
+                                  >
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.3)" />
+                                    <XAxis 
+                                      dataKey="name" 
+                                      tick={{ fontSize: 12, fill: '#64748b' }}
+                                      axisLine={{ stroke: '#e2e8f0' }}
+                                    />
+                                    <YAxis 
+                                      tick={{ fontSize: 12, fill: '#64748b' }}
+                                      axisLine={{ stroke: '#e2e8f0' }}
+                                    />
+                                    <Tooltip 
+                                      formatter={(value) => [formatCurrency(value), 'Revenue']}
+                                      contentStyle={{
+                                        background: 'rgba(255, 255, 255, 0.95)',
+                                        backdropFilter: 'blur(20px)',
+                                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                                        borderRadius: '12px'
+                                      }}
+                                    />
+                                    <Legend 
+                                      wrapperStyle={{
+                                        fontSize: '0.875rem',
+                                        color: '#64748b'
+                                      }}
+                                    />
+                                    <Bar dataKey="revenue" fill="#667eea" />
+                                  </BarChart>
+                                </ResponsiveContainer>
+                              ) : (
+                                <div style={{ 
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  height: '100%',
+                                  color: '#64748b'
+                                }}>
+                                  No variant data available
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

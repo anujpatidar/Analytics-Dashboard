@@ -839,24 +839,23 @@ const amazonController = {
             AND DATE(DATETIME_ADD(purchase_date, INTERVAL 330 MINUTE)) >= '${formattedStartDate}'
             AND DATE(DATETIME_ADD(purchase_date, INTERVAL 330 MINUTE)) <= '${formattedEndDate}'
         ),
-        product_data AS (
+        variant_data AS (
           SELECT 
             sku,
-            product_name,
-            asin,
-            currency,
-            -- Placeholder for image URL since product_image_url column doesn't exist
-            NULL as image_url,
-            -- Order level metrics
+            -- Get the most common product name and first ASIN for each SKU
+            ARRAY_AGG(product_name ORDER BY product_name LIMIT 1)[OFFSET(0)] as product_name,
+            ARRAY_AGG(asin ORDER BY asin LIMIT 1)[OFFSET(0)] as asin,
+            ARRAY_AGG(currency ORDER BY currency LIMIT 1)[OFFSET(0)] as currency,
+            -- Order level metrics per unique SKU
             COUNT(DISTINCT amazon_order_id) as total_orders,
             COUNT(*) as total_line_items,
             SUM(CASE WHEN quantity IS NOT NULL THEN CAST(quantity AS FLOAT64) ELSE 0 END) as total_items_sold,
             
-            -- Cancelled and returned items
+            -- Cancelled and returned items per unique SKU
             COUNT(CASE WHEN LOWER(item_status) LIKE '%cancel%' THEN 1 END) as cancelled_items,
             COUNT(CASE WHEN LOWER(item_status) LIKE '%return%' THEN 1 END) as returned_items,
             
-            -- Financial metrics
+            -- Financial metrics per unique SKU
             SUM(CAST(COALESCE(item_price, 0) AS FLOAT64)) as gross_sales,
             SUM(CAST(COALESCE(item_price, 0) AS FLOAT64) - CAST(COALESCE(item_promotion_discount, 0) AS FLOAT64)) as total_sales,
             SUM(CAST(COALESCE(item_tax, 0) AS FLOAT64)) as total_tax,
@@ -864,31 +863,55 @@ const amazonController = {
             SUM(CAST(COALESCE(shipping_tax, 0) AS FLOAT64)) as total_shipping_tax,
             SUM(CAST(COALESCE(item_promotion_discount, 0) AS FLOAT64) + CAST(COALESCE(ship_promotion_discount, 0) AS FLOAT64)) as total_promotions,
             
-            -- Average calculations
-            AVG(CAST(COALESCE(item_price, 0) AS FLOAT64)) as avg_item_price,
-            
-            -- Time series data for charts
-            ARRAY_AGG(
-              STRUCT(
-                DATE(purchase_date) as date,
-                CAST(COALESCE(item_price, 0) AS FLOAT64) - CAST(COALESCE(item_promotion_discount, 0) AS FLOAT64) as daily_sales,
-                CAST(quantity AS FLOAT64) as daily_quantity
-              )
-              ORDER BY DATE(purchase_date)
-            ) as daily_data
+            -- Average calculations per unique SKU
+            AVG(CAST(COALESCE(item_price, 0) AS FLOAT64)) as avg_item_price
             
           FROM latest_line_items
           WHERE rn = 1
-          GROUP BY sku, product_name, asin, currency
+          GROUP BY sku
+        ),
+        aggregated_data AS (
+          SELECT 
+            -- Aggregated metrics across all variants
+            SUM(total_orders) as agg_total_orders,
+            SUM(total_items_sold) as agg_total_items_sold,
+            SUM(cancelled_items) as agg_cancelled_items,
+            SUM(returned_items) as agg_returned_items,
+            SUM(gross_sales) as agg_gross_sales,
+            SUM(total_sales) as agg_total_sales,
+            SUM(total_tax) as agg_total_tax,
+            SUM(total_shipping) as agg_total_shipping,
+            SUM(total_shipping_tax) as agg_total_shipping_tax,
+            SUM(total_promotions) as agg_total_promotions,
+            AVG(avg_item_price) as agg_avg_item_price,
+            
+            -- Collect all variant data as an array
+            ARRAY_AGG(
+              STRUCT(
+                sku,
+                product_name,
+                asin,
+                total_orders,
+                total_items_sold,
+                total_sales,
+                gross_sales,
+                avg_item_price,
+                cancelled_items,
+                returned_items
+              )
+              ORDER BY total_sales DESC
+            ) as variants_details
+            
+          FROM variant_data
         ),
         returns_data AS (
           SELECT 
-            COUNT(*) as total_return_items,
-            SUM(CAST(COALESCE(Return_quantity, 0) AS FLOAT64)) as total_return_quantity,
-            AVG(CAST(COALESCE(Return_quantity, 0) AS FLOAT64)) as avg_return_quantity
+            LOWER(Merchant_SKU) as return_sku,
+            SUM(CAST(COALESCE(Return_quantity, 0) AS FLOAT64)) as return_quantity
           FROM \`frido-429506.Frido_BigQuery.Frido_AmazonSeller_FlatFileReturnsReportbyReturnDate\`
           WHERE LOWER(Merchant_SKU) IN (${variantSkus.map(s => `'${s.toLowerCase()}'`).join(',')})
             AND Return_request_date BETWEEN '${formattedStartDate}' AND '${formattedEndDate}'
+          GROUP BY LOWER(Merchant_SKU)
         ),
         marketing_data AS (
           -- Placeholder for marketing data - you can extend this based on your Amazon Ads tables
@@ -899,16 +922,18 @@ const amazonController = {
             0 as ad_purchases
         )
         SELECT 
-          p.*,
-          r.total_return_items,
-          r.total_return_quantity,
-          r.avg_return_quantity,
+          a.*,
+          ARRAY(
+            SELECT AS STRUCT
+              return_sku,
+              return_quantity
+            FROM returns_data
+          ) as returns_by_sku,
           m.ad_spend,
           m.impressions,
           m.clicks,
           m.ad_purchases
-        FROM product_data p
-        CROSS JOIN returns_data r
+        FROM aggregated_data a
         CROSS JOIN marketing_data m
       `;
 
@@ -916,7 +941,7 @@ const amazonController = {
       const result = rows[0] || {};
       
       // If no data found, return basic structure with N/A values
-      if (!result.sku) {
+      if (!result.agg_total_orders) {
         const noDataResult = {
           product: {
             name: product.itemName || 'Product Not Found',
@@ -998,17 +1023,21 @@ const amazonController = {
         return res.status(200).json({ success: true, data: noDataResult, store: store });
       }
       
-      // Calculate additional metrics
-      const totalOrders = parseInt(result.total_orders) || 0;
-      const totalSales = parseFloat(result.total_sales) || 0;
-      const grossSales = parseFloat(result.gross_sales) || 0;
-      const cancelledItems = parseInt(result.cancelled_items) || 0;
-      const returnedItems = parseInt(result.returned_items) || 0;
-      const totalItemsSold = parseInt(result.total_items_sold) || 0;
-      const totalTax = parseFloat(result.total_tax) || 0;
-      const totalShipping = parseFloat(result.total_shipping) || 0;
-      const totalPromotions = parseFloat(result.total_promotions) || 0;
-      const totalReturnQuantity = parseFloat(result.total_return_quantity) || 0;
+      // Calculate additional metrics using aggregated data
+      const totalOrders = parseInt(result.agg_total_orders) || 0;
+      const totalSales = parseFloat(result.agg_total_sales) || 0;
+      const grossSales = parseFloat(result.agg_gross_sales) || 0;
+      const cancelledItems = parseInt(result.agg_cancelled_items) || 0;
+      const returnedItems = parseInt(result.agg_returned_items) || 0;
+      const totalItemsSold = parseInt(result.agg_total_items_sold) || 0;
+      const totalTax = parseFloat(result.agg_total_tax) || 0;
+      const totalShipping = parseFloat(result.agg_total_shipping) || 0;
+      const totalPromotions = parseFloat(result.agg_total_promotions) || 0;
+      
+      // Calculate total return quantity from returns_by_sku array
+      const totalReturnQuantity = result.returns_by_sku 
+        ? result.returns_by_sku.reduce((sum, returnData) => sum + (parseFloat(returnData.return_quantity) || 0), 0)
+        : 0;
       
       // Amazon-specific calculations
       const amazonFees = totalSales * 0.15; // Assuming 15% Amazon fee
@@ -1021,15 +1050,20 @@ const amazonController = {
       const estimatedCogs = totalSales * 0.4; // Assuming 40% COGS
       const estimatedSdCost = totalShipping || (totalSales * 0.08); // Use actual shipping or 8% estimate
       
+      // Get the first variant for main product info or use product data
+      const firstVariant = result.variants_details && result.variants_details.length > 0 
+        ? result.variants_details[0] 
+        : null;
+      
       // Format the response to match Myfrido structure
       const productMetrics = {
         product: {
-          name: result.product_name || product.itemName || 'Unknown Product',
+          name: firstVariant?.product_name || product.itemName || 'Unknown Product',
           sku: sku, // Use MasterSKU
-          price: parseFloat(result.avg_item_price) || 0,
-          image: result.image_url || null,
-          asin: result.asin || 'N/A',
-          currency: result.currency || 'USD'
+          price: parseFloat(result.agg_avg_item_price) || 0,
+          image: null, // Placeholder for image URL
+          asin: firstVariant?.asin || 'N/A',
+          currency: 'USD'
         },
         overview: {
           totalOrders: totalOrders,
@@ -1076,16 +1110,14 @@ const amazonController = {
           taxChangePercentage: 0
         },
         charts: {
-          salesOverTime: result.daily_data ? result.daily_data.map(d => ({
-            date: d.date,
-            sales: d.daily_sales || 0,
-            quantity: d.daily_quantity || 0
+          salesOverTime: [], // Placeholder - daily data removed from current query
+          quantityOverTime: [], // Placeholder - daily data removed from current query
+          topVariants: result.variants_details ? result.variants_details.map(v => ({
+            name: v.product_name || 'Unknown Variant',
+            sku: v.sku,
+            value: parseInt(v.total_items_sold) || 0,
+            sales: parseFloat(v.total_sales) || 0
           })) : [],
-          quantityOverTime: result.daily_data ? result.daily_data.map(d => ({
-            date: d.date,
-            quantity: d.daily_quantity || 0
-          })) : [],
-          topVariants: [], // Placeholder - you can extend this
           customerInsights: [] // Placeholder - you can extend this
         },
         marketing: {
@@ -1099,16 +1131,46 @@ const amazonController = {
           cpc: result.clicks > 0 ? result.ad_spend / result.clicks : 0,
           targetingKeyword: 'Amazon Product Ads' // Placeholder
         },
-        variants: [
-          {
-            name: result.product_name || 'Main Variant',
-            sku: result.sku,
-            unitsSold: totalItemsSold,
-            revenue: totalSales,
-            avgPrice: aov,
-            performance: totalItemsSold > 0 ? 'Good' : 'Low'
-          }
-        ],
+        variants: result.variants_details ? result.variants_details.map((variant, index) => {
+          // Find matching return data for this variant
+          const variantReturns = result.returns_by_sku 
+            ? result.returns_by_sku.find(r => r.return_sku && r.return_sku.toLowerCase() === variant.sku.toLowerCase())
+            : null;
+          const returnQuantity = variantReturns ? parseFloat(variantReturns.return_quantity) || 0 : 0;
+          
+          // Find matching variant from sku.json for additional details
+          const skuJsonVariant = product.variants && Array.isArray(product.variants)
+            ? product.variants.find(v => 
+                v.variantSkus && Array.isArray(v.variantSkus) &&
+                v.variantSkus.some(vs => vs.variant_sku && vs.variant_sku.toLowerCase() === variant.sku.toLowerCase())
+              )
+            : null;
+          
+          const unitsSold = parseInt(variant.total_items_sold) || 0;
+          const revenue = parseFloat(variant.total_sales) || 0;
+          const avgPrice = unitsSold > 0 ? revenue / unitsSold : (parseFloat(variant.avg_item_price) || 0);
+          
+          // Determine performance based on sales rank
+          let performance = 'Average';
+          if (index === 0) performance = 'Top Performer';
+          else if (index === 1) performance = 'Good';
+          else if (revenue < (totalSales * 0.1)) performance = 'Low';
+          
+          return {
+            name: skuJsonVariant?.variantName || variant.product_name || `Variant ${index + 1}`,
+            sku: variant.sku,
+            unitsSold: unitsSold,
+            revenue: revenue,
+            avgPrice: avgPrice,
+            performance: performance,
+            asin: variant.asin || 'N/A',
+            orders: parseInt(variant.total_orders) || 0,
+            cancelledItems: parseInt(variant.cancelled_items) || 0,
+            returnedItems: parseInt(variant.returned_items) || 0,
+            returnQuantity: returnQuantity,
+            returnRate: unitsSold > 0 ? (returnQuantity / unitsSold) * 100 : 0
+          };
+        }) : [],
         customers: {
           totalCustomers: totalOrders, // Approximation - assuming 1 customer per order
           repeatCustomers: 0, // Placeholder
